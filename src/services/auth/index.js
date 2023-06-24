@@ -4,10 +4,10 @@ const END_POINTS = {
     google_signIn: '/api/Auth'
 }
 
-export const loginWithGoogle = () => {
-    axios.post(END_POINTS.google_signIn)
-        .then(res => {
-            console.log(res);
-        })
-        .catch(err => console.log(err))
+export const loginWithGoogle = async () => {
+    return await axios.post(`${URL}${END_POINTS.google_signIn}`, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
 }

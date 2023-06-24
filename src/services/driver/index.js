@@ -10,7 +10,7 @@ const END_POINTS = {
 }
 
 export const addDriver = async (driver) => {
-    return await axios.post(END_POINTS.addDriver, {
+    return await axios.post(`${URL}/${END_POINTS.addDriver}`, {
         Email: driver.email,
         Code: driver.code,
         FullName: code.fullName,
@@ -25,7 +25,7 @@ export const addDriver = async (driver) => {
 }
 
 export const updateDriver = async (driver) => {
-    return await axios.put(`${END_POINTS.updateDriver}/${driver.id}`, {
+    return await axios.put(`${URL}/${END_POINTS.updateDriver}/${driver.id}`, {
         Email: driver.email,
         Code: driver.code,
         FullName: code.fullName,
@@ -40,11 +40,11 @@ export const updateDriver = async (driver) => {
 }
 
 export const getSingleDriver = async (id) => {
-    return await axios.get(`${END_POINTS.getSingleDriver}/${id}`)
+    return await axios.get(`${URL}/${END_POINTS.getSingleDriver}/${id}`)
 }
 
 export const getMultiDrivers = async (data) => {
-    return await axios.get(END_POINTS.getMultiDrivers, {
+    return await axios.get(`${URL}/${END_POINTS.getMultiDrivers}`, {
         params: {
             Code: data.code,
             Email: data.email,
@@ -57,11 +57,11 @@ export const getMultiDrivers = async (data) => {
 }
 
 export const patchDriver = async (data) => {
-    return await axios.patch(`${END_POINTS.patchDriver}/${data.id}`, {
+    return await axios.patch(`${URL}/${END_POINTS.patchDriver}/${data.id}`, {
 
     })
 }
 
 export const deleteDriver = async (id) => {
-    return await axios.delete(`${END_POINTS.deleteDriver}/${id}`)
+    return await axios.delete(`${URL}/${END_POINTS.deleteDriver}/${id}`)
 }

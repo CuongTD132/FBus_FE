@@ -8,7 +8,7 @@ const END_POINTS = {
 }
 
 export const addBus = async (bus) => {
-    return await axios.post(END_POINTS.addBus, {
+    return await axios.post(`${URL}/${END_POINTS.addBus}`, {
         Code: bus.code,
         LicensePlate: bus.licensePlate,
         Brand: code.brand,
@@ -20,7 +20,7 @@ export const addBus = async (bus) => {
 }
 
 export const updateBus = async (bus) => {
-    return await axios.put(`${END_POINTS.updateBus}/${bus.id}`, {
+    return await axios.put(`${URL}/${END_POINTS.updateBus}/${bus.id}`, {
         Code: bus.code,
         LicensePlate: bus.licensePlate,
         Brand: code.brand,
@@ -32,11 +32,11 @@ export const updateBus = async (bus) => {
 }
 
 export const getSingleBus = async (id) => {
-    return await axios.get(`${END_POINTS.getSingleBus}/${id}`)
+    return await axios.get(`${URL}/${END_POINTS.getSingleBus}/${id}`)
 }
 
 export const getMultiBuses = async (data) => {
-    return await axios.get(END_POINTS.getMultiBuses, {
+    return await axios.get(`${URL}/${END_POINTS.getMultiBuses}`, {
         params: {
             Code: data.code,
             LicensePlate: data.licensePlate,

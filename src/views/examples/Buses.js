@@ -23,6 +23,7 @@ import { updateStatusAPI } from "services/bus";
 import { getAllBuses } from "services/bus";
 
 
+
 const Buses = () => {
   const [busList, setBusList] = useState([]);
   const [showAdd, setShowAdd] = useState(false);
@@ -180,7 +181,7 @@ const Buses = () => {
                         <Form.Control
                           type="text"
                           name="code"
-                          placeholder="FE01"
+                          placeholder="Code"
                           autoFocus
                           required
                           value={formData.code}
@@ -191,8 +192,8 @@ const Buses = () => {
                         <Form.Label>License Plate</Form.Label>
                         <Form.Control
                           type="text"
-                          name="licensePlate"
-                          placeholder="FE01"
+                          name="LicensePlate"
+                          placeholder="licensePlate"
                           autoFocus
                           required
                           value={formData.licensePlate}
@@ -204,7 +205,7 @@ const Buses = () => {
                         <Form.Control
                           type="text"
                           name="brand"
-                          placeholder="FE01"
+                          placeholder="Brand"
                           autoFocus
                           required
                           value={formData.brand}
@@ -216,7 +217,7 @@ const Buses = () => {
                         <Form.Control
                           type="text"
                           name="model"
-                          placeholder="FE01"
+                          placeholder="Model"
                           autoFocus
                           required
                           value={formData.model}
@@ -228,7 +229,7 @@ const Buses = () => {
                         <Form.Control
                           type="text"
                           name="color"
-                          placeholder="FE01"
+                          placeholder="Color"
                           autoFocus
                           required
                           value={formData.color}
@@ -240,7 +241,7 @@ const Buses = () => {
                         <Form.Control
                           type="number"
                           name="seat"
-                          placeholder="FE01"
+                          placeholder="1"
                           autoFocus
                           required
                           value={formData.seat}
@@ -252,7 +253,7 @@ const Buses = () => {
                         <Form.Control
                           type="text"
                           name="licensePlate"
-                          placeholder="FE01"
+                          placeholder="YYYY-MM-DD"
                           autoFocus
                           required
                           value={formData.licensePlate}
@@ -282,7 +283,7 @@ const Buses = () => {
                         <Form.Control
                           type="text"
                           name="code"
-                          placeholder="FE01"
+                          placeholder="code"
                           autoFocus
                           required
                           value={updateData.code}
@@ -294,7 +295,7 @@ const Buses = () => {
                         <Form.Control
                           type="text"
                           name="licensePlate"
-                          placeholder="FE01"
+                          placeholder="licensePlate"
                           autoFocus
                           required
                           value={updateData.licensePlate}
@@ -306,7 +307,7 @@ const Buses = () => {
                         <Form.Control
                           type="text"
                           name="brand"
-                          placeholder="FE01"
+                          placeholder="brand"
                           autoFocus
                           required
                           value={updateData.brand}
@@ -318,7 +319,7 @@ const Buses = () => {
                         <Form.Control
                           type="text"
                           name="model"
-                          placeholder="FE01"
+                          placeholder="model"
                           autoFocus
                           required
                           value={updateData.model}
@@ -330,7 +331,7 @@ const Buses = () => {
                         <Form.Control
                           type="text"
                           name="color"
-                          placeholder="FE01"
+                          placeholder="color"
                           autoFocus
                           required
                           value={updateData.color}
@@ -342,7 +343,7 @@ const Buses = () => {
                         <Form.Control
                           type="number"
                           name="seat"
-                          placeholder="FE03"
+                          placeholder="1"
                           autoFocus
                           required
                           value={updateData.seat}
@@ -354,7 +355,7 @@ const Buses = () => {
                         <Form.Control
                           type="text"
                           name="licensePlate"
-                          placeholder="FE01"
+                          placeholder="Date of Registration"
                           autoFocus
                           required
                           value={formData.licensePlate}
@@ -413,25 +414,28 @@ const Buses = () => {
                               </DropdownToggle>
                               <DropdownMenu className="dropdown-menu-arrow" right>
                                 <DropdownItem
+                                  className="update-dropdown-item"
                                   href="#pablo"
                                   onClick={() => handleUpdateShow(bus)}
-                                // onClick={(e) => e.preventDefault()}
                                 >
                                   Update
                                 </DropdownItem>
                                 <DropdownItem
+                                  className="disable-enable-dropdown-item"
                                   href="#pablo"
                                   onClick={() => handleDisableShow(bus)}
                                 >
                                   Disable/Enable
                                 </DropdownItem>
                                 <DropdownItem
+                                  className="delete-dropdown-item"
                                   href="#pablo"
                                   onClick={() => handleDeleteShow(bus)}
                                 >
                                   Delete
                                 </DropdownItem>
                               </DropdownMenu>
+
                             </UncontrolledDropdown>
                           </td>
                           {/* <td className="registration">{bus.dateOfRegistration ? bus.dateOfRegistration : "none"}</td> */}

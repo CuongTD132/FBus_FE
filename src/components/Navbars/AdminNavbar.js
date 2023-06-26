@@ -1,22 +1,7 @@
-/*!
 
-=========================================================
-* Argon Dashboard React - v1.2.3
-=========================================================
-
-* Product Page: https://www.creative-tim.com/product/argon-dashboard-react
-* Copyright 2023 Creative Tim (https://www.creative-tim.com)
-* Licensed under MIT (https://github.com/creativetimofficial/argon-dashboard-react/blob/master/LICENSE.md)
-
-* Coded by Creative Tim
-
-=========================================================
-
-* The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-
-*/
 import { Link } from "react-router-dom";
-// reactstrap components
+import { GoogleOAuthProvider, googleLogout } from '@react-oauth/google';
+
 import {
   DropdownMenu,
   DropdownItem,
@@ -35,6 +20,15 @@ import {
 } from "reactstrap";
 
 const AdminNavbar = (props) => {
+  const handleLogout = () => {
+    googleLogout((result) => {
+      if (result) {
+        console.log('Logout successful');
+      } else {
+        console.log('Logout failed');
+      }
+    });
+  };
   return (
     <>
       <Navbar className="navbar-top navbar-dark" expand="md" id="navbar-main">
@@ -95,10 +89,12 @@ const AdminNavbar = (props) => {
                   <span>Support</span>
                 </DropdownItem>
                 <DropdownItem divider />
-                <DropdownItem href="#pablo" onClick={(e) => e.preventDefault()}>
-                  <i className="ni ni-user-run" />
-                  <span>Logout</span>
-                </DropdownItem>
+                <GoogleOAuthProvider clientId="319062689013-fku6m54vf3arbhrnoiij84qb0e852o28.apps.googleusercontent.com">
+                  <DropdownItem href="#pablo" onClick={handleLogout}>
+                    <i className="ni ni-user-run" />
+                    <span>Logout</span>
+                  </DropdownItem>
+                </GoogleOAuthProvider>
               </DropdownMenu>
             </UncontrolledDropdown>
           </Nav>

@@ -29,3 +29,21 @@
     height: 455px;
     width: 100%;
 }
+
+.update-dropdown-item:hover {
+    color: white;
+    background-color: #fca130;
+    
+  }
+  
+  .disable-enable-dropdown-item:hover {
+    background-color: #50e3c2;
+    color: white;
+
+  }
+  
+  .delete-dropdown-item:hover {
+    background-color: #f93e3e;
+    color: white;
+
+  }

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button, Form, Modal, Table } from 'react-bootstrap';
 import "../../style/Manager.css"
 import {
@@ -17,183 +17,14 @@ import {
   PaginationLink,
 } from "reactstrap";
 import Header from "components/Headers/Header.js";
+import { updateBusAPI } from "services/bus";
+import { deleteBusAPI } from "services/bus";
+import { updateStatusAPI } from "services/bus";
+import { getAllBuses } from "services/bus";
 
-const data = [
-  {
-    id: "1",
-    code: "F01",
-    licensePlate: "51C-67890",
-    brand: "Volvo",
-    model: "Volvo 7900 Electric",
-    color: "Orange",
-    status: "ACTIVE",
-
-  },
-  {
-    id: "2",
-    code: "FA03",
-    licensePlate: "123",
-    brand: "adidas",
-    model: "toyota",
-    color: "white",
-    status: "ACTIVE",
-
-  },
-  {
-    id: "3",
-    code: "FA03",
-    licensePlate: "123",
-    brand: "adidas",
-    model: "toyota",
-    color: "white",
-    status: "ACTIVE",
-
-  },
-  {
-    id: "4",
-    code: "FA03",
-    licensePlate: "123",
-    brand: "adidas",
-    model: "toyota",
-    color: "white",
-    status: "ACTIVE",
-
-  },
-  {
-    id: "5",
-    code: "FA03",
-    licensePlate: "123",
-    brand: "adidas",
-    model: "toyota",
-    color: "white",
-    status: "ACTIVE",
-
-  },
-  {
-    id: "6",
-    code: "FA03",
-    licensePlate: "123",
-    brand: "adidas",
-    model: "toyota",
-    color: "white",
-    status: "ACTIVE",
-
-  },
-  {
-    id: "7",
-    code: "FA03",
-    licensePlate: "123",
-    brand: "adidas",
-    model: "toyota",
-    color: "white",
-    status: "ACTIVE",
-
-  },
-]
-const data1 = [
-  {
-    id: 1,
-    createdById: 3,
-    createdByCode: "thangpq119",
-    code: "F01",
-    licensePlate: "51C-67890",
-    brand: "Volvo",
-    model: "Volvo 7900 Electric",
-    color: "Orange",
-    seat: 52,
-    dateOfRegistration: "2021-01-01T00:00:00",
-    status: "ACTIVE",
-    createdDate: "2023-06-25T06:18:02.77"
-  },
-  {
-    id: 2,
-    createdById: 3,
-    createdByCode: "thangpq119",
-    code: "F01",
-    licensePlate: "51C-67890",
-    brand: "Volvo",
-    model: "Volvo 7900 Electric",
-    color: "Orange",
-    seat: 52,
-    dateOfRegistration: "2021-01-01T00:00:00",
-    status: "ACTIVE",
-    createdDate: "2023-06-25T06:18:02.77"
-  },
-  {
-    id: 3,
-    createdById: 3,
-    createdByCode: "thangpq119",
-    code: "F01",
-    licensePlate: "51C-67890",
-    brand: "Volvo",
-    model: "Volvo 7900 Electric",
-    color: "Orange",
-    seat: 52,
-    dateOfRegistration: "2021-01-01T00:00:00",
-    status: "ACTIVE",
-    createdDate: "2023-06-25T06:18:02.77"
-  },
-  {
-    id: 4,
-    createdById: 3,
-    createdByCode: "thangpq119",
-    code: "F01",
-    licensePlate: "51C-67890",
-    brand: "Volvo",
-    model: "Volvo 7900 Electric",
-    color: "Orange",
-    seat: 52,
-    dateOfRegistration: "2021-01-01T00:00:00",
-    status: "ACTIVE",
-    createdDate: "2023-06-25T06:18:02.77"
-  },
-  {
-    id: 5,
-    createdById: 3,
-    createdByCode: "thangpq119",
-    code: "F01",
-    licensePlate: "51C-67890",
-    brand: "Volvo",
-    model: "Volvo 7900 Electric",
-    color: "Orange",
-    seat: 52,
-    dateOfRegistration: "2021-01-01T00:00:00",
-    status: "ACTIVE",
-    createdDate: "2023-06-25T06:18:02.77"
-  },
-  {
-    id: 6,
-    createdById: 3,
-    createdByCode: "thangpq119",
-    code: "F01",
-    licensePlate: "51C-67890",
-    brand: "Volvo",
-    model: "Volvo 7900 Electric",
-    color: "Orange",
-    seat: 52,
-    dateOfRegistration: "2021-01-01T00:00:00",
-    status: "ACTIVE",
-    createdDate: "2023-06-25T06:18:02.77"
-  },
-  {
-    id: 7,
-    createdById: 3,
-    createdByCode: "thangpq119",
-    code: "F01",
-    licensePlate: "51C-67890",
-    brand: "Volvo",
-    model: "Volvo 7900 Electric",
-    color: "Orange",
-    seat: 52,
-    dateOfRegistration: "2021-01-01T00:00:00",
-    status: "ACTIVE",
-    createdDate: "2023-06-25T06:18:02.77"
-  },
-]
 
 const Buses = () => {
-  const [busList, setBusList] = useState(data);
-  const [busListDetail, setBusListDetail] = useState(data1);
+  const [busList, setBusList] = useState([]);
   const [showAdd, setShowAdd] = useState(false);
   const [showUpdate, setShowUpdate] = useState(false);
   const [showDisable, setShowDisable] = useState(false);
@@ -218,6 +49,13 @@ const Buses = () => {
     dateOfRegistration: "",
   });
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedBus, setSelectedBus] = useState(null);
+  const [selectedId, setSelectedId] = useState(null);
+
+  useEffect(() => {
+    getAllBuses()
+      .then((res) => setBusList(res.data.data))
+  }, [])
 
   const handleAddClose = () => setShowAdd(false);
   const handleAddShow = () => setShowAdd(true);
@@ -244,16 +82,22 @@ const Buses = () => {
     console.log(formData);
   };
 
-  const updateBus = (bus) => {
-    console.log(bus);
+  const updateBus = () => {
+    updateBusAPI(formData, selectedId)
+      .then((res) => console.log(res))
   }
 
-  const disableBus = (bus) => {
-    console.log(bus.code);
+  const toggleStatusBus = async (selectedId) => {
+    let id = await selectedId;
+    updateStatusAPI(id, selectedBus.status == 'ACTIVE' ? 'DISABLE' : 'ACTIVE')
+      .then((res) => {
+        console.log(res)
+      })
   }
 
-  const deleteBus = (bus) => {
-    console.log(bus.code);
+  const deleteBus = (selectedBus) => {
+    deleteBusAPI(selectedBus.id)
+      .then(res => console.log(res))
   }
 
   const handleAddChange = (e) => {
@@ -304,7 +148,7 @@ const Buses = () => {
                     <Button variant="secondary" onClick={handleDisableClose}>
                       Close
                     </Button>
-                    <Button variant="primary" onClick={() => disableBus(updateData)}>
+                    <Button variant="primary" onClick={() => toggleStatusBus(updateData)}>
                       Disable/Enable
                     </Button>
                   </Modal.Footer>
@@ -523,7 +367,7 @@ const Buses = () => {
                     <Button variant="secondary" onClick={handleUpdateClose}>
                       Close
                     </Button>
-                    <Button variant="primary" onClick={() => updateBus(updateData)}>
+                    <Button variant="primary" onClick={() => updateBus()}>
                       Update
                     </Button>
                   </Modal.Footer>
@@ -545,7 +389,10 @@ const Buses = () => {
                     </thead>
                     <tbody>
                       {currentBusList.map((bus, index) => (
-                        <tr key={index}>
+                        <tr key={index} onClick={() => {
+                          setSelectedBus(bus)
+                          setSelectedId(index)
+                        }}>
                           <td>{bus.id ? bus.id : "none"}</td>
                           <td>{bus.code ? bus.code : "none"}</td>
                           <td>{bus.licensePlate ? bus.licensePlate : "none"}</td>

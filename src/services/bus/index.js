@@ -1,24 +1,25 @@
 import axios from "axios";
 const URL = process.env.REACT_APP_SERVER;
 const END_POINTS = {
-    addBus: '/api/Buses',
-    updateBus: '/api/Buses',
-    getSingleBus: '/api/Buses',
-    getMultiBuses: '/api/Buses',
-    deleteBus: '/api/Buses',
+    addBus: 'api/Buses',
+    updateBus: 'api/Buses',
+    getSingleBus: 'api/Buses',
+    getMultiBuses: 'api/Buses',
+    deleteBus: 'api/Buses',
+    enableBus: 'api/Buses',
 }
 
 export const addBus = async (bus) => {
+    const formData = new FormData();
+    formData.append('code', bus.code);
+    formData.append('licensePlate', bus.licensePlate);
+    formData.append('brand', bus.brand);
+    formData.append('model', bus.model);
+    formData.append('color', bus.color);
+    formData.append('seat', bus.seat);
+    formData.append('dateOfRegistration', bus.dateOfRegistration);
     return await axios.post(`${URL}/${END_POINTS.addBus}`,
-        {
-            Code: bus.code,
-            LicensePlate: bus.licensePlate,
-            Brand: bus.brand,
-            Model: bus.model,
-            Color: bus.color,
-            Seat: bus.seat,
-            DateOfRegistration: bus.dateOfRegistration
-        },
+        formData,
         {
             headers: {
                 Authorization: `Bearer ${'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJJZCI6IjMiLCJSb2xlIjoiQURNSU4iLCJleHAiOjE2OTAyNzUzMTgsImlzcyI6IkZCdXNfU1dQIiwiYXVkIjoiRkJ1c19TV1AifQ.UQGNjS5BPJfY63oh8JfaTcC-CxoiWfzaFdtSPHjwe9A'}`,
@@ -83,7 +84,7 @@ export const deleteBusAPI = async (busId) => {
 }
 
 export const updateStatusAPI = async (busId, status) => {
-    return await axios.patch(`${URL}/${END_POINTS.updateBus}/${busId}`,
+    return await axios.patch(`${URL}/${END_POINTS.enableBus}/${busId}`,
         {
             status: status
         },

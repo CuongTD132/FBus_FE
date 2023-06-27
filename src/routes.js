@@ -51,12 +51,12 @@ var routes = [
     component: <Register />,
     layout: "/auth",
   },
-  {
-    path: "/maps",
-    name: "Maps",
-    icon: "ni ni-pin-3 text-orange",
-    component: <Maps />,
-    layout: "/admin",
-  },
+  // {
+  //   path: "/maps",
+  //   name: "Maps",
+  //   icon: "ni ni-pin-3 text-orange",
+  //   component: <Maps />,
+  //   layout: "/admin",
+  // },
 ];
 export default routes;

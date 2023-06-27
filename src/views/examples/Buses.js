@@ -17,10 +17,17 @@ import {
   PaginationLink,
 } from "reactstrap";
 import Header from "../../components/Headers/Header";
-import { updateBusAPI } from "../../services/bus";
-import { deleteBusAPI } from "../../services/bus";
-import { updateStatusAPI } from "../../services/bus";
-import { getAllBuses } from "../../services/bus";
+import {
+  getAllBuses,
+  getSingleBus,
+  updateBusAPI,
+  deleteBusAPI,
+  updateStatusAPI,
+  addBus
+} from "../../services/bus";
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { useNavigate } from "react-router-dom";
 
 
 
@@ -28,44 +35,101 @@ const Buses = () => {
   const [busList, setBusList] = useState([]);
   const [showAdd, setShowAdd] = useState(false);
   const [showUpdate, setShowUpdate] = useState(false);
+  const [showDetails, setShowDetails] = useState(false);
   const [showDisable, setShowDisable] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
   const [formData, setFormData] = useState({
-    id: "",
     code: "",
     licensePlate: "",
     brand: "",
     model: "",
     color: "",
-    seat: 1,
+    seat: "",
     dateOfRegistration: "",
   });
+
   const [updateData, setUpdateData] = useState({
     code: "",
     licensePlate: "",
     brand: "",
     model: "",
     color: "",
-    seat: 2,
+    seat: "",
     dateOfRegistration: "",
   });
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedBus, setSelectedBus] = useState(null);
   const [selectedId, setSelectedId] = useState(null);
-
+  const [newCode, setNewCode] = useState(null);
+  const [newLicensePlate, setNewLicensePlate] = useState(null);
+  const [newBrand, setNewBrand] = useState(null);
+  const [newModel, setNewModel] = useState(null);
+  const [newColor, setNewColor] = useState(null);
+  const [newSeat, setNewSeat] = useState(null);
+  const [newatDeOfRegistration, setNewatDeOfRegistration] = useState(null);
   useEffect(() => {
     getAllBuses()
       .then((res) => setBusList(res.data.data))
   }, [])
-
-  const handleAddClose = () => setShowAdd(false);
+  const navigate = useNavigate();
+  const handleAddClose = () => {
+    setShowAdd(false);
+    setNewCode("");
+    setNewLicensePlate("");
+    setNewBrand("");
+    setNewModel("");
+    setNewColor("");
+    setNewSeat("");
+    setNewatDeOfRegistration("");
+  }
   const handleAddShow = () => setShowAdd(true);
-
-  const handleUpdateClose = () => setShowUpdate(false);
-  const handleUpdateShow = (bus) => {
-    setUpdateData(bus)
-    setShowUpdate(true)
+  const fetchBusDetails = (busId) => {
+    setCurrentSelectBus(busId)
+    getSingleBus(busId)
+      .then((res) => {
+        setShowDetails(true); // Show the modal
+        setFormData(res.data)
+      })
+      .catch((error) => {
+        console.log(error);
+        // Handle the error appropriately
+      });
   };
+
+
+  const fetchBuses = () => {
+    getAllBuses()
+      .then((res) => setBusList(res.data.data))
+      .catch((error) => {
+        console.log(error);
+      });
+  };
+  const [currentSelectBus, setCurrentSelectBus] = useState("")
+  const handleUpdateClose = () => setShowUpdate(false);
+  const handleUpdateShow = () => {
+    const updateBus = {
+      code: newCode,
+      licensePlate: newLicensePlate,
+      brand: newBrand,
+      model: newModel,
+      color: newColor,
+      seat: newSeat,
+      dateOfRegistration: newatDeOfRegistration,
+    }
+    updateBusAPI(updateBus, currentSelectBus)
+      .then((res) => {
+        setShowUpdate(true);
+        console.log(res.data)
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  };
+
+  // const handleUpdateShow = (bus) => {
+  //   setUpdateData(bus)
+  //   setShowUpdate(true)
+  // };
 
   const handleDisableClose = () => setShowDisable(false);
   const handleDisableShow = (bus) => {
@@ -77,45 +141,79 @@ const Buses = () => {
   const handleDeleteShow = (bus) => {
     setUpdateData(bus)
     setShowDelete(true);
+
   }
 
-  const addBus = () => {
-    console.log(formData);
+  const handleAddBus = () => {
+    addBus({
+      code: newCode,
+      licensePlate: newLicensePlate,
+      brand: newBrand,
+      model: newModel,
+      color: newColor,
+      seat: newSeat,
+      dateOfRegistration: newatDeOfRegistration
+    })
+      .then((res) => {
+        console.log(res);
+        // Handle the response here
+      })
+      .catch((error) => {
+        console.log(error);
+        // Handle the error appropriately
+      });
   };
 
-  const updateBus = () => {
-    updateBusAPI(formData, selectedId)
-      .then((res) => console.log(res))
-  }
+
+
 
   const toggleStatusBus = async (selectedId) => {
     let id = await selectedId;
-    updateStatusAPI(id, selectedBus.status == 'ACTIVE' ? 'DISABLE' : 'ACTIVE')
-      .then((res) => {
-        console.log(res)
-      })
-  }
+    if (selectedBus.status === 'INACTIVE') {
+      updateStatusAPI(id, 'ACTIVE')
+        .then((res) => {
+          console.log(res);
+        });
+    }
+  };
+
 
   const deleteBus = (selectedBus) => {
     deleteBusAPI(selectedBus.id)
-      .then(res => console.log(res))
-  }
-
-  const handleAddChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prevFormData) => ({
-      ...prevFormData,
-      [name]: value,
-    }));
+      .then((res) => {
+        console.log(res);
+        if (selectedBus.status === "ACTIVE") {
+          toast.success("Bus deleted successfully!");
+        } else if (selectedBus.status === "INACTIVE") {
+          toast.info("The bus was deleted earlier");
+        }
+        setShowDelete(false);
+        navigate("/admin/buses");
+        fetchBuses();
+      })
+      .catch((error) => {
+        console.log(error);
+        toast.error("Failed to delete the bus!");
+      });
   };
+
+
+
+
 
   const handleUpdateChange = (e) => {
     const { name, value } = e.target;
-    setUpdateData((prevFormData) => ({
-      ...prevFormData,
-      [name]: value,
-    }));
+    setUpdateData((prevFormData) => {
+      if (prevFormData) {
+        return {
+          ...prevFormData,
+          [name]: value,
+        };
+      }
+      return prevFormData;
+    });
   };
+
 
   // Pagination
   const itemsPerPage = 5;
@@ -131,6 +229,7 @@ const Buses = () => {
   return (
     <>
       <Header />
+      <ToastContainer />
       <Container className="mt--7 bus_manager" fluid>
         <Row>
           <div className="col">
@@ -142,15 +241,15 @@ const Buses = () => {
 
                 <Modal show={showDisable} onHide={handleDisableClose} animation={false}>
                   <Modal.Header closeButton>
-                    <Modal.Title>Disable/Enable bus</Modal.Title>
+                    <Modal.Title>Enable bus</Modal.Title>
                   </Modal.Header>
-                  <Modal.Body>Are you sure to disable/enable this bus!</Modal.Body>
+                  <Modal.Body>Are you sure to enable this bus!</Modal.Body>
                   <Modal.Footer>
                     <Button variant="secondary" onClick={handleDisableClose}>
                       Close
                     </Button>
                     <Button variant="primary" onClick={() => toggleStatusBus(updateData)}>
-                      Disable/Enable
+                      Enable
                     </Button>
                   </Modal.Footer>
                 </Modal>
@@ -184,20 +283,20 @@ const Buses = () => {
                           placeholder="Code"
                           autoFocus
                           required
-                          value={formData.code}
-                          onChange={handleAddChange}
+                          value={newCode}
+                          onChange={(e) => setNewCode(e.target.value)}
                         />
                       </Form.Group>
                       <Form.Group className="mb-3" controlId="licensePlate">
                         <Form.Label>License Plate</Form.Label>
                         <Form.Control
                           type="text"
-                          name="LicensePlate"
+                          name="licensePlate"
                           placeholder="licensePlate"
                           autoFocus
                           required
-                          value={formData.licensePlate}
-                          onChange={handleAddChange}
+                          value={newLicensePlate}
+                          onChange={(e) => setNewLicensePlate(e.target.value)}
                         />
                       </Form.Group>
                       <Form.Group className="mb-3" controlId="brand">
@@ -208,8 +307,8 @@ const Buses = () => {
                           placeholder="Brand"
                           autoFocus
                           required
-                          value={formData.brand}
-                          onChange={handleAddChange}
+                          value={newBrand}
+                          onChange={(e) => setNewBrand(e.target.value)}
                         />
                       </Form.Group>
                       <Form.Group className="mb-3" controlId="model">
@@ -220,8 +319,8 @@ const Buses = () => {
                           placeholder="Model"
                           autoFocus
                           required
-                          value={formData.model}
-                          onChange={handleAddChange}
+                          value={newModel}
+                          onChange={(e) => setNewModel(e.target.value)}
                         />
                       </Form.Group>
                       <Form.Group className="mb-3" controlId="color">
@@ -232,8 +331,8 @@ const Buses = () => {
                           placeholder="Color"
                           autoFocus
                           required
-                          value={formData.color}
-                          onChange={handleAddChange}
+                          value={newColor}
+                          onChange={(e) => setNewColor(e.target.value)}
                         />
                       </Form.Group>
                       <Form.Group className="mb-3" controlId="seat">
@@ -244,20 +343,20 @@ const Buses = () => {
                           placeholder="1"
                           autoFocus
                           required
-                          value={formData.seat}
-                          onChange={handleAddChange}
+                          value={newSeat}
+                          onChange={(e) => setNewSeat(e.target.value)}
                         />
                       </Form.Group>
-                      <Form.Group className="mb-3" controlId="licensePlate">
+                      <Form.Group className="mb-3" controlId="dateOfRegistration">
                         <Form.Label>Date of Registration</Form.Label>
                         <Form.Control
                           type="text"
-                          name="licensePlate"
+                          name="dateOfRegistration"
                           placeholder="YYYY-MM-DD"
                           autoFocus
                           required
-                          value={formData.licensePlate}
-                          onChange={handleAddChange}
+                          value={newatDeOfRegistration}
+                          onChange={(e) => setNewatDeOfRegistration(e.target.value)}
                         />
                       </Form.Group>
                     </Form>
@@ -266,8 +365,146 @@ const Buses = () => {
                     <Button variant="secondary" onClick={handleAddClose}>
                       Close
                     </Button>
-                    <Button variant="primary" onClick={addBus}>
+                    <Button variant="primary" onClick={handleAddBus}>
                       Add +
+                    </Button>
+                  </Modal.Footer>
+                </Modal>
+
+                <Modal show={showDetails} onHide={() => setShowDetails(false)}>
+                  <Modal.Header closeButton>
+                    <Modal.Title>Bus detail</Modal.Title>
+                    
+                  </Modal.Header>
+                  <Modal.Body>
+                    <Form>
+                      <Form.Group className="mb-3" controlId="code">
+                        <Form.Label>Code</Form.Label>
+                        <UncontrolledDropdown>
+                      <DropdownToggle
+                        className="btn-icon-only text-light"
+                        href="#pablo"
+                        role="button"
+                        size="sm"
+                        color=""
+                        // onClick={(e) => e.preventDefault()}
+                      >
+                        <i className="fas fa-ellipsis-v" />
+                      </DropdownToggle>
+                      <DropdownMenu className="dropdown-menu-arrow" right>
+                        <DropdownItem
+                          className="update-dropdown-item"
+                          href="#pablo"
+                          onClick={() => handleUpdateShow()}
+                        >
+                          Update
+                        </DropdownItem>
+                        <DropdownItem
+                          className="disable-enable-dropdown-item"
+                          href="#pablo"
+                          // onClick={() => handleDisableShow(bus)}
+                        >
+                          Enable
+                        </DropdownItem>
+                        <DropdownItem
+                          className="delete-dropdown-item"
+                          href="#pablo"
+                          onClick={() => handleDeleteShow(currentSelectBus)}
+                        >
+                          Delete
+                        </DropdownItem>
+                      </DropdownMenu>
+
+                    </UncontrolledDropdown>
+                        <Form.Control
+                          type="text"
+                          name="code"
+                          placeholder="Code"
+                          autoFocus
+                          required
+                          value={formData.code}
+                          onChange={handleUpdateChange}
+                        />
+                      </Form.Group>
+                      <Form.Group className="mb-3" controlId="licensePlate">
+                        <Form.Label>License Plate</Form.Label>
+                        <Form.Control
+                          type="text"
+                          name="licensePlate"
+                          placeholder="licensePlate"
+                          autoFocus
+                          required
+                          value={formData.licensePlate}
+                          onChange={handleUpdateChange}
+                        />
+                      </Form.Group>
+                      <Form.Group className="mb-3" controlId="brand">
+                        <Form.Label>Brand</Form.Label>
+                        <Form.Control
+                          type="text"
+                          name="brand"
+                          placeholder="brand"
+                          autoFocus
+                          required
+                          value={formData.brand}
+                          onChange={handleUpdateChange}
+                        />
+                      </Form.Group>
+                      <Form.Group className="mb-3" controlId="model">
+                        <Form.Label>Model</Form.Label>
+                        <Form.Control
+                          type="text"
+                          name="model"
+                          placeholder="model"
+                          autoFocus
+                          required
+                          value={formData.model}
+                          onChange={handleUpdateChange}
+                        />
+                      </Form.Group>
+                      <Form.Group className="mb-3" controlId="color">
+                        <Form.Label>Color</Form.Label>
+                        <Form.Control
+                          type="text"
+                          name="color"
+                          placeholder="color"
+                          autoFocus
+                          required
+                          value={formData.color}
+                          onChange={handleUpdateChange}
+                        />
+                      </Form.Group>
+                      <Form.Group className="mb-3" controlId="seat">
+                        <Form.Label>Seat</Form.Label>
+                        <Form.Control
+                          type="number"
+                          name="seat"
+                          placeholder="Seat"
+                          autoFocus
+                          required
+                          value={formData.seat}
+                          onChange={handleUpdateChange}
+                        />
+                      </Form.Group>
+                      <Form.Group className="mb-3" controlId="dateOfRegistration">
+                        <Form.Label>Date of Registration</Form.Label>
+                        <Form.Control
+                          type="text"
+                          name="dateOfRegistration"
+                          placeholder="Date of Registration"
+                          autoFocus
+                          required
+                          value={formData.dateOfRegistration}
+                          onChange={handleUpdateChange}
+                        />
+                      </Form.Group>
+                    </Form>
+                  </Modal.Body>
+                  <Modal.Footer>
+
+
+                    <Button variant="secondary" onClick={() => setShowDetails(false)}>
+                      Close
                     </Button>
                   </Modal.Footer>
                 </Modal>
@@ -343,35 +580,35 @@ const Buses = () => {
                         <Form.Control
                           type="number"
                           name="seat"
-                          placeholder="1"
+                          placeholder="Seat"
                           autoFocus
                           required
                           value={updateData.seat}
                           onChange={handleUpdateChange}
                         />
                       </Form.Group>
-                      <Form.Group className="mb-3" controlId="licensePlate">
+                      <Form.Group className="mb-3" controlId="dateOfRegistration">
                         <Form.Label>Date of Registration</Form.Label>
                         <Form.Control
                           type="text"
-                          name="licensePlate"
+                          name="dateOfRegistration"
                           placeholder="Date of Registration"
                           autoFocus
                           required
-                          value={formData.licensePlate}
-                          onChange={handleAddChange}
+                          value={updateData.dateOfRegistration}
+                          onChange={handleUpdateChange}
                         />
                       </Form.Group>
                     </Form>
                   </Modal.Body>
-                  <Modal.Footer>
+                  {/* <Modal.Footer>
                     <Button variant="secondary" onClick={handleUpdateClose}>
                       Close
                     </Button>
                     <Button variant="primary" onClick={() => updateBus()}>
                       Update
                     </Button>
-                  </Modal.Footer>
+                  </Modal.Footer> */}
                 </Modal>
 
                 <div className="list">
@@ -390,10 +627,7 @@ const Buses = () => {
                     </thead>
                     <tbody>
                       {currentBusList.map((bus, index) => (
-                        <tr key={index} onClick={() => {
-                          setSelectedBus(bus)
-                          setSelectedId(index)
-                        }}>
+                        <tr key={index} >
                           <td>{bus.id ? bus.id : "none"}</td>
                           <td>{bus.code ? bus.code : "none"}</td>
                           <td>{bus.licensePlate ? bus.licensePlate : "none"}</td>
@@ -414,25 +648,15 @@ const Buses = () => {
                               </DropdownToggle>
                               <DropdownMenu className="dropdown-menu-arrow" right>
                                 <DropdownItem
-                                  className="update-dropdown-item"
+                                  className="detail-dropdown-item"
                                   href="#pablo"
-                                  onClick={() => handleUpdateShow(bus)}
+                                  onClick={(e) => {
+                                    e.preventDefault()
+                                    fetchBusDetails(bus.id)
+                                    setCurrentSelectBus(bus.id)
+                                  }}
                                 >
-                                  Update
-                                </DropdownItem>
-                                <DropdownItem
-                                  className="disable-enable-dropdown-item"
-                                  href="#pablo"
-                                  onClick={() => handleDisableShow(bus)}
-                                >
-                                  Disable/Enable
-                                </DropdownItem>
-                                <DropdownItem
-                                  className="delete-dropdown-item"
-                                  href="#pablo"
-                                  onClick={() => handleDeleteShow(bus)}
-                                >
-                                  Delete
+                                  Detail
                                 </DropdownItem>
                               </DropdownMenu>
 

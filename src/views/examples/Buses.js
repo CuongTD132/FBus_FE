@@ -16,11 +16,11 @@ import {
   PaginationItem,
   PaginationLink,
 } from "reactstrap";
-import Header from "components/Headers/Header.js";
-import { updateBusAPI } from "services/bus";
-import { deleteBusAPI } from "services/bus";
-import { updateStatusAPI } from "services/bus";
-import { getAllBuses } from "services/bus";
+import Header from "../../components/Headers/Header";
+import { updateBusAPI } from "../../services/bus";
+import { deleteBusAPI } from "../../services/bus";
+import { updateStatusAPI } from "../../services/bus";
+import { getAllBuses } from "../../services/bus";
 
 
 

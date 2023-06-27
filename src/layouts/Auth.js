@@ -21,10 +21,10 @@ import { useLocation, Route, Routes, Navigate } from "react-router-dom";
 import { Container, Row, Col } from "reactstrap";
 
 // core components
-import AuthNavbar from "components/Navbars/AuthNavbar.js";
-import AuthFooter from "components/Footers/AuthFooter.js";
+import AuthNavbar from "../components/Navbars/AuthNavbar";
+import AuthFooter from "../components/Footers/AuthFooter";
 
-import routes from "routes.js";
+import routes from "../routes";
 
 const Auth = (props) => {
   const mainContent = React.useRef(null);

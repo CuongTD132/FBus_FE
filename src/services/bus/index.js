@@ -29,9 +29,17 @@ export const addBus = async (bus) => {
 }
 
 export const updateBusAPI = async (bus, id) => {
+    const formData = new FormData();
+    formData.append('code', bus.code);
+    formData.append('licensePlate', bus.licensePlate);
+    formData.append('brand', bus.brand);
+    formData.append('model', bus.model);
+    formData.append('color', bus.color);
+    formData.append('seat', bus.seat);
+    formData.append('dateOfRegistration', bus.dateOfRegistration);
     console.log(`Update data from API: ${bus}`)
     return await axios.put(`${URL}/${END_POINTS.updateBus}/${id}`,
-        bus,
+        formData,
         {
             headers: {
                 Authorization: `Bearer ${'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJJZCI6IjMiLCJSb2xlIjoiQURNSU4iLCJleHAiOjE2OTAyNzUzMTgsImlzcyI6IkZCdXNfU1dQIiwiYXVkIjoiRkJ1c19TV1AifQ.UQGNjS5BPJfY63oh8JfaTcC-CxoiWfzaFdtSPHjwe9A'}`,
@@ -83,14 +91,13 @@ export const deleteBusAPI = async (busId) => {
         });
 }
 
-export const updateStatusAPI = async (busId, status) => {
+export const enableStatusAPI = async (busId) => {
     return await axios.patch(`${URL}/${END_POINTS.enableBus}/${busId}`,
-        {
-            status: status
-        },
+        'ACTIVE',
         {
             headers: {
                 Authorization: `Bearer ${'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJJZCI6IjMiLCJSb2xlIjoiQURNSU4iLCJleHAiOjE2OTAyNzUzMTgsImlzcyI6IkZCdXNfU1dQIiwiYXVkIjoiRkJ1c19TV1AifQ.UQGNjS5BPJfY63oh8JfaTcC-CxoiWfzaFdtSPHjwe9A'}`,
+                "Content-Type": "application/json"
             },
         })
 }

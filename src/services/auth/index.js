@@ -1,7 +1,7 @@
 import axios from "axios";
 const URL = process.env.REACT_APP_SERVER;
 const END_POINTS = {
-    google_signIn: '/api/Auth'
+  google_signIn: '/api/Auth'
 }
 // import React from 'react';
 // import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
@@ -21,10 +21,13 @@ const END_POINTS = {
 //   );
 // };
 
-export const loginWithGoogle = async () => {
-    return await axios.post(`${URL}${END_POINTS.google_signIn}`, {
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      })
+export const loginWithGoogle = async (tokenId) => {
+  return await axios.post(`${URL}${END_POINTS.google_signIn}`,
+    tokenId,
+    {
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJJZCI6IjMiLCJSb2xlIjoiQURNSU4iLCJleHAiOjE2OTAyNzUzMTgsImlzcyI6IkZCdXNfU1dQIiwiYXVkIjoiRkJ1c19TV1AifQ.UQGNjS5BPJfY63oh8JfaTcC-CxoiWfzaFdtSPHjwe9A'}`,
+      }
+    })
 }

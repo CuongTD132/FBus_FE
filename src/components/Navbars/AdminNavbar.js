@@ -18,8 +18,19 @@ import {
   Container,
   Media,
 } from "reactstrap";
+import { useEffect, useState } from "react";
 
 const AdminNavbar = (props) => {
+  
+  const [user, setUser] = useState({
+    picture: '',
+    name: ''
+  });
+  useEffect(()=> {
+    const user = JSON.parse(localStorage.getItem('user'))
+    setUser(user)
+    console.log(`USER LOGGED: ${user}`);
+  }, [])
   const handleLogout = () => {
     googleLogout((result) => {
       if (result) {
@@ -58,12 +69,12 @@ const AdminNavbar = (props) => {
                   <span className="avatar avatar-sm rounded-circle">
                     <img
                       alt="..."
-                      src={require("../../assets/img/theme/team-4-800x800.jpg")}
+                      src={user.picture}
                     />
                   </span>
                   <Media className="ml-2 d-none d-lg-block">
                     <span className="mb-0 text-sm font-weight-bold">
-                      Jessica Jones
+                      {user.name}
                     </span>
                   </Media>
                 </Media>
@@ -90,7 +101,7 @@ const AdminNavbar = (props) => {
                 </DropdownItem>
                 <DropdownItem divider />
                 <GoogleOAuthProvider clientId="319062689013-fku6m54vf3arbhrnoiij84qb0e852o28.apps.googleusercontent.com">
-                  <DropdownItem href="#pablo" onClick={handleLogout}>
+                  <DropdownItem href="/auth/login" onClick={handleLogout}>
                     <i className="ni ni-user-run" />
                     <span>Logout</span>
                   </DropdownItem>

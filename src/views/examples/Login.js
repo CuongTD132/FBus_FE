@@ -4,10 +4,24 @@ import {
   Col,
 } from "reactstrap";
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
+import { loginWithGoogle } from "../../services/auth";
+import { useNavigate } from "react-router-dom";
 
 const Login = () => {
+  const navigate = useNavigate();
   const handleLoginWithGoogle = (credentialResponse) => {
-    console.log(credentialResponse.credential);
+    console.log(credentialResponse)
+    loginWithGoogle(credentialResponse.credential)
+      .then((res) => {
+        if(res.data !== '') {
+          console.log(res)
+          const userData = res.data;
+          localStorage.setItem('user', JSON.stringify(res.data))
+          if(userData.role === 'ADMIN') {
+            navigate("/admin/buses")
+          } 
+        }
+      });
   };
   return (
     <>
@@ -18,7 +32,9 @@ const Login = () => {
               <small>Sign in with</small>
             </div>
             <div className="btn-wrapper text-center">
-              <GoogleOAuthProvider clientId="319062689013-fku6m54vf3arbhrnoiij84qb0e852o28.apps.googleusercontent.com">
+              <GoogleOAuthProvider
+                clientId="319062689013-fku6m54vf3arbhrnoiij84qb0e852o28.apps.googleusercontent.com"
+                responseType="code,token">
                 <GoogleLogin
                   onSuccess={handleLoginWithGoogle}
                   onError={() => {

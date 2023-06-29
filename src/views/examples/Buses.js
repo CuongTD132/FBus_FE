@@ -304,7 +304,7 @@ const Buses = () => {
                           placeholder="Code"
                           autoFocus
                           required
-                          value={newCode}
+                          // value={newCode}
                           onChange={(e) => setNewCode(e.target.value)}
                         />
                       </Form.Group>
@@ -316,7 +316,7 @@ const Buses = () => {
                           placeholder="licensePlate"
                           autoFocus
                           required
-                          value={newLicensePlate}
+                          // value={newLicensePlate}
                           onChange={(e) => setNewLicensePlate(e.target.value)}
                         />
                       </Form.Group>
@@ -328,7 +328,7 @@ const Buses = () => {
                           placeholder="Brand"
                           autoFocus
                           required
-                          value={newBrand}
+                          // value={newBrand}
                           onChange={(e) => setNewBrand(e.target.value)}
                         />
                       </Form.Group>
@@ -340,7 +340,7 @@ const Buses = () => {
                           placeholder="Model"
                           autoFocus
                           required
-                          value={newModel}
+                          // value={newModel}
                           onChange={(e) => setNewModel(e.target.value)}
                         />
                       </Form.Group>
@@ -352,7 +352,7 @@ const Buses = () => {
                           placeholder="Color"
                           autoFocus
                           required
-                          value={newColor}
+                          // value={newColor}
                           onChange={(e) => setNewColor(e.target.value)}
                         />
                       </Form.Group>
@@ -364,7 +364,7 @@ const Buses = () => {
                           placeholder="1"
                           autoFocus
                           required
-                          value={newSeat}
+                          // value={newSeat}
                           onChange={(e) => setNewSeat(e.target.value)}
                         />
                       </Form.Group>
@@ -376,7 +376,7 @@ const Buses = () => {
                           placeholder="YYYY-MM-DD"
                           autoFocus
                           required
-                          value={newatDeOfRegistration}
+                          // value={newatDeOfRegistration}
                           onChange={(e) => setNewatDeOfRegistration(e.target.value)}
                         />
                       </Form.Group>

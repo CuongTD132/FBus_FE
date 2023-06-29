@@ -29,7 +29,7 @@ const AdminNavbar = (props) => {
   useEffect(()=> {
     const user = JSON.parse(localStorage.getItem('user'))
     setUser(user)
-    console.log(`USER LOGGED: ${user}`);
+    // console.log(`USER LOGGED: ${user}`);
   }, [])
   const handleLogout = () => {
     googleLogout((result) => {

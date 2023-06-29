@@ -119,7 +119,7 @@ const Buses = () => {
     setNewSeat(formData.seat);
     setNewatDeOfRegistration(formData.dateOfRegistration);
   }
-  const handleUpdateShow = () => {
+  const handleUpdateShow = (params) => {
     setShowDetails(false); // clode detail modal
     setShowUpdate(true); // show update modal
     formDataToUpdateData(); // move data in detail form to update form
@@ -289,7 +289,7 @@ const Buses = () => {
                     </Button>
                   </Modal.Footer>
                 </Modal>
-
+{/* Add model */}
                 <Modal show={showAdd} onHide={handleAddClose}>
                   <Modal.Header closeButton>
                     <Modal.Title>Add bus</Modal.Title>
@@ -392,6 +392,7 @@ const Buses = () => {
                   </Modal.Footer>
                 </Modal>
 
+{/* Detail model */}
                 <Modal show={showDetails} onHide={() => setShowDetails(false)}>
                   <Modal.Header closeButton>
                     <Modal.Title>Bus detail</Modal.Title>
@@ -400,50 +401,15 @@ const Buses = () => {
                     <Form>
                       <Form.Group className="mb-3" controlId="code">
                         <Form.Label>Code</Form.Label>
-                        <UncontrolledDropdown>
-                          <DropdownToggle
-                            className="btn-icon-only text-light"
-                            href="#pablo"
-                            role="button"
-                            size="sm"
-                            color=""
-                          // onClick={(e) => e.preventDefault()}
-                          >
-                            <i className="fas fa-ellipsis-v" />
-                          </DropdownToggle>
-                          <DropdownMenu className="dropdown-menu-arrow" right>
-                            <DropdownItem
-                              className="update-dropdown-item"
-                              href="#pablo"
-                              onClick={() => handleUpdateShow(true)}
-                            >
-                              Update
-                            </DropdownItem>
-                            <DropdownItem
-                              className="disable-enable-dropdown-item"
-                              href="#pablo"
-                              onClick={() => setShowDisable(true)}
-                            >
-                              Enable
-                            </DropdownItem>
-                            <DropdownItem
-                              className="delete-dropdown-item"
-                              href="#pablo"
-                              onClick={handleDeleteShow}
-                            >
-                              Delete
-                            </DropdownItem>
-                          </DropdownMenu>
 
-                        </UncontrolledDropdown>
                         <Form.Control
                           type="text"
                           name="code"
                           placeholder="Code"
                           autoFocus
-                          required
+                          readOnly
                           value={formData.code}
-                          onChange={handleUpdateChange}
+                          // onChange={handleUpdateChange}
                         />
                       </Form.Group>
                       <Form.Group className="mb-3" controlId="licensePlate">
@@ -453,9 +419,9 @@ const Buses = () => {
                           name="licensePlate"
                           placeholder="licensePlate"
                           autoFocus
-                          required
+                          readOnly
                           value={formData.licensePlate}
-                          onChange={handleUpdateChange}
+                          // onChange={handleUpdateChange}
                         />
                       </Form.Group>
                       <Form.Group className="mb-3" controlId="brand">
@@ -465,9 +431,9 @@ const Buses = () => {
                           name="brand"
                           placeholder="brand"
                           autoFocus
-                          required
+                          readOnly
                           value={formData.brand}
-                          onChange={handleUpdateChange}
+                          // onChange={handleUpdateChange}
                         />
                       </Form.Group>
                       <Form.Group className="mb-3" controlId="model">
@@ -477,9 +443,9 @@ const Buses = () => {
                           name="model"
                           placeholder="model"
                           autoFocus
-                          required
+                          readOnly
                           value={formData.model}
-                          onChange={handleUpdateChange}
+                          // onChange={handleUpdateChange}
                         />
                       </Form.Group>
                       <Form.Group className="mb-3" controlId="color">
@@ -489,9 +455,9 @@ const Buses = () => {
                           name="color"
                           placeholder="color"
                           autoFocus
-                          required
+                          readOnly
                           value={formData.color}
-                          onChange={handleUpdateChange}
+                          // onChange={handleUpdateChange}
                         />
                       </Form.Group>
                       <Form.Group className="mb-3" controlId="seat">
@@ -501,9 +467,9 @@ const Buses = () => {
                           name="seat"
                           placeholder="Seat"
                           autoFocus
-                          required
+                          readOnly
                           value={formData.seat}
-                          onChange={handleUpdateChange}
+                          // onChange={handleUpdateChange}
                         />
                       </Form.Group>
                       <Form.Group className="mb-3" controlId="dateOfRegistration">
@@ -513,9 +479,9 @@ const Buses = () => {
                           name="dateOfRegistration"
                           placeholder="Date of Registration"
                           autoFocus
-                          required
+                          readOnly
                           value={formData.dateOfRegistration}
-                          onChange={handleUpdateChange}
+                          // onChange={handleUpdateChange}
                         />
                       </Form.Group>
                     </Form>
@@ -528,7 +494,7 @@ const Buses = () => {
                     </Button>
                   </Modal.Footer>
                 </Modal>
-
+{/* Update model */}
                 <Modal show={showUpdate} onHide={handleUpdateClose}>
                   <Modal.Header closeButton>
                     <Modal.Title>Update bus</Modal.Title>
@@ -630,7 +596,7 @@ const Buses = () => {
                     </Button>
                   </Modal.Footer>
                 </Modal>
-
+{/* Table list */}
                 <div className="list">
                   <Button variant="primary" onClick={handleAddShow} size="md" className="add_button">Add Bus +</Button>
                   <Table striped bordered hover>
@@ -639,23 +605,46 @@ const Buses = () => {
                         <th>Id</th>
                         <th>Code</th>
                         <th>License Plate</th>
-                        <th>Brand</th>
+                        {/* <th>Brand</th>
                         <th>Model</th>
-                        <th>Color</th>
+                        <th>Color</th> */}
                         <th>Status</th>
+                        <th>More Actions</th>
                       </tr>
                     </thead>
                     <tbody>
                       {currentBusList.map((bus, index) => (
                         <tr key={index} >
-                          <td>{bus.id ? bus.id : "none"}</td>
-                          <td>{bus.code ? bus.code : "none"}</td>
-                          <td>{bus.licensePlate ? bus.licensePlate : "none"}</td>
-                          <td>{bus.brand ? bus.brand : "none"}</td>
+                          <td>
+                            <a >{bus.id ? bus.id : "none"}</a>
+                          </td>
+                          <td onClick={(e) => {
+                            e.preventDefault()
+                            fetchBusDetails(bus.id)
+                            // setCurrentSelectBus(bus.id)
+                          }}>
+                            <a onClick={(e) => {
+                            e.preventDefault()
+                            fetchBusDetails(bus.id)
+                            // setCurrentSelectBus(bus.id)
+                          }} href="#">{bus.code ? bus.code : "none"}</a>
+                            
+                          </td>
+                          <td >
+                            <a  onClick={(e) => {
+                            e.preventDefault()
+                            fetchBusDetails(bus.id)
+                            // setCurrentSelectBus(bus.id)
+                          }} href="#">{bus.licensePlate ? bus.licensePlate : "none"}</a>
+                          </td>
+                          {/* <td>{bus.brand ? bus.brand : "none"}</td>
                           <td>{bus.model ? bus.model : "none"}</td>
-                          <td>{bus.color ? bus.color : "none"}</td>
-                          <td>{bus.status ? bus.status : "none"}
-                            <UncontrolledDropdown>
+                          <td>{bus.color ? bus.color : "none"}</td> */}
+                          <td>
+                            <span className={`status ${bus.status === 'ACTIVE' ? 'active' : ''}`}>
+                              {bus.status}
+                            </span>
+                            {/* <UncontrolledDropdown>
                               <DropdownToggle
                                 className="btn-icon-only text-light"
                                 href="#pablo"
@@ -680,9 +669,46 @@ const Buses = () => {
                                 </DropdownItem>
                               </DropdownMenu>
 
+                            </UncontrolledDropdown> */}
+                          </td>
+                          <td className="registration">
+                            <UncontrolledDropdown>
+                              <DropdownToggle
+                                className="btn-icon-only text-light"
+                                href="#pablo"
+                                role="button"
+                                size="sm"
+                                color=""
+                              // onClick={(e) => e.preventDefault()}
+                              >
+                                <i className="fas fa-ellipsis-v" />
+                              </DropdownToggle>
+                              <DropdownMenu className="dropdown-menu-arrow" right>
+                                <DropdownItem
+                                  className="update-dropdown-item"
+                                  href="#pablo"
+                                  onClick={() => handleUpdateShow(bus.id)}
+                                >
+                                  Update
+                                </DropdownItem>
+                                <DropdownItem
+                                  className="disable-enable-dropdown-item"
+                                  href="#pablo"
+                                  onClick={() => setShowDisable(true)}
+                                >
+                                  Enable
+                                </DropdownItem>
+                                <DropdownItem
+                                  className="delete-dropdown-item"
+                                  href="#pablo"
+                                  onClick={handleDeleteShow}
+                                >
+                                  Delete
+                                </DropdownItem>
+                              </DropdownMenu>
+
                             </UncontrolledDropdown>
                           </td>
-                          {/* <td className="registration">{bus.dateOfRegistration ? bus.dateOfRegistration : "none"}</td> */}
 
                         </tr>
                       ))}

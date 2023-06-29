@@ -58,3 +58,11 @@
     width: 50px;
     height: 66.666px;
 }
+.status {
+    color: #707070; /* Default color for INACTIVE status */
+  }
+  
+  .status.active {
+    color: #24a148; /* Color for ACTIVE status */
+  }
+  

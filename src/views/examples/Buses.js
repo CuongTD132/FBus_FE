@@ -170,10 +170,15 @@ const Buses = () => {
     })
       .then((res) => {
         console.log(res);
+        if (res.status === 200) {
+          toast.success("Bus has been add successfully!");
+          navigate("/admin/buses");
+        }
         // Handle the response here
       })
       .catch((error) => {
         console.log(error);
+
         // Handle the error appropriately
       });
   };

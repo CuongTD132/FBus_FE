@@ -73,7 +73,7 @@ const Drivers = () => {
   const [newAddress, setNewAddress] = useState(null);
   const [newPhoneNumber, setNewPhoneNumber] = useState(null);
   const [newDateOfBirth, setNewDateOfBirth] = useState(null);
-  const [newAvatar, setNewAvatar] = useState(null);
+  const [newAvatar, setNewAvatar] = useState("");
   const [newPersonalEmail, setNewPersonalEmail] = useState(null);
   useEffect(() => {
     getAllDrivers(JSON.parse(localStorage.getItem("user")).accessToken)
@@ -191,6 +191,11 @@ const Drivers = () => {
     })
       .then((res) => {
         console.log(res);
+        if(res.status === 200){
+        toast.success("Driver add successfully!");
+        navigate("/admin/drivers");
+        }
+
         // Handle the response here
       })
       .catch((error) => {
@@ -320,7 +325,7 @@ const Drivers = () => {
                           placeholder="Email"
                           autoFocus
                           required
-                          value={newEmail}
+                          // value={newEmail}
                           onChange={(e) => setNewEmail(e.target.value)}
                         />
                       </Form.Group>
@@ -332,7 +337,7 @@ const Drivers = () => {
                           placeholder="Code"
                           autoFocus
                           required
-                          value={newCode}
+                          // value={newCode}
                           onChange={(e) => setNewCode(e.target.value)}
                         />
                       </Form.Group>
@@ -344,7 +349,7 @@ const Drivers = () => {
                           placeholder="FullName"
                           autoFocus
                           required
-                          value={newFullName}
+                          // value={newFullName}
                           onChange={(e) => setNewFullName(e.target.value)}
                         />
                       </Form.Group>
@@ -356,7 +361,7 @@ const Drivers = () => {
                           placeholder="Gender"
                           autoFocus
                           required
-                          value={newGender}
+                          // value={newGender}
                           onChange={(e) => setNewGender(e.target.value)}
                         />
                       </Form.Group>
@@ -368,7 +373,7 @@ const Drivers = () => {
                           placeholder="IdCardNumber"
                           autoFocus
                           required
-                          value={newIdCardNumber}
+                          // value={newIdCardNumber}
                           onChange={(e) => setNewIdCardNumber(e.target.value)}
                         />
                       </Form.Group>
@@ -380,19 +385,19 @@ const Drivers = () => {
                           placeholder="Address"
                           autoFocus
                           required
-                          value={newAddress}
+                          // value={newAddress}
                           onChange={(e) => setNewAddress(e.target.value)}
                         />
                       </Form.Group>
                       <Form.Group className="mb-3" controlId="phoneNumber">
                         <Form.Label>PhoneNumber</Form.Label>
                         <Form.Control
-                          type="number"
+                          type="text"
                           name="phoneNumber"
                           placeholder="PhoneNumber"
                           autoFocus
                           required
-                          value={newPhoneNumber}
+                          // value={newPhoneNumber}
                           onChange={(e) => setNewPhoneNumber(e.target.value)}
                         />
                       </Form.Group>
@@ -404,7 +409,7 @@ const Drivers = () => {
                           placeholder="PersonalEmail"
                           autoFocus
                           required
-                          value={newPersonalEmail}
+                          // value={newPersonalEmail}
                           onChange={(e) => setNewPersonalEmail(e.target.value)}
                         />
                       </Form.Group>
@@ -416,7 +421,7 @@ const Drivers = () => {
                           placeholder="YYYY-MM-DD"
                           autoFocus
                           required
-                          value={newDateOfBirth}
+                          // value={newDateOfBirth}
                           onChange={(e) => setNewDateOfBirth(e.target.value)}
                         />
                       </Form.Group>
@@ -426,9 +431,10 @@ const Drivers = () => {
                           type="file"
                           name="avatar"
                           placeholder="AvatarFile"
+                          
                           autoFocus
                           required
-                          value={newAvatar}
+                          // value={newAvatar}
                           onChange={(e) => setNewAvatar(e.target.value)}
                         />
                       </Form.Group>

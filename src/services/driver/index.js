@@ -55,7 +55,6 @@ export const updateDriverAPI = async (driver, id) => {
 
 export const getSingleDriver = async (id) => {
     return await axios.get(`${URL}/${END_POINTS.getSingleDriver}/${id}`,
-    formData,
         {
             headers: {
                 Authorization: `Bearer ${'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJJZCI6IjMiLCJSb2xlIjoiQURNSU4iLCJleHAiOjE2OTAyNzUzMTgsImlzcyI6IkZCdXNfU1dQIiwiYXVkIjoiRkJ1c19TV1AifQ.UQGNjS5BPJfY63oh8JfaTcC-CxoiWfzaFdtSPHjwe9A'}`,
@@ -68,7 +67,7 @@ export const getMultiDrivers = async (data) => {
         params: {
             Code: data.code ?? "",
             Email: data.email ?? "",
-            PageIndex: code.pageIndex ?? "",
+            PageIndex: data.pageIndex ?? "",
             PageSize: data.pagesize ?? "",
             OrderBy: data.OrderBy ?? "",
             Direction: data.direction ?? ""

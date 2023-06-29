@@ -1,11 +1,9 @@
-import {
-  Card,
-  CardHeader,
-  Col,
-} from "reactstrap";
+import { Card, CardHeader, Col } from "reactstrap";
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 import { loginWithGoogle } from "../../services/auth";
 import { useNavigate } from "react-router-dom";
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -13,18 +11,20 @@ const Login = () => {
     console.log(credentialResponse)
     loginWithGoogle(credentialResponse.credential)
       .then((res) => {
-        if(res.data !== '') {
+        if (res.data !== '') {
           console.log(res)
           const userData = res.data;
           localStorage.setItem('user', JSON.stringify(res.data))
-          if(userData.role === 'ADMIN') {
-            navigate("/admin/buses")
-          } 
+          if (userData.role === 'ADMIN') {
+            navigate("/admin/buses")            
+          }
         }
       });
   };
+
   return (
     <>
+      <ToastContainer /> {/* Add ToastContainer component at the end */}
       <Col lg="5" md="7">
         <Card className="bg-secondary shadow border-0">
           <CardHeader className="bg-transparent pb-5">
@@ -34,7 +34,8 @@ const Login = () => {
             <div className="btn-wrapper text-center">
               <GoogleOAuthProvider
                 clientId="319062689013-fku6m54vf3arbhrnoiij84qb0e852o28.apps.googleusercontent.com"
-                responseType="code,token">
+                responseType="code,token"
+              >
                 <GoogleLogin
                   onSuccess={handleLoginWithGoogle}
                   onError={() => {

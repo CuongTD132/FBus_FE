@@ -67,7 +67,7 @@ const Buses = () => {
   const [newSeat, setNewSeat] = useState(null);
   const [newatDeOfRegistration, setNewatDeOfRegistration] = useState(null);
   useEffect(() => {
-    getAllBuses()
+    getAllBuses(JSON.parse(localStorage.getItem("user")).accessToken)
       .then((res) => setBusList(res.data.data))
   }, [])
   const navigate = useNavigate();

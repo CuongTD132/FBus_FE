@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button, Form, Modal, Table } from 'react-bootstrap';
 import "../../style/Manager.css"
+import defaultAvatar from '../../assets/img/driver.png'
 import {
   Card,
   CardHeader,
@@ -17,80 +18,25 @@ import {
   PaginationLink,
 } from "reactstrap";
 import Header from "../../components/Headers/Header";
+import {
+  getSingleDriver,
+  getAllDrivers,
+  updateDriverAPI,
+  deleteDriverAPI,
+  addDriver,
+  enableStatusAPI
+} from "../../services/driver";
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { useNavigate } from "react-router-dom";
 
-const data = [
-  {
-    email: "abc@gmail.com",
-    code: "A01",
-    fullName: "Nguyen Van A",
-    gender: "male",
-    idCardNumber: "076321046973",
-    address: "Pham Van Dong, Thu Duc, Ho Chi Minh",
-    phoneNumber: "0123456789",
-    personalEmail: "",
-    dateOfBirth : "2000-12-23",
-    avatarFile: "",
-  },
-  {
-    code: "FA03",
-    licensePlate: "123",
-    brand: "adidas",
-    model: "toyota",
-    color: "white",
-    seat: 32,
-    dateOfRegistration: "",
-  },
-  {
-    code: "FA03",
-    licensePlate: "123",
-    brand: "adidas",
-    model: "toyota",
-    color: "white",
-    seat: 32,
-    dateOfRegistration: "",
-  },
-  {
-    code: "FA03",
-    licensePlate: "123",
-    brand: "adidas",
-    model: "toyota",
-    color: "white",
-    seat: 32,
-    dateOfRegistration: "",
-  },
-  {
-    code: "FA03",
-    licensePlate: "123",
-    brand: "adidas",
-    model: "toyota",
-    color: "white",
-    seat: 32,
-    dateOfRegistration: "",
-  },
-  {
-    code: "FA03",
-    licensePlate: "123",
-    brand: "adidas",
-    model: "toyota",
-    color: "white",
-    seat: 32,
-    dateOfRegistration: "",
-  },
-  {
-    code: "FA03",
-    licensePlate: "123",
-    brand: "adidas",
-    model: "toyota",
-    color: "white",
-    seat: 32,
-    dateOfRegistration: "",
-  },
-]
+
 
 const Drivers = () => {
-  const [busList, setBusList] = useState(data);
+  const [driverList, setDriverList] = useState([]);
   const [showAdd, setShowAdd] = useState(false);
   const [showUpdate, setShowUpdate] = useState(false);
+  const [showDetails, setShowDetails] = useState(false);
   const [showDisable, setShowDisable] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
   const [formData, setFormData] = useState({
@@ -100,11 +46,12 @@ const Drivers = () => {
     gender: "",
     idCardNumber: "",
     address: "",
-    phoneNumber: 0,
+    phoneNumber: "",
+    dateOfBirth: "",
+    avatar: "",
     personalEmail: "",
-    dateOfBirth : "",
-    avatarFile: "",
   });
+
   const [updateData, setUpdateData] = useState({
     email: "",
     code: "",
@@ -112,72 +59,205 @@ const Drivers = () => {
     gender: "",
     idCardNumber: "",
     address: "",
-    phoneNumber: 0,
+    phoneNumber: "",
+    dateOfBirth: "",
+    avatar: "",
     personalEmail: "",
-    dateOfBirth : "",
-    avatarFile: "",
   });
   const [currentPage, setCurrentPage] = useState(1);
-
-  const handleAddClose = () => setShowAdd(false);
+  const [newEmail, setNewEmail] = useState(null);
+  const [newCode, setNewCode] = useState(null);
+  const [newFullName, setNewFullName] = useState(null);
+  const [newGender, setNewGender] = useState(null);
+  const [newIdCardNumber, setNewIdCardNumber] = useState(null);
+  const [newAddress, setNewAddress] = useState(null);
+  const [newPhoneNumber, setNewPhoneNumber] = useState(null);
+  const [newDateOfBirth, setNewDateOfBirth] = useState(null);
+  const [newAvatar, setNewAvatar] = useState(null);
+  const [newPersonalEmail, setNewPersonalEmail] = useState(null);
+  useEffect(() => {
+    getAllDrivers(JSON.parse(localStorage.getItem("user")).accessToken)
+      .then((res) => setDriverList(res.data.data))
+  }, [])
+  const navigate = useNavigate();
+  const handleAddClose = () => {
+    setShowAdd(false);
+    setNewEmail("");
+    setNewCode("");
+    setNewFullName("");
+    setNewGender("");
+    setNewIdCardNumber("");
+    setNewAddress("");
+    setNewPhoneNumber("");
+    setNewDateOfBirth("");
+    setNewAvatar("");
+    setNewPersonalEmail("");
+  }
   const handleAddShow = () => setShowAdd(true);
-
-  const handleUpdateClose = () => setShowUpdate(false);
-  const handleUpdateShow = (bus) => {
-    setUpdateData(bus)
-    setShowUpdate(true)
+  const fetchBusDetails = (driverId) => {
+    setCurrentSelectDriver(driverId)
+    getSingleDriver(driverId)
+      .then((res) => {
+        setShowDetails(true); // Show the modal
+        setFormData(res.data)
+      })
+      .catch((error) => {
+        console.log(error);
+        // Handle the error appropriately
+      });
   };
 
-  const handleDisableClose = () => setShowDisable(false);
-  const handleDisableShow = (bus) => {
-    setUpdateData(bus)
-    setShowDisable(true);
+
+  const fetchDrivers = () => {
+    getAllDrivers()
+      .then((res) => setDriverList(res.data.data))
+      .catch((error) => {
+        console.log(error);
+      });
+  };
+  const [currentSelectDriver, setCurrentSelectDriver] = useState("")
+
+  const handleUpdateClose = () => {
+    setShowUpdate(false);
+    setShowDetails(true);
   }
 
+  const formDataToUpdateData = () => {
+    setNewEmail(formData.email);
+    setNewCode(formData.code);
+    setNewFullName(formData.fullName);
+    setNewGender(formData.gender);
+    setNewIdCardNumber(formData.idCardNumber);
+    setNewAddress(formData.address);
+    setNewPersonalEmail(formData.personalEmail);
+    setNewPhoneNumber(formData.phoneNumber);
+    setNewDateOfBirth(formData.dateOfBirth);
+    setNewAvatar(formData.avatar);
+  }
+  const handleUpdateShow = () => {
+    setShowDetails(false); // clode detail modal
+    setShowUpdate(true); // show update modal
+    formDataToUpdateData(); // move data in detail form to update form
+  };
+  const updateDriverData = () => {
+    const updateBus = {
+      email: newEmail,
+      code: newCode,
+      fullName: newFullName,
+      gender: newGender,
+      idCardNumber: newIdCardNumber,
+      address: newAddress,
+      phoneNumber: newPhoneNumber,
+      personalEmail: newPersonalEmail,
+      dateOfBirth: newDateOfBirth,
+      avatar: newAvatar,
+    }
+    updateDriverAPI(updateBus, currentSelectDriver)
+      .then((res) => {
+        console.log(res);
+        if (res.status === 200) {
+          toast.success("Driver update successfully!");
+        } else {
+          toast.warning("Can't update this driver!");
+        }
+        setShowUpdate(false);
+        navigate("/admin/drivers");
+        fetchDrivers();
+      })
+      .catch(() => {
+        toast.error("Failed to update the driver!");
+      })
+  }
+
+  const handleDisableClose = () => setShowDisable(false);
+
   const handleDeleteClose = () => setShowDelete(false);
-  const handleDeleteShow = (bus) => {
-    setUpdateData(bus)
+  const handleDeleteShow = () => {
     setShowDelete(true);
   }
 
-  const addBus = () => {
-    console.log(formData);
+  const handleAddDriver = () => {
+    addDriver({
+      email: newEmail,
+      code: newCode,
+      fullName: newFullName,
+      gender: newGender,
+      idCardNumber: newIdCardNumber,
+      address: newAddress,
+      phoneNumber: newPhoneNumber,
+      personalEmail: newPersonalEmail,
+      dateOfBirth: newDateOfBirth,
+      avatar: newAvatar
+    })
+      .then((res) => {
+        console.log(res);
+        // Handle the response here
+      })
+      .catch((error) => {
+        console.log(error);
+        // Handle the error appropriately
+      });
   };
 
-  const updateBus = (bus) => {
-    console.log(bus);
-  }
 
-  const disableBus = (bus) => {
-    console.log(bus.code);
-  }
-
-  const deleteBus = (bus) => {
-    console.log(bus.code);
-  }
-
-  const handleAddChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prevFormData) => ({
-      ...prevFormData,
-      [name]: value,
-    }));
+  const deleteBus = () => {
+    deleteDriverAPI(currentSelectDriver)
+      .then((res) => {
+        console.log(res);
+        if (res.status === 200) {
+          toast.success("Driver deleted successfully!");
+        } else {
+          toast.warning("Can't delete the driver!");
+        }
+        setShowDelete(false);
+        setShowDetails(false);
+        navigate("/admin/drivers");
+        fetchDrivers();
+      })
+      .catch(() => {
+        toast.error("Failed to delete the driver!");
+      })
   };
+
+  const enableBus = () => {
+    enableStatusAPI(currentSelectDriver)
+      .then((res) => {
+        console.log(res);
+        if (res.status === 200) {
+          toast.success("Driver enable successfully!");
+        } else {
+          toast.warning("Can't enable this driver!");
+        }
+        setShowDelete(false);
+        navigate("/admin/drivers");
+        fetchDrivers();
+      })
+      .catch(() => {
+        toast.error("Failed to enable the driver!");
+      })
+  }
+
 
   const handleUpdateChange = (e) => {
     const { name, value } = e.target;
-    setUpdateData((prevFormData) => ({
-      ...prevFormData,
-      [name]: value,
-    }));
+    setUpdateData((prevFormData) => {
+      if (prevFormData) {
+        return {
+          ...prevFormData,
+          [name]: value,
+        };
+      }
+      return prevFormData;
+    });
   };
+
 
   // Pagination
   const itemsPerPage = 5;
-  const totalPages = Math.ceil(busList.length / itemsPerPage);
+  const totalPages = Math.ceil(driverList.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const currentBusList = busList.slice(startIndex, endIndex);
+  const currentBusList = driverList.slice(startIndex, endIndex);
 
   const handlePageClick = (pageNumber) => {
     setCurrentPage(pageNumber);
@@ -186,10 +266,11 @@ const Drivers = () => {
   return (
     <>
       <Header />
+      <ToastContainer />
       <Container className="mt--7 bus_manager" fluid>
         <Row>
           <div className="col">
-            <Card className="card-container shadow">
+            <Card className=" card-container shadow">
               <CardHeader className="bg-transparent">
                 <h3 className="mb-0">Manager Drivers</h3>
               </CardHeader>
@@ -197,29 +278,29 @@ const Drivers = () => {
 
                 <Modal show={showDisable} onHide={handleDisableClose} animation={false}>
                   <Modal.Header closeButton>
-                    <Modal.Title>Disable driver</Modal.Title>
+                    <Modal.Title>Enable driver</Modal.Title>
                   </Modal.Header>
-                  <Modal.Body>Are you sure to disabled this driver!</Modal.Body>
+                  <Modal.Body>Are you sure to enable this driver!</Modal.Body>
                   <Modal.Footer>
                     <Button variant="secondary" onClick={handleDisableClose}>
                       Close
                     </Button>
-                    <Button variant="primary" onClick={() => disableBus(updateData)}>
-                      Disable
+                    <Button variant="primary" onClick={enableBus}>
+                      Enable
                     </Button>
                   </Modal.Footer>
                 </Modal>
 
                 <Modal show={showDelete} onHide={handleDeleteClose} animation={false}>
                   <Modal.Header closeButton>
-                    <Modal.Title>Delete bus</Modal.Title>
+                    <Modal.Title>Delete driver</Modal.Title>
                   </Modal.Header>
                   <Modal.Body>Are you sure to delete this driver!</Modal.Body>
                   <Modal.Footer>
                     <Button variant="secondary" onClick={handleDeleteClose}>
                       Close
                     </Button>
-                    <Button variant="primary" onClick={() => deleteBus(updateData)}>
+                    <Button variant="primary" onClick={() => deleteBus()}>
                       Delete
                     </Button>
                   </Modal.Footer>
@@ -231,88 +312,124 @@ const Drivers = () => {
                   </Modal.Header>
                   <Modal.Body>
                     <Form>
+                      <Form.Group className="mb-3" controlId="email">
+                        <Form.Label>Email</Form.Label>
+                        <Form.Control
+                          type="text"
+                          name="email"
+                          placeholder="Email"
+                          autoFocus
+                          required
+                          value={newEmail}
+                          onChange={(e) => setNewEmail(e.target.value)}
+                        />
+                      </Form.Group>
                       <Form.Group className="mb-3" controlId="code">
                         <Form.Label>Code</Form.Label>
                         <Form.Control
                           type="text"
                           name="code"
-                          placeholder="FE01"
+                          placeholder="Code"
                           autoFocus
                           required
-                          value={formData.code}
-                          onChange={handleAddChange}
+                          value={newCode}
+                          onChange={(e) => setNewCode(e.target.value)}
                         />
                       </Form.Group>
-                      <Form.Group className="mb-3" controlId="licensePlate">
-                        <Form.Label>License Plate</Form.Label>
+                      <Form.Group className="mb-3" controlId="fullName">
+                        <Form.Label>FullName</Form.Label>
                         <Form.Control
                           type="text"
-                          name="licensePlate"
-                          placeholder="FE01"
+                          name="fullName"
+                          placeholder="FullName"
                           autoFocus
                           required
-                          value={formData.licensePlate}
-                          onChange={handleAddChange}
+                          value={newFullName}
+                          onChange={(e) => setNewFullName(e.target.value)}
                         />
                       </Form.Group>
-                      <Form.Group className="mb-3" controlId="brand">
-                        <Form.Label>Brand</Form.Label>
+                      <Form.Group className="mb-3" controlId="gender">
+                        <Form.Label>Gender </Form.Label>
                         <Form.Control
                           type="text"
-                          name="brand"
-                          placeholder="FE01"
+                          name="gender"
+                          placeholder="Gender"
                           autoFocus
                           required
-                          value={formData.brand}
-                          onChange={handleAddChange}
+                          value={newGender}
+                          onChange={(e) => setNewGender(e.target.value)}
                         />
                       </Form.Group>
-                      <Form.Group className="mb-3" controlId="model">
-                        <Form.Label>Model</Form.Label>
+                      <Form.Group className="mb-3" controlId="idCardNumber">
+                        <Form.Label>IdCardNumber </Form.Label>
                         <Form.Control
                           type="text"
-                          name="model"
-                          placeholder="FE01"
+                          name="idCardNumber"
+                          placeholder="IdCardNumber"
                           autoFocus
                           required
-                          value={formData.model}
-                          onChange={handleAddChange}
+                          value={newIdCardNumber}
+                          onChange={(e) => setNewIdCardNumber(e.target.value)}
                         />
                       </Form.Group>
-                      <Form.Group className="mb-3" controlId="color">
-                        <Form.Label>Color</Form.Label>
+                      <Form.Group className="mb-3" controlId="address">
+                        <Form.Label>Address </Form.Label>
                         <Form.Control
                           type="text"
-                          name="color"
-                          placeholder="FE01"
+                          name="address"
+                          placeholder="Address"
                           autoFocus
                           required
-                          value={formData.color}
-                          onChange={handleAddChange}
+                          value={newAddress}
+                          onChange={(e) => setNewAddress(e.target.value)}
                         />
                       </Form.Group>
-                      <Form.Group className="mb-3" controlId="seat">
-                        <Form.Label>Seat</Form.Label>
+                      <Form.Group className="mb-3" controlId="phoneNumber">
+                        <Form.Label>PhoneNumber</Form.Label>
                         <Form.Control
                           type="number"
-                          name="seat"
-                          placeholder="FE01"
+                          name="phoneNumber"
+                          placeholder="PhoneNumber"
                           autoFocus
                           required
-                          value={formData.seat}
-                          onChange={handleAddChange}
+                          value={newPhoneNumber}
+                          onChange={(e) => setNewPhoneNumber(e.target.value)}
                         />
                       </Form.Group>
-                      <Form.Group className="mb-3" controlId="licensePlate">
-                        <Form.Label>Date of Registration</Form.Label>
+                      <Form.Group className="mb-3" controlId="personalEmail">
+                        <Form.Label>PersonalEmail</Form.Label>
                         <Form.Control
                           type="text"
-                          name="licensePlate"
-                          placeholder="FE01"
+                          name="personalEmail"
+                          placeholder="PersonalEmail"
                           autoFocus
                           required
-                          value={formData.licensePlate}
-                          onChange={handleAddChange}
+                          value={newPersonalEmail}
+                          onChange={(e) => setNewPersonalEmail(e.target.value)}
+                        />
+                      </Form.Group>
+                      <Form.Group className="mb-3" controlId="dateOfBirth">
+                        <Form.Label>Date Of Birth</Form.Label>
+                        <Form.Control
+                          type="text"
+                          name="dateOfBirth"
+                          placeholder="YYYY-MM-DD"
+                          autoFocus
+                          required
+                          value={newDateOfBirth}
+                          onChange={(e) => setNewDateOfBirth(e.target.value)}
+                        />
+                      </Form.Group>
+                      <Form.Group className="mb-3" controlId="avatar">
+                        <Form.Label>AvatarFile</Form.Label>
+                        <Form.Control
+                          type="file"
+                          name="avatar"
+                          placeholder="AvatarFile"
+                          autoFocus
+                          required
+                          value={newAvatar}
+                          onChange={(e) => setNewAvatar(e.target.value)}
                         />
                       </Form.Group>
                     </Form>
@@ -321,8 +438,183 @@ const Drivers = () => {
                     <Button variant="secondary" onClick={handleAddClose}>
                       Close
                     </Button>
-                    <Button variant="primary" onClick={addBus}>
+                    <Button variant="primary" onClick={handleAddDriver}>
                       Add +
+                    </Button>
+                  </Modal.Footer>
+                </Modal>
+
+                <Modal show={showDetails} onHide={() => setShowDetails(false)}>
+                  <Modal.Header closeButton>
+                    <Modal.Title>Driver detail</Modal.Title>
+                  </Modal.Header>
+                  <Modal.Body>
+                    <Form>
+                      <Form.Group className="mb-3" controlId="email">
+                        <Form.Label>Email</Form.Label>
+                        <UncontrolledDropdown>
+                          <DropdownToggle
+                            className="btn-icon-only text-light"
+                            href="#pablo"
+                            role="button"
+                            size="sm"
+                            color=""
+                          // onClick={(e) => e.preventDefault()}
+                          >
+                            <i className="fas fa-ellipsis-v" />
+                          </DropdownToggle>
+                          <DropdownMenu className="dropdown-menu-arrow" right>
+                            <DropdownItem
+                              className="update-dropdown-item"
+                              href="#pablo"
+                              onClick={() => handleUpdateShow(true)}
+                            >
+                              Update
+                            </DropdownItem>
+                            <DropdownItem
+                              className="disable-enable-dropdown-item"
+                              href="#pablo"
+                              onClick={() => setShowDisable(true)}
+                            >
+                              Enable
+                            </DropdownItem>
+                            <DropdownItem
+                              className="delete-dropdown-item"
+                              href="#pablo"
+                              onClick={handleDeleteShow}
+                            >
+                              Delete
+                            </DropdownItem>
+                          </DropdownMenu>
+
+                        </UncontrolledDropdown>
+                        <Form.Control
+                          type="text"
+                          name="email"
+                          placeholder="Email"
+                          autoFocus
+                          required
+                          value={formData.email}
+                          onChange={handleUpdateChange}
+                        />
+                      </Form.Group>
+                      <Form.Group className="mb-3" controlId="code">
+                        <Form.Label>Code</Form.Label>
+                        <Form.Control
+                          type="text"
+                          name="code"
+                          placeholder="Code"
+                          autoFocus
+                          required
+                          value={formData.code}
+                          onChange={handleUpdateChange}
+                        />
+                      </Form.Group>
+                      <Form.Group className="mb-3" controlId="fullName">
+                        <Form.Label>Full Name</Form.Label>
+                        <Form.Control
+                          type="text"
+                          name="fullName"
+                          placeholder="Full Name"
+                          autoFocus
+                          required
+                          value={formData.fullName}
+                          onChange={handleUpdateChange}
+                        />
+                      </Form.Group>
+                      <Form.Group className="mb-3" controlId="gender">
+                        <Form.Label>Gender</Form.Label>
+                        <Form.Control
+                          type="text"
+                          name="gender"
+                          placeholder="Gender"
+                          autoFocus
+                          required
+                          value={formData.gender}
+                          onChange={handleUpdateChange}
+                        />
+                      </Form.Group>
+                      <Form.Group className="mb-3" controlId="idCardNumber">
+                        <Form.Label>Id Card Number</Form.Label>
+                        <Form.Control
+                          type="text"
+                          name="idCardNumber"
+                          placeholder="Id Card Number"
+                          autoFocus
+                          required
+                          value={formData.idCardNumber}
+                          onChange={handleUpdateChange}
+                        />
+                      </Form.Group>
+                      <Form.Group className="mb-3" controlId="address">
+                        <Form.Label>Address</Form.Label>
+                        <Form.Control
+                          type="text"
+                          name="address"
+                          placeholder="Address"
+                          autoFocus
+                          required
+                          value={formData.address}
+                          onChange={handleUpdateChange}
+                        />
+                      </Form.Group>
+                      <Form.Group className="mb-3" controlId="phoneNumber">
+                        <Form.Label>Phone Number</Form.Label>
+                        <Form.Control
+                          type="number"
+                          name="phoneNumber"
+                          placeholder="Phone Number"
+                          autoFocus
+                          required
+                          value={formData.phoneNumber}
+                          onChange={handleUpdateChange}
+                        />
+                      </Form.Group>
+                      <Form.Group className="mb-3" controlId="personalEmail">
+                        <Form.Label>Personal Email</Form.Label>
+                        <Form.Control
+                          type="text"
+                          name="personalEmail"
+                          placeholder="Personal Email"
+                          autoFocus
+                          required
+                          value={formData.personalEmail}
+                          onChange={handleUpdateChange}
+                        />
+                      </Form.Group>
+                      <Form.Group className="mb-3" controlId="dateOfBirth">
+                        <Form.Label>Date of Birth</Form.Label>
+                        <Form.Control
+                          type="text"
+                          name="dateOfBirth"
+                          placeholder="Date of Birth"
+                          autoFocus
+                          required
+                          value={formData.dateOfBirth}
+                          onChange={handleUpdateChange}
+                        />
+                      </Form.Group>
+
+                      <Form.Group className="mb-3" controlId="avatar">
+                        <Form.Label>Avatar File</Form.Label>
+                        <Form.Control
+                          type="text"
+                          name="avatar"
+                          placeholder="Avatar File"
+                          autoFocus
+                          required
+                          value={formData.avatar}
+                          onChange={handleUpdateChange}
+                        />
+                      </Form.Group>
+                    </Form>
+
+                  </Modal.Body>
+                  <Modal.Footer>
+
+
+                    <Button variant="secondary" onClick={() => setShowDetails(false)}>
+                      Close
                     </Button>
                   </Modal.Footer>
                 </Modal>
@@ -333,88 +625,126 @@ const Drivers = () => {
                   </Modal.Header>
                   <Modal.Body>
                     <Form>
+                      <Form.Group className="mb-3" controlId="email">
+                        <Form.Label>Email</Form.Label>
+                        <Form.Control
+                          type="text"
+                          name="email"
+                          placeholder="Email"
+                          autoFocus
+                          required
+                          readOnly
+                          value={newEmail}
+                          onChange={(e) => setNewEmail(e.target.value)}
+                        />
+                      </Form.Group>
                       <Form.Group className="mb-3" controlId="code">
                         <Form.Label>Code</Form.Label>
                         <Form.Control
                           type="text"
                           name="code"
-                          placeholder="FE01"
+                          placeholder="code"
                           autoFocus
                           required
-                          value={updateData.code}
-                          onChange={handleUpdateChange}
+                          value={newCode}
+                          onChange={(e) => setNewCode(e.target.value)}
                         />
                       </Form.Group>
-                      <Form.Group className="mb-3" controlId="licensePlate">
-                        <Form.Label>License Plate</Form.Label>
+                      <Form.Group className="mb-3" controlId="fullName">
+                        <Form.Label>Full Name</Form.Label>
                         <Form.Control
                           type="text"
-                          name="licensePlate"
-                          placeholder="FE01"
+                          name="fullName"
+                          placeholder="Full Name"
                           autoFocus
                           required
-                          value={updateData.licensePlate}
-                          onChange={handleUpdateChange}
+                          value={newFullName}
+                          onChange={(e) => setNewFullName(e.target.value)}
                         />
                       </Form.Group>
-                      <Form.Group className="mb-3" controlId="brand">
-                        <Form.Label>Brand</Form.Label>
+                      <Form.Group className="mb-3" controlId="gender">
+                        <Form.Label>Gender</Form.Label>
                         <Form.Control
                           type="text"
-                          name="brand"
-                          placeholder="FE01"
+                          name="gender"
+                          placeholder="Gender"
                           autoFocus
                           required
-                          value={updateData.brand}
-                          onChange={handleUpdateChange}
+                          value={newGender}
+                          onChange={(e) => setNewGender(e.target.value)}
                         />
                       </Form.Group>
-                      <Form.Group className="mb-3" controlId="model">
-                        <Form.Label>Model</Form.Label>
+                      <Form.Group className="mb-3" controlId="idCardNumber">
+                        <Form.Label>Id Card Number</Form.Label>
                         <Form.Control
                           type="text"
-                          name="model"
-                          placeholder="FE01"
+                          name="idCardNumber"
+                          placeholder="Id Card Number"
                           autoFocus
                           required
-                          value={updateData.model}
-                          onChange={handleUpdateChange}
+                          value={newIdCardNumber}
+                          onChange={(e) => setNewIdCardNumber(e.target.value)}
                         />
                       </Form.Group>
-                      <Form.Group className="mb-3" controlId="color">
-                        <Form.Label>Color</Form.Label>
+                      <Form.Group className="mb-3" controlId="address">
+                        <Form.Label>Address</Form.Label>
                         <Form.Control
                           type="text"
-                          name="color"
-                          placeholder="FE01"
+                          name="address"
+                          placeholder="Address"
                           autoFocus
                           required
-                          value={updateData.color}
-                          onChange={handleUpdateChange}
+                          value={newAddress}
+                          onChange={(e) => setNewAddress(e.target.value)}
                         />
                       </Form.Group>
-                      <Form.Group className="mb-3" controlId="seat">
-                        <Form.Label>Seat</Form.Label>
+                      <Form.Group className="mb-3" controlId="phoneNumber">
+                        <Form.Label>Phone Number</Form.Label>
                         <Form.Control
                           type="number"
-                          name="seat"
-                          placeholder="FE03"
+                          name="phoneNumber"
+                          placeholder="Phone Number"
                           autoFocus
                           required
-                          value={updateData.seat}
-                          onChange={handleUpdateChange}
+                          value={newPhoneNumber}
+                          onChange={(e) => setNewPhoneNumber(e.target.value)}
                         />
                       </Form.Group>
-                      <Form.Group className="mb-3" controlId="licensePlate">
-                        <Form.Label>Date of Registration</Form.Label>
+                      <Form.Group className="mb-3" controlId="personalEmail">
+                        <Form.Label>Personal Email</Form.Label>
                         <Form.Control
                           type="text"
-                          name="licensePlate"
-                          placeholder="FE01"
+                          name="personalEmail"
+                          placeholder="Personal Email"
                           autoFocus
                           required
-                          value={formData.licensePlate}
-                          onChange={handleAddChange}
+                          value={newPersonalEmail}
+                          onChange={(e) => setNewPersonalEmail(e.target.value)}
+                        />
+                      </Form.Group>
+                      <Form.Group className="mb-3" controlId="dateOfBirth">
+                        <Form.Label>Date of Birth</Form.Label>
+                        <Form.Control
+                          type="text"
+                          name="dateOfBirth"
+                          placeholder="Date of Birth"
+                          autoFocus
+                          required
+                          value={newDateOfBirth}
+                          onChange={(e) => setNewDateOfBirth(e.target.value)}
+                        />
+                      </Form.Group>
+
+                      <Form.Group className="mb-3" controlId="avatar">
+                        <Form.Label>Avatar File</Form.Label>
+                        <Form.Control
+                          type="text"
+                          name="avatar"
+                          placeholder="Avatar File"
+                          autoFocus
+                          required
+                          value={newAvatar}
+                          onChange={(e) => setNewAvatar(e.target.value)}
                         />
                       </Form.Group>
                     </Form>
@@ -423,8 +753,8 @@ const Drivers = () => {
                     <Button variant="secondary" onClick={handleUpdateClose}>
                       Close
                     </Button>
-                    <Button variant="primary" onClick={() => updateBus(updateData)}>
-                      Update
+                    <Button variant="primary" onClick={updateDriverData}>
+                      Confirm
                     </Button>
                   </Modal.Footer>
                 </Modal>
@@ -434,26 +764,32 @@ const Drivers = () => {
                   <Table striped bordered hover>
                     <thead>
                       <tr>
+                        <th>Id</th>
+                        <th>Avatar </th>
+                        <th>Email</th>
                         <th>Code</th>
-                        <th>License Plate</th>
-                        <th>Brand</th>
-                        <th>Model</th>
-                        <th>Color</th>
-                        <th>Seat</th>
-                        <th>Date of Registration</th>
+                        <th>Full Name</th>
+                        <th>Gender</th>
+                        <th>Status</th>
                       </tr>
                     </thead>
                     <tbody>
                       {currentBusList.map((bus, index) => (
-                        <tr key={index}>
+                        <tr key={index} >
+                          <td>{bus.id ? bus.id : "none"}</td>
+                          <td>
+                            {bus.avatar ? (
+                              <img className="driver-img" src={bus.avatar} alt="" />
+                            ) : (
+                              <img className="driver-img" src={defaultAvatar} alt="" />
+                            )}
+                          </td>
+                          <td>{bus.email ? bus.email : "none"}</td>
                           <td>{bus.code ? bus.code : "none"}</td>
-                          <td>{bus.licensePlate ? bus.licensePlate : "none"}</td>
-                          <td>{bus.brand ? bus.brand : "none"}</td>
-                          <td>{bus.model ? bus.model : "none"}</td>
-                          <td>{bus.color ? bus.color : "none"}</td>
-                          <td>{bus.seat ? bus.seat : "none"}</td>
-                          <td className="registration">{bus.dateOfRegistration ? bus.dateOfRegistration : "none"}
-                            <UncontrolledDropdown>
+                          <td>{bus.fullName ? bus.fullName : "none"}</td>
+                          <td>{bus.gender ? bus.gender : "none"}</td>
+                          <td>{bus.status ? bus.status : "none"}
+                            {/* <UncontrolledDropdown>
                               <DropdownToggle
                                 className="btn-icon-only text-light"
                                 href="#pablo"
@@ -466,27 +802,22 @@ const Drivers = () => {
                               </DropdownToggle>
                               <DropdownMenu className="dropdown-menu-arrow" right>
                                 <DropdownItem
+                                  className="detail-dropdown-item"
                                   href="#pablo"
-                                  onClick={() => handleUpdateShow(bus)}
-                                // onClick={(e) => e.preventDefault()}
+                                  onClick={(e) => {
+                                    e.preventDefault()
+                                    fetchBusDetails(bus.id)
+                                    setCurrentSelectDriver(bus.id)
+                                  }}
                                 >
-                                  Update
-                                </DropdownItem>
-                                <DropdownItem
-                                  href="#pablo"
-                                  onClick={() => handleDisableShow(bus)}
-                                >
-                                  Disable
-                                </DropdownItem>
-                                <DropdownItem
-                                  href="#pablo"
-                                  onClick={() => handleDeleteShow(bus)}
-                                >
-                                  Delete
+                                  Detail
                                 </DropdownItem>
                               </DropdownMenu>
-                            </UncontrolledDropdown>
+
+                            </UncontrolledDropdown> */}
                           </td>
+                          {/* <td className="registration">{bus.dateOfRegistration ? bus.dateOfRegistration : "none"}</td> */}
+
                         </tr>
                       ))}
                     </tbody>

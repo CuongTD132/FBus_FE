@@ -76,7 +76,7 @@ export const getMultiBuses = async (data) => {
 export const getAllBuses = async (data) => {
     return await axios.get(`${URL}/${END_POINTS.getMultiBuses}`, {
         headers: {
-            Authorization: `Bearer ${'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJJZCI6IjMiLCJSb2xlIjoiQURNSU4iLCJleHAiOjE2OTAyNzUzMTgsImlzcyI6IkZCdXNfU1dQIiwiYXVkIjoiRkJ1c19TV1AifQ.UQGNjS5BPJfY63oh8JfaTcC-CxoiWfzaFdtSPHjwe9A'}`,
+            Authorization: `Bearer ${data}`,
         },
     })
 }

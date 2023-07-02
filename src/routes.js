@@ -1,8 +1,5 @@
 
 import Index from "./views/Index";
-import Profile from "./views/examples/Profile";
-import Maps from "./views/examples/Maps";
-import Register from "./views/examples/Register";
 import Login from "./views/examples/Login";
 import Tables from "./views/examples/Tables";
 import Buses from "./views/examples/Buses";
@@ -39,23 +36,9 @@ var routes = [
   },
   {
     path: "/login",
-    
     component: <Login />,
     layout: "/auth",
   },
-  // {
-  //   path: "/register",
-  //   name: "Register",
-  //   icon: "ni ni-circle-08 text-pink",
-  //   component: <Register />,
-  //   layout: "/auth",
-  // },
-  // {
-  //   path: "/maps",
-  //   name: "Maps",
-  //   icon: "ni ni-pin-3 text-orange",
-  //   component: <Maps />,
-  //   layout: "/admin",
-  // },
+  
 ];
 export default routes;

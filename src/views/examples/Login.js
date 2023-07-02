@@ -1,14 +1,13 @@
 import { Card, CardHeader, Col } from "reactstrap";
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 import { loginWithGoogle } from "../../services/auth";
-import { useNavigate } from "react-router-dom";
+import { useNavigate} from "react-router-dom";
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-
 const Login = () => {
   const navigate = useNavigate();
   const handleLoginWithGoogle = (credentialResponse) => {
-    console.log(credentialResponse)
+    console.log(credentialResponse.credential)
     loginWithGoogle(credentialResponse.credential)
       .then((res) => {
         if (res.data !== '') {
@@ -16,11 +15,28 @@ const Login = () => {
           const userData = res.data;
           localStorage.setItem('user', JSON.stringify(res.data))
           if (userData.role === 'ADMIN') {
-            navigate("/admin/buses")            
+            navigate("/admin/buses");
+            toast.success(`Welcome ${userData.name} to Admin Page`, {
+              autoClose: 1000,
+            });
+
+          } else if (userData.role === 'DRIVER') {
+            toast.warning("You're not Authorized", {
+              autoClose: 1000,
+            });
+            localStorage.removeItem('user');
           }
+        } else {
+          toast.error("Your account is not registered", {
+            autoClose: 1000,
+          });
         }
       });
   };
+
+
+
+
 
   return (
     <>

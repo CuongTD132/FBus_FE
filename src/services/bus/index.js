@@ -9,6 +9,7 @@ const END_POINTS = {
     enableBus: 'api/Buses',
 }
 
+
 export const addBus = async (bus) => {
     const formData = new FormData();
     formData.append('code', bus.code);

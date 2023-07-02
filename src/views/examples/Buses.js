@@ -185,7 +185,7 @@ const Buses = () => {
 
 
   const deleteBus = () => {
-    deleteBusAPI(currentSelectBus)
+    deleteBusAPI()
       .then((res) => {
         console.log(res);
         if (res.status === 200) {
@@ -204,7 +204,7 @@ const Buses = () => {
   };
 
   const enableBus = () => {
-    enableStatusAPI(currentSelectBus)
+    enableStatusAPI()
       .then((res) => {
         console.log(res);
         if (res.status === 200) {
@@ -264,7 +264,7 @@ const Buses = () => {
                   <Modal.Header closeButton>
                     <Modal.Title>Enable bus</Modal.Title>
                   </Modal.Header>
-                  <Modal.Body>Are you sure to enable this bus!</Modal.Body>
+                  <Modal.Body>Are you sure to enable this bus?</Modal.Body>
                   <Modal.Footer>
                     <Button variant="secondary" onClick={handleDisableClose}>
                       Close
@@ -279,7 +279,7 @@ const Buses = () => {
                   <Modal.Header closeButton>
                     <Modal.Title>Delete bus</Modal.Title>
                   </Modal.Header>
-                  <Modal.Body>Are you sure to delete this bus!</Modal.Body>
+                  <Modal.Body>Are you sure to delete this bus?</Modal.Body>
                   <Modal.Footer>
                     <Button variant="secondary" onClick={handleDeleteClose}>
                       Close

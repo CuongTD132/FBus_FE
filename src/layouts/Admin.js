@@ -16,7 +16,7 @@
 
 */
 import React from "react";
-import { useLocation, Route, Routes, Navigate } from "react-router-dom";
+import { useLocation, Route, Routes, Navigate, useNavigate } from "react-router-dom";
 // reactstrap components
 import { Container } from "reactstrap";
 // core components
@@ -25,10 +25,19 @@ import AdminFooter from "../components/Footers/AdminFooter";
 import Sidebar from "../components/Sidebar/Sidebar";
 
 import routes from "../routes";
+import { toast } from "react-toastify";
+const parseJwt = (token) => {
+  try {
+    return JSON.parse(atob(token.split('.')[1]));
+  } catch (e) {
+    return null;
+  }
+};
 
 const Admin = (props) => {
   const mainContent = React.useRef(null);
   const location = useLocation();
+  const navigate = useNavigate();
 
   React.useEffect(() => {
     document.documentElement.scrollTop = 0;
@@ -59,6 +68,22 @@ const Admin = (props) => {
     }
     return "Brand";
   };
+  React.useEffect(() => {
+    const user = JSON.parse(localStorage.getItem("user"));
+
+    if (user) {
+      const decodedJwt = parseJwt(user.accessToken);
+
+      if (decodedJwt.exp * 1000 < Date.now()) {
+        localStorage.removeItem('user');
+        toast.success("Logout successful", {
+          autoClose: 1000,
+        });
+        navigate("/auth/login");
+      }
+    }
+  }, [])
+
 
   return (
     <>

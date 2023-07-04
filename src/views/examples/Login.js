@@ -7,7 +7,6 @@ import 'react-toastify/dist/ReactToastify.css';
 const Login = () => {
   const navigate = useNavigate();
   const handleLoginWithGoogle = (credentialResponse) => {
-    console.log(credentialResponse.credential)
     loginWithGoogle(credentialResponse.credential)
       .then((res) => {
         if (res.data !== '') {
@@ -33,10 +32,6 @@ const Login = () => {
         }
       });
   };
-
-
-
-
 
   return (
     <>

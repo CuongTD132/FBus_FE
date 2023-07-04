@@ -8,23 +8,19 @@ import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import AdminLayout from "./layouts/Admin";
 import AuthLayout from "./layouts/Auth";
-const user = localStorage.getItem('user');
-const isAdmin = user && user.role === 'ADMIN';
+import { Provider } from "react-redux";
+import { store } from "./redux/state";
 const root = ReactDOM.createRoot(document.getElementById("root"));
 
 root.render(
   <BrowserRouter>
-     <Routes>
-      {/* {isAdmin ? (
+    <Provider store={store}>
+      <Routes>        
         <Route path="/admin/*" element={<AdminLayout />} />
-      ) : (
         <Route path="/auth/*" element={<AuthLayout />} />
-      )}
-      <Route path="*" element={<Navigate to="/auth/login" replace />} /> */}
-      <Route path="/admin/*" element={<AdminLayout />} />
-      <Route path="/auth/*" element={<AuthLayout />} />
-      <Route path="*" element={<Navigate to="/auth/login" replace />} />
-    </Routes>
+        <Route path="*" element={<Navigate to="/auth/login" replace />} />
+      </Routes>
+    </Provider>
     <ToastContainer />
   </BrowserRouter>
 

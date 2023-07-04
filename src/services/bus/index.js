@@ -10,7 +10,7 @@ const END_POINTS = {
 }
 
 
-export const addBus = async (bus) => {
+export const addBusAPI = async (bus) => {
     const formData = new FormData();
     formData.append('code', bus.code);
     formData.append('licensePlate', bus.licensePlate);
@@ -23,7 +23,7 @@ export const addBus = async (bus) => {
         formData,
         {
             headers: {
-                Authorization: `Bearer ${'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJJZCI6IjMiLCJSb2xlIjoiQURNSU4iLCJleHAiOjE2OTAyNzUzMTgsImlzcyI6IkZCdXNfU1dQIiwiYXVkIjoiRkJ1c19TV1AifQ.UQGNjS5BPJfY63oh8JfaTcC-CxoiWfzaFdtSPHjwe9A'}`,
+                Authorization: `Bearer ${JSON.parse(localStorage.getItem('user')).accessToken}`,
             },
         }
     )
@@ -43,7 +43,7 @@ export const updateBusAPI = async (bus, id) => {
         formData,
         {
             headers: {
-                Authorization: `Bearer ${'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJJZCI6IjMiLCJSb2xlIjoiQURNSU4iLCJleHAiOjE2OTAyNzUzMTgsImlzcyI6IkZCdXNfU1dQIiwiYXVkIjoiRkJ1c19TV1AifQ.UQGNjS5BPJfY63oh8JfaTcC-CxoiWfzaFdtSPHjwe9A'}`,
+                Authorization: `Bearer ${JSON.parse(localStorage.getItem('user')).accessToken}`,
             },
         }
     )
@@ -53,31 +53,26 @@ export const getSingleBus = async (id) => {
     return await axios.get(`${URL}/${END_POINTS.getSingleBus}/${id}`,
         {
             headers: {
-                Authorization: `Bearer ${'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJJZCI6IjMiLCJSb2xlIjoiQURNSU4iLCJleHAiOjE2OTAyNzUzMTgsImlzcyI6IkZCdXNfU1dQIiwiYXVkIjoiRkJ1c19TV1AifQ.UQGNjS5BPJfY63oh8JfaTcC-CxoiWfzaFdtSPHjwe9A'}`,
+                Authorization: `Bearer ${JSON.parse(localStorage.getItem('user')).accessToken}`,
             },
         })
 }
 
-export const getMultiBuses = async (data) => {
+export const getMultiBusesAPI = async (data) => {
     return await axios.get(`${URL}/${END_POINTS.getMultiBuses}`, {
         params: {
-            Code: data.code ?? "",
-            LicensePlate: data.licensePlate ?? "",
-            PageIndex: data.pageIndex ?? "",
-            PageSize: data.pageSize ?? "",
-            OrderBy: data.orderBy ?? "",
-            Direction: data.direction ?? ""
+            ...data
         },
         headers: {
-            Authorization: `Bearer ${'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJJZCI6IjMiLCJSb2xlIjoiQURNSU4iLCJleHAiOjE2OTAyNzUzMTgsImlzcyI6IkZCdXNfU1dQIiwiYXVkIjoiRkJ1c19TV1AifQ.UQGNjS5BPJfY63oh8JfaTcC-CxoiWfzaFdtSPHjwe9A'}`,
+            Authorization: `Bearer ${JSON.parse(localStorage.getItem('user')).accessToken}`,
         },
     })
 }
 
-export const getAllBuses = async (data) => {
+export const getAllBuses = async () => {
     return await axios.get(`${URL}/${END_POINTS.getMultiBuses}`, {
         headers: {
-            Authorization: `Bearer ${data}`,
+            Authorization: `Bearer ${JSON.parse(localStorage.getItem('user')).accessToken}`,
         },
     })
 }
@@ -87,17 +82,17 @@ export const deleteBusAPI = async (busId) => {
     return await axios.delete(`${URL}/${END_POINTS.deleteBus}/${busId}`,
         {
             headers: {
-                Authorization: `Bearer ${'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJJZCI6IjMiLCJSb2xlIjoiQURNSU4iLCJleHAiOjE2OTAyNzUzMTgsImlzcyI6IkZCdXNfU1dQIiwiYXVkIjoiRkJ1c19TV1AifQ.UQGNjS5BPJfY63oh8JfaTcC-CxoiWfzaFdtSPHjwe9A'}`,
+                Authorization: `Bearer ${JSON.parse(localStorage.getItem('user')).accessToken}`,
             },
         });
 }
 
-export const enableStatusAPI = async (busId) => {
+export const toggleStatusAPI = async (busId, status) => {
     return await axios.patch(`${URL}/${END_POINTS.enableBus}/${busId}`,
-        'ACTIVE',
+        status,
         {
             headers: {
-                Authorization: `Bearer ${'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJJZCI6IjMiLCJSb2xlIjoiQURNSU4iLCJleHAiOjE2OTAyNzUzMTgsImlzcyI6IkZCdXNfU1dQIiwiYXVkIjoiRkJ1c19TV1AifQ.UQGNjS5BPJfY63oh8JfaTcC-CxoiWfzaFdtSPHjwe9A'}`,
+                Authorization: `Bearer ${JSON.parse(localStorage.getItem('user')).accessToken}`,
                 "Content-Type": "application/json"
             },
         })

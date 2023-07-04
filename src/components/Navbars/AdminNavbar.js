@@ -1,6 +1,6 @@
 
 import { useNavigate } from "react-router-dom";
-import { GoogleOAuthProvider, googleLogout  } from '@react-oauth/google';
+import { GoogleOAuthProvider, googleLogout } from '@react-oauth/google';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import {
@@ -20,6 +20,9 @@ import {
   Media,
 } from "reactstrap";
 import { useEffect, useState } from "react";
+import { getMultiBusesAPI } from "../../services/bus";
+import { useDispatch, useSelector } from "react-redux";
+import { setCurrentSearch, updateBus } from "../../redux/reducer";
 
 const AdminNavbar = (props) => {
   const navigate = useNavigate();
@@ -29,6 +32,10 @@ const AdminNavbar = (props) => {
   });
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem('user'))
+    console.log(user)
+    if (user == null) {
+      navigate('/auth/login')
+    }
     setUser(user)
   }, [])
   const handleLogout = () => {
@@ -36,17 +43,36 @@ const AdminNavbar = (props) => {
     toast.success("Logout successful", {
       autoClose: 1000,
     });
-    googleLogout();
     navigate("/auth/login");
   };
-  
-  window.addEventListener('beforeunload', handleLogout);
+
+
+  // SEARCH FUNCTIONS
+  const dispatch = useDispatch();
+
+  const handleSearch = (searchString = "") => {
+    localStorage.setItem('currentSearch', searchString);
+
+    getMultiBusesAPI({
+      licensePlate: searchString,
+      code: searchString
+    }).then((res) => {
+      console.log(res.data)
+      if (res.data.data != null) {
+        dispatch(updateBus(res.data.data))
+        dispatch(setCurrentSearch(searchString))
+      } else {
+        dispatch(updateBus([]))
+      }
+    })
+  }
+  // END FUNCTIONS
 
   return (
     <>
       <Navbar className="navbar-top navbar-dark" expand="md" id="navbar-main">
         <Container fluid>
-          
+
           <Form className="navbar-search navbar-search-dark form-inline mr-3 d-none d-md-flex ml-lg-auto">
             <FormGroup className="mb-0">
               <InputGroup className="input-group-alternative">
@@ -55,7 +81,7 @@ const AdminNavbar = (props) => {
                     <i className="fas fa-search" />
                   </InputGroupText>
                 </InputGroupAddon>
-                <Input placeholder="Search" type="text" />
+                <Input placeholder="Search" type="text" onChange={(e) => handleSearch(e.target.value)} />
               </InputGroup>
             </FormGroup>
           </Form>
@@ -82,7 +108,7 @@ const AdminNavbar = (props) => {
                 </DropdownItem>
                 <DropdownItem divider />
                 <GoogleOAuthProvider clientId="319062689013-fku6m54vf3arbhrnoiij84qb0e852o28.apps.googleusercontent.com">
-                  <DropdownItem  onClick={handleLogout}>
+                  <DropdownItem onClick={handleLogout}>
                     <i className="ni ni-user-run" />
                     <span>Logout</span>
                   </DropdownItem>

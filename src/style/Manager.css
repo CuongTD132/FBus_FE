@@ -19,10 +19,10 @@
     border-radius: 15px !important;
 }
 
-.bus_manager .registration {
+/* .bus_manager .registration {
     display: flex !important;
     justify-content: space-between !important;
-}
+} */
 
 
 .card-container .card-body {
@@ -64,5 +64,9 @@
   
   .status.active {
     color: #24a148; /* Color for ACTIVE status */
+  }
+
+  .status.inactive {
+    color: #F5365C; /* Color for INACTIVE status */
   }
   

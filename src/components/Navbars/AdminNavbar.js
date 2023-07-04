@@ -34,6 +34,9 @@ const AdminNavbar = (props) => {
     const user = JSON.parse(localStorage.getItem('user'))
     console.log(user)
     if (user == null) {
+      toast.warning("You need Log in again to continue", {
+        autoClose: 1000,
+      });
       navigate('/auth/login')
     }
     setUser(user)

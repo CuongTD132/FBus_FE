@@ -156,16 +156,22 @@ const Drivers = () => {
       .then((res) => {
         console.log(res);
         if (res.status === 200) {
-          toast.success("Driver update successfully!");
+          toast.success("Driver update successfully!", {
+            autoClose: 1000,
+          });
         } else {
-          toast.warning("Can't update this driver!");
+          toast.warning("Can't update this driver!", {
+            autoClose: 1000,
+          });
         }
         setShowUpdate(false);
         navigate("/admin/drivers");
         fetchDrivers();
       })
       .catch(() => {
-        toast.error("Failed to update the driver!");
+        toast.error("Failed to update the driver!", {
+          autoClose: 1000,
+        });
       })
   }
 
@@ -192,7 +198,9 @@ const Drivers = () => {
       .then((res) => {
         console.log(res);
         if(res.status === 200){
-        toast.success("Driver add successfully!");
+        toast.success("Driver add successfully!", {
+          autoClose: 1000,
+        });
         navigate("/admin/drivers");
         }
 
@@ -210,9 +218,13 @@ const Drivers = () => {
       .then((res) => {
         console.log(res);
         if (res.status === 200) {
-          toast.success("Driver deleted successfully!");
+          toast.success("Driver deleted successfully!", {
+            autoClose: 1000,
+          });
         } else {
-          toast.warning("Can't delete the driver!");
+          toast.warning("Can't delete the driver!", {
+            autoClose: 1000,
+          });
         }
         setShowDelete(false);
         setShowDetails(false);
@@ -220,7 +232,9 @@ const Drivers = () => {
         fetchDrivers();
       })
       .catch(() => {
-        toast.error("Failed to delete the driver!");
+        toast.error("Failed to delete the driver!", {
+          autoClose: 1000,
+        });
       })
   };
 
@@ -229,16 +243,22 @@ const Drivers = () => {
       .then((res) => {
         console.log(res);
         if (res.status === 200) {
-          toast.success("Driver enable successfully!");
+          toast.success("Driver enable successfully!", {
+            autoClose: 1000,
+          });
         } else {
-          toast.warning("Can't enable this driver!");
+          toast.warning("Can't enable this driver!", {
+            autoClose: 1000,
+          });
         }
         setShowDelete(false);
         navigate("/admin/drivers");
         fetchDrivers();
       })
       .catch(() => {
-        toast.error("Failed to enable the driver!");
+        toast.error("Failed to enable the driver!", {
+          autoClose: 1000,
+        });
       })
   }
 

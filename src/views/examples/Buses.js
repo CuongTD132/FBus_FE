@@ -31,8 +31,8 @@ import 'react-toastify/dist/ReactToastify.css';
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { updateBus } from "../../redux/reducer";
-
-
+import objectHash from "object-hash";
+import QRCode from 'qrcode.react';
 
 const Buses = () => {
   const dispatch = useDispatch();
@@ -41,6 +41,7 @@ const Buses = () => {
   const [busList, setBusList] = useState([]);
   const [showAdd, setShowAdd] = useState(false);
   const [showUpdate, setShowUpdate] = useState(false);
+  const [showQrCode, setShowQrCode] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
   const [showToggleStatus, setShowToggleStatus] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
@@ -54,7 +55,7 @@ const Buses = () => {
     dateOfRegistration: "",
   });
 
-  // Check token
+  // Check accessToken
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem("user"));
     if (user == null || !user) {
@@ -83,7 +84,7 @@ const Buses = () => {
 
   // Fetch list of bus and pass to table
   const fetchBuses = () => {
-    if(currentSearch != "") {
+    if (currentSearch != "") {
       getMultiBusesAPI({
         licensePlate: currentSearch,
         code: currentSearch
@@ -95,19 +96,27 @@ const Buses = () => {
           dispatch(updateBus([]))
         }
       })
-    }else if (busList.length == 0) {
+    } else if (busList.length == 0) {
       getAllBuses()
         .then((res) => setBusList(res.data.data))
         .catch((error) => {
           console.log(error);
         });
-    } 
+    }
   };
 
   // Call show detail form
   const handleShowDetails = (id) => {
     fetchBusDetails(id);
     setShowDetails(true); // Show the modal
+  }
+
+  // QRCODE FUNCTIONS
+  const [qrHash, setQrHash] = useState(null);
+  const handleQrCode = (bus) => {
+    const myObject = { code: bus.code, licensePlate: bus.licensePlate };
+    setQrHash(objectHash(myObject));
+    setShowQrCode(true);
   }
 
   // --UPDATE FUNCTIONS
@@ -123,15 +132,21 @@ const Buses = () => {
       .then((res) => {
         console.log(res);
         if (res.status === 200) {
-          toast.success("Bus update successfully!");
+          toast.success("Bus update successfully!", {
+            autoClose: 1000,
+          });
         } else {
-          toast.warning("Can't update this bus!");
+          toast.warning("Can't update this bus!", {
+            autoClose: 1000,
+          });
         }
         setShowUpdate(false);
         fetchBuses();
       })
       .catch(() => {
-        toast.error("Failed to update the bus!");
+        toast.error("Failed to update the bus!", {
+          autoClose: 1000,
+        });
       })
   }
   // END UPDATE FUNCTIONS
@@ -151,12 +166,16 @@ const Buses = () => {
     }
     toggleStatusAPI(toggleBusId, status)
       .then((res) => {
-        toast.success("Successull to enable/disable status!")
+        toast.success("Successull to enable/disable status!", {
+          autoClose: 1000,
+        });
         setShowToggleStatus(false);
         fetchBuses()
       })
       .catch(() => {
-        toast.error("Failed to enable/disable status!")
+        toast.error("Failed to enable/disable status!", {
+          autoClose: 1000,
+        });
         setShowToggleStatus(false);
       });
   }
@@ -172,9 +191,13 @@ const Buses = () => {
     deleteBusAPI(deleteBusId)
       .then((res) => {
         if (res.status === 200) {
-          toast.success("Bus deleted successfully!");
+          toast.success("Bus deleted successfully!", {
+            autoClose: 1000,
+          });
         } else {
-          toast.warning("Can't delete the bus!");
+          toast.warning("Can't delete the bus!", {
+            autoClose: 1000,
+          });
         }
         setShowDelete(false);
         fetchBuses();
@@ -192,7 +215,9 @@ const Buses = () => {
       .then((res) => {
         console.log(res);
         if (res.status === 200) {
-          toast.success("Bus has been add successfully!");
+          toast.success("Bus has been add successfully!", {
+            autoClose: 1000,
+          });
           fetchBuses()
           setShowAdd(false);
         }
@@ -222,14 +247,21 @@ const Buses = () => {
   const [startIndex, setStartIndex] = useState(0);
   const [endIndex, setEndIndex] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
+
   useEffect(() => {
     setTotalPages(Math.ceil(busList.length / itemsPerPage));
     setStartIndex((currentPage - 1) * itemsPerPage);
   }, [busList, currentPage]);
+
   useEffect(() => {
     setEndIndex(startIndex + itemsPerPage);
     setCurrentBusList(busList.slice(startIndex, endIndex));
   }, [busList, startIndex, endIndex]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [busList.length]);
+
   const handlePageClick = (pageNumber) => {
     setCurrentPage(pageNumber);
   };
@@ -267,7 +299,7 @@ const Buses = () => {
                       Close
                     </Button>
                     <Button variant="primary" onClick={toggleStatus}>
-                      Enable
+                      Enable/Disable
                     </Button>
                   </Modal.Footer>
                 </Modal>
@@ -663,6 +695,29 @@ const Buses = () => {
                     </Button>
                   </Modal.Footer>
                 </Modal>
+                {/* QRCode model */}
+                <Modal show={showQrCode && qrHash} onHide={() => {
+                  setShowQrCode(false)
+                  setQrHash(null)
+                }}>
+                  <Modal.Header >
+                    <Modal.Title>QR CODE</Modal.Title>
+                  </Modal.Header>
+                  <Modal.Body className="text-center">
+                    <Form>
+                      <Form.Group>
+                        <div className="qr-code-container">
+                          <QRCode size={200} value={qrHash} />
+                        </div>
+                      </Form.Group>
+                    </Form>
+                  </Modal.Body>
+                  <Modal.Footer>
+                    <Button variant="secondary" onClick={() => setShowQrCode(false)}>
+                      Close
+                    </Button>
+                  </Modal.Footer>
+                </Modal>
 
                 {/* Table list */}
                 <div className="list">
@@ -712,6 +767,12 @@ const Buses = () => {
                                 <i className="fas fa-ellipsis-v" />
                               </DropdownToggle>
                               <DropdownMenu className="dropdown-menu-arrow" >
+                                <DropdownItem
+                                  className="qrcode-dropdown-item"
+                                  onClick={() => handleQrCode(bus)}
+                                >
+                                  QR Code
+                                </DropdownItem>
                                 <DropdownItem
                                   className="update-dropdown-item"
                                   onClick={() => handleUpdateShow(bus)}

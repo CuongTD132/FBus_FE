@@ -21,8 +21,9 @@ import {
 } from "reactstrap";
 import { useEffect, useState } from "react";
 import { getMultiBusesAPI } from "../../services/bus";
+import { getMultiAccounts } from "../../services/account";
 import { useDispatch, useSelector } from "react-redux";
-import { setCurrentSearch, updateBus } from "../../redux/reducer";
+import { setCurrentSearchBus, updateBus, setCurrentSearchAccount, updateAccount } from "../../redux/reducer";
 
 const AdminNavbar = (props) => {
   const navigate = useNavigate();
@@ -54,8 +55,8 @@ const AdminNavbar = (props) => {
   const dispatch = useDispatch();
 
   const handleSearch = (searchString = "") => {
-    localStorage.setItem('currentSearch', searchString);
-
+    localStorage.setItem('currentSearchBus', searchString);
+    
     getMultiBusesAPI({
       licensePlate: searchString,
       code: searchString
@@ -63,11 +64,24 @@ const AdminNavbar = (props) => {
       console.log(res.data)
       if (res.data.data != null) {
         dispatch(updateBus(res.data.data))
-        dispatch(setCurrentSearch(searchString))
+        dispatch(setCurrentSearchBus(searchString))
       } else {
         dispatch(updateBus([]))
       }
     })
+
+    // getMultiAccounts({
+    //   code: searchString,
+    //   email: searchString
+    // }).then((res) => {
+    //   console.log(res.data)
+    //   if (res.data.data != null) {
+    //     dispatch(updateAccount(res.data.data))
+    //     dispatch(setCurrentSearchAccount(searchString))
+    //   } else {
+    //     dispatch(updateAccount([]))
+    //   }
+    // })
   }
   // END FUNCTIONS
 
@@ -107,7 +121,7 @@ const AdminNavbar = (props) => {
               </DropdownToggle>
               <DropdownMenu className="dropdown-menu-arrow" right>
                 <DropdownItem className="noti-title" header tag="div">
-                  <h6 className="text-overflow m-0">Welcome!</h6>
+                  <h6 className="text-overflow m-0">Welcome to Admin Page!</h6>
                 </DropdownItem>
                 <DropdownItem divider />
                 <GoogleOAuthProvider clientId="319062689013-fku6m54vf3arbhrnoiij84qb0e852o28.apps.googleusercontent.com">

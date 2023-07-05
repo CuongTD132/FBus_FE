@@ -23,8 +23,8 @@ import {
   getAllDrivers,
   updateDriverAPI,
   deleteDriverAPI,
-  addDriver,
-  enableStatusAPI
+  addDriverAPI,
+  toggleStatusAPI
 } from "../../services/driver";
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -183,7 +183,7 @@ const Drivers = () => {
   }
 
   const handleAddDriver = () => {
-    addDriver({
+    addDriverAPI({
       email: newEmail,
       code: newCode,
       fullName: newFullName,
@@ -239,7 +239,7 @@ const Drivers = () => {
   };
 
   const enableBus = () => {
-    enableStatusAPI(currentSelectDriver)
+    toggleStatusAPI(currentSelectDriver)
       .then((res) => {
         console.log(res);
         if (res.status === 200) {

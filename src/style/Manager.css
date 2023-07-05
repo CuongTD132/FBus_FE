@@ -1,11 +1,11 @@
-.bus_manager .add_button {
+.add_button {
     background-color: #0d6efd;
     color: white;
     float: right;
     margin: 10px 20px;
 }
 
-.bus_manager .list {
+.list {
     width: 100%;
     height: fit-content !important;
     /* overflow: hidden; */
@@ -15,14 +15,10 @@
     box-shadow: 5px 5px 10px 0 rgba(0, 0, 0, 0.2);
 }
 
-.bus_manager .list_item {
+.list_item {
     border-radius: 15px !important;
 }
 
-/* .bus_manager .registration {
-    display: flex !important;
-    justify-content: space-between !important;
-} */
 
 
 .card-container .card-body {

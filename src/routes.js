@@ -4,6 +4,7 @@ import Login from "./views/examples/Login";
 import Tables from "./views/examples/Tables";
 import Buses from "./views/examples/Buses";
 import Drivers from "./views/examples/Drivers";
+import Accounts from "./views/examples/Accounts";
 
 var routes = [
   {
@@ -13,11 +14,19 @@ var routes = [
     component: <Index />,
     layout: "/admin",
   },
+
   {
     path: "/buses",
     name: "Buses",
     icon: "ni ni-bus-front-12 text-blue",
     component: <Buses />,
+    layout: "/admin",
+  },
+  {
+    path: "/accounts",
+    name: "Accounts",
+    icon: "ni ni-circle-08 text-red",
+    component: <Accounts />,
     layout: "/admin",
   },
   {

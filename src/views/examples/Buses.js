@@ -59,6 +59,9 @@ const Buses = () => {
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem("user"));
     if (user == null || !user) {
+      toast("You need to log in again to continue!", {
+        autoClose: 2000,
+      });
       navigate('/auth/login');
     }
     if (user?.accessToken) {
@@ -84,10 +87,10 @@ const Buses = () => {
 
   // Fetch list of bus and pass to table
   const fetchBuses = () => {
-    if (currentSearch != "") {
+    if (currentSearchBus != "") {
       getMultiBusesAPI({
-        licensePlate: currentSearch,
-        code: currentSearch
+        licensePlate: currentSearchBus,
+        code: currentSearchBus
       }).then((res) => {
         console.log(res.data.data)
         if (res.data.data != null) {
@@ -143,10 +146,17 @@ const Buses = () => {
         setShowUpdate(false);
         fetchBuses();
       })
-      .catch(() => {
-        toast.error("Failed to update the bus!", {
-          autoClose: 1000,
-        });
+      .catch((e) => {
+        if (e.response && e.response.status === 401) {
+          toast.error("You need to log in again to continue!", {
+            autoClose: 2000,
+          });
+          navigate("/auth/login");
+        } else {
+          toast.error("Failed to update the bus!", {
+            autoClose: 1000,
+          });
+        }
       })
   }
   // END UPDATE FUNCTIONS
@@ -172,11 +182,18 @@ const Buses = () => {
         setShowToggleStatus(false);
         fetchBuses()
       })
-      .catch(() => {
-        toast.error("Failed to enable/disable status!", {
-          autoClose: 1000,
-        });
-        setShowToggleStatus(false);
+      .catch((e) => {
+        if (e.response && e.response.status === 401) {
+          toast.error("You need to log in again to continue!", {
+            autoClose: 2000,
+          });
+          navigate("/auth/login");
+        } else {
+          toast.error("Failed to enable/disable status!", {
+            autoClose: 1000,
+          });
+          setShowToggleStatus(false);
+        }
       });
   }
   // END TOGGLE STATUS
@@ -203,9 +220,17 @@ const Buses = () => {
         fetchBuses();
       })
       .catch((e) => {
-        // toast.error("Failed to delete the bus!");
-        toast.error(e)
-      })
+        if (e.response && e.response.status === 401) {
+          toast.error("You need to log in again to continue!", {
+            autoClose: 2000,
+          });
+          navigate("/auth/login");
+        } else {
+          toast.error("Failed to delete the bus!", {
+            autoClose: 1000,
+          });
+        }
+      });
   }
   // END DELETE FUNCTIONS
 
@@ -222,8 +247,18 @@ const Buses = () => {
           setShowAdd(false);
         }
       })
-      .catch((error) => {
-        setShowAdd(false);
+      .catch((e) => {
+        if (e.response && e.response.status === 401) {
+          toast.error("You need to log in again to continue!", {
+            autoClose: 2000,
+          });
+          navigate("/auth/login");
+        } else {
+          toast.error("Failed to add this bus!", {
+            autoClose: 1000,
+          });
+          setShowAdd(false);
+        }
       });
   };
   const handleAddClose = () => {
@@ -269,7 +304,7 @@ const Buses = () => {
 
   // REDUX
   const buses = useSelector((state) => state.buses.value);
-  const currentSearch = useSelector((state) => state.buses.currentSearch);
+  const currentSearchBus = useSelector((state) => state.buses.currentSearchBus);
   React.useEffect(() => {
     setBusList(buses)
   }, [buses])

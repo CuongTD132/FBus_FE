@@ -51,10 +51,13 @@ import {
   Row,
   Col,
 } from "reactstrap";
+import { useDispatch } from "react-redux";
+import { setCurrentSearchBus } from "../../redux/reducer";
 
 var ps;
 
 const Sidebar = (props) => {
+  const dispatch = useDispatch;
   const [collapseOpen, setCollapseOpen] = useState();
   // verifies if routeName is the one active (in browser input)
   const activeRoute = (routeName) => {
@@ -75,7 +78,7 @@ const Sidebar = (props) => {
       const { path, layout } = prop;
       if (path != '/login' && layout != '/auth') {
         return (
-          <NavItem key={key}>
+          <NavItem key={key} >
             <NavLink
               to={prop.layout + prop.path}
               tag={NavLinkRRD}
@@ -232,7 +235,8 @@ const Sidebar = (props) => {
             </InputGroup>
           </Form>
           {/* Navigation */}
-          <Nav navbar>{createLinks(routes)}</Nav>
+          <Nav navbar>{createLinks(routes) }</Nav>
+          {/* <Nav navbar onClick={() => dispatch(setCurrentSearchBus(''))}>{createLinks(routes) }</Nav> */}
           {/* Divider */}
 
         </Collapse>

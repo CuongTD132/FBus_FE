@@ -1,8 +1,9 @@
 import { configureStore } from "@reduxjs/toolkit";
-import { busSlice } from "./reducer";
+import { busSlice, accountSlide } from "./reducer";
 
 export const store = configureStore({
     reducer: {
-        buses: busSlice.reducer
+        buses: busSlice.reducer,
+        accounts: accountSlide.reducer
     }
 })

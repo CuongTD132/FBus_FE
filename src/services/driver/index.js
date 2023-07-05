@@ -65,12 +65,7 @@ export const getSingleDriver = async (id) => {
 export const getMultiDriversAPI = async (data) => {
     return await axios.get(`${URL}/${END_POINTS.getMultiDrivers}`, {
         params: {
-            Code: data.code ?? "",
-            Email: data.email ?? "",
-            PageIndex: data.pageIndex ?? "",
-            PageSize: data.pagesize ?? "",
-            OrderBy: data.OrderBy ?? "",
-            Direction: data.direction ?? ""
+            ...data
         },
         headers: {
             Authorization: `Bearer ${JSON.parse(localStorage.getItem('user')).accessToken}`,
@@ -99,7 +94,7 @@ export const deleteDriverAPI = async (driverId) => {
 
 export const toggleStatusAPI = async (driverId, status) => {
     return await axios.patch(`${URL}/${END_POINTS.enableDriver}/${driverId}`,
-    'ACTIVE',
+    status,
     {
         headers: {
             Authorization: `Bearer ${JSON.parse(localStorage.getItem('user')).accessToken}`,

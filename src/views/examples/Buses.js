@@ -273,6 +273,18 @@ const Buses = () => {
       dateOfRegistration: "",
     })
   }
+  const handleAddOpen = () => {
+    setFormData({
+      code: "",
+      licensePlate: "",
+      brand: "",
+      model: "",
+      color: "",
+      seat: "",
+      dateOfRegistration: "",
+    });
+    setShowAdd(true);
+  };
   // END ADD
 
   // PAGING
@@ -314,7 +326,7 @@ const Buses = () => {
     <>
       <Header />
       <ToastContainer />
-      <Container className="mt--7 bus_manager" fluid>
+      <Container className="mt--7 " fluid>
         <Row>
           <div className="col">
             <Card className=" card-container shadow">
@@ -469,7 +481,6 @@ const Buses = () => {
                           type="date"
                           name="dateOfRegistration"
                           placeholder="YYYY-MM-DD"
-                          autoFocus
                           required
                           value={formData.dateOfRegistration}
                           onChange={(e) => {
@@ -572,15 +583,14 @@ const Buses = () => {
                         />
                       </Form.Group>
                       <Form.Group className="mb-3" controlId="dateOfRegistration">
-                        <Form.Label>Date of Registration</Form.Label>
+                        <Form.Label>Date of Registration (MM-DD-YYYY)</Form.Label>
                         <Form.Control
                           type="text"
                           name="dateOfRegistration"
                           placeholder="Date of Registration"
                           autoFocus
                           readOnly
-                          value={formData.dateOfRegistration.slice(0, 10)}
-                        // onChange={handleUpdateChange}
+                          value={new Date(formData.dateOfRegistration.slice(0, 10)).toLocaleDateString("en-US")}
                         />
                       </Form.Group>
                     </Form>
@@ -593,6 +603,7 @@ const Buses = () => {
                     </Button>
                   </Modal.Footer>
                 </Modal>
+
                 {/* Update model */}
                 <Modal show={showUpdate} onHide={handleUpdateClose}>
                   <Modal.Header closeButton>
@@ -703,18 +714,25 @@ const Buses = () => {
                         />
                       </Form.Group>
                       <Form.Group className="mb-3" controlId="dateOfRegistration">
-                        <Form.Label>Date of Registration</Form.Label>
+                        <Form.Label>
+                          Date of Registration (MM-DD-YYYY)
+                        </Form.Label>
                         <Form.Control
-                          type="text"
+                          type="date"
                           name="dateOfRegistration"
-                          placeholder="Date of Registration"
                           autoFocus
                           required
-                          value={formData.dateOfRegistration.slice(0, 10)}
+                          value={formData.dateOfRegistration ? formData.dateOfRegistration.slice(0, 10) : ''}
                           onChange={(e) => {
+                            const inputDate = e.target.value;
+                            const formattedDate = inputDate
+                              .split("-")
+                              .map((part) => part.padStart(2, "0"))
+                              .join("-");
+
                             setFormData({
                               ...formData,
-                              dateOfRegistration: e.target.value
+                              dateOfRegistration: formattedDate
                             })
                           }}
                         />
@@ -756,7 +774,7 @@ const Buses = () => {
 
                 {/* Table list */}
                 <div className="list">
-                  <Button variant="primary" onClick={() => setShowAdd(true)} size="md" className="add_button">Add Bus +</Button>
+                  <Button variant="primary" onClick={handleAddOpen} size="md" className="add_button">Add Bus +</Button>
                   <Table striped bordered hover>
                     <thead>
                       <tr>

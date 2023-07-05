@@ -21,9 +21,10 @@ import {
 } from "reactstrap";
 import { useEffect, useState } from "react";
 import { getMultiBusesAPI } from "../../services/bus";
+import { getMultiDriversAPI } from "../../services/driver";
 import { getMultiAccounts } from "../../services/account";
 import { useDispatch, useSelector } from "react-redux";
-import { setCurrentSearchBus, updateBus, setCurrentSearchAccount, updateAccount } from "../../redux/reducer";
+import { setCurrentSearchBus, updateBus, setCurrentSearchAccount, updateAccount, setcurrentSearchDriver, updateDriver } from "../../redux/reducer";
 
 const AdminNavbar = (props) => {
   const navigate = useNavigate();
@@ -56,6 +57,7 @@ const AdminNavbar = (props) => {
 
   const handleSearch = (searchString = "") => {
     localStorage.setItem('currentSearchBus', searchString);
+    localStorage.setItem('currentSearchDriver', searchString);
     
     getMultiBusesAPI({
       licensePlate: searchString,
@@ -67,6 +69,19 @@ const AdminNavbar = (props) => {
         dispatch(setCurrentSearchBus(searchString))
       } else {
         dispatch(updateBus([]))
+      }
+    })
+
+    getMultiDriversAPI({
+      code: searchString,
+      email: searchString
+    }).then((res) => {
+      console.log(res.data)
+      if (res.data.data != null) {
+        dispatch(updateDriver(res.data.data))
+        dispatch(setcurrentSearchDriver(searchString))
+      } else {
+        dispatch(updateDriver([]))
       }
     })
 

@@ -53,9 +53,9 @@ const Drivers = () => {
     idCardNumber: "",
     address: "",
     phoneNumber: "",
-    personalEmail: "",
     dateOfBirth: "",
     avatar: "",
+    personalEmail: "",
   });
 
   // Check accessToken
@@ -203,7 +203,6 @@ const Drivers = () => {
     deleteDriverAPI(deleteDriverId)
       .then((res) => {
         if (res.status === 200) {
-          console.log(res)
           toast.success("Driver deleted successfully!", {
             autoClose: 1000,
           });
@@ -267,26 +266,11 @@ const Drivers = () => {
       idCardNumber: "",
       address: "",
       phoneNumber: "",
-      personalEmail: "",
       dateOfBirth: "",
       avatar: "",
+      personalEmail: "",
     })
   }
-  const handleAddOpen = () => {
-    setFormData({
-      email: "",
-      code: "",
-      fullName: "",
-      gender: "",
-      idCardNumber: "",
-      address: "",
-      phoneNumber: "",
-      personalEmail: "",
-      dateOfBirth: "",
-      avatar: "",
-    });
-    setShowAdd(true);
-  };
   // END ADD
 
   // PAGING
@@ -381,6 +365,8 @@ const Drivers = () => {
                           type="text"
                           name="email"
                           placeholder="Email"
+                          autoFocus
+                          required
                           value={formData.email}
                           onChange={(e) => {
                             setFormData({
@@ -427,7 +413,7 @@ const Drivers = () => {
                       <Form.Group className="mb-3" controlId="gender">
                         <Form.Label>Gender</Form.Label>
                         <Form.Control
-                          as="select"
+                          type="text"
                           name="gender"
                           placeholder="Gender"
                           autoFocus
@@ -437,13 +423,9 @@ const Drivers = () => {
                             setFormData({
                               ...formData,
                               gender: e.target.value
-                            });
+                            })
                           }}
-                        >
-                          <option value="">Select gender</option>
-                          <option value="Male">Male</option>
-                          <option value="Female">Female</option>
-                        </Form.Control>
+                        />
                       </Form.Group>
                       <Form.Group className="mb-3" controlId="idCardNumber">
                         <Form.Label>IdCardNumber</Form.Label>
@@ -502,6 +484,8 @@ const Drivers = () => {
                           type="text"
                           name="personalEmail"
                           placeholder="PersonalEmail"
+                          autoFocus
+                          required
                           value={formData.personalEmail}
                           onChange={(e) => {
                             setFormData({
@@ -516,6 +500,7 @@ const Drivers = () => {
                         <Form.Control
                           type="date"
                           name="dateOfBirth"
+                          autoFocus
                           required
                           value={formData.dateOfBirth}
                           onChange={(e) => {
@@ -538,6 +523,8 @@ const Drivers = () => {
                           type="file"
                           name="avatar"
                           placeholder="AvatarFile"
+                          autoFocus
+                          required
                           value={formData.avatar}
                           onChange={(e) => {
                             setFormData({
@@ -571,10 +558,10 @@ const Drivers = () => {
                         <Form.Control
                           type="text"
                           name="email"
-                          placeholder="No email available"
+                          placeholder="Email"
                           autoFocus
                           readOnly
-                          value={formData.email || ""}
+                          value={formData.email}
                         />
                       </Form.Group>
                       <Form.Group className="mb-3" controlId="code">
@@ -648,20 +635,21 @@ const Drivers = () => {
                         <Form.Control
                           type="text"
                           name="personalEmail"
-                          placeholder="No personal email available"
+                          placeholder="Personal Email"
                           autoFocus
                           readOnly
-                          value={formData.personalEmail || ""}
+                          value={formData.personalEmail}
                         />
                       </Form.Group>
                       <Form.Group className="mb-3" controlId="dateOfBirth">
-                        <Form.Label>Date of Birth (MM-DD-YYYY)</Form.Label>
+                        <Form.Label>Date of Birth</Form.Label>
                         <Form.Control
                           type="text"
                           name="dateOfBirth"
                           placeholder="Date of Birth"
+                          autoFocus
                           readOnly
-                          value={new Date(formData.dateOfBirth.slice(0, 10)).toLocaleDateString("en-US")}
+                          value={new Date(formData.dateOfRegistration.slice(0, 10)).toLocaleDateString("en-US")}
                         />
                       </Form.Group>
                     </Form>
@@ -684,8 +672,10 @@ const Drivers = () => {
                         <Form.Control
                           type="text"
                           name="email"
-                          placeholder="No email available"
-                          value={formData.email || ""}
+                          placeholder="Email"
+                          autoFocus
+                          required
+                          value={formData.email}
                           onChange={(e) => {
                             setFormData({
                               ...formData,
@@ -731,7 +721,7 @@ const Drivers = () => {
                       <Form.Group className="mb-3" controlId="gender">
                         <Form.Label>Gender</Form.Label>
                         <Form.Control
-                          as="select"
+                          type="text"
                           name="gender"
                           placeholder="Gender"
                           autoFocus
@@ -741,23 +731,10 @@ const Drivers = () => {
                             setFormData({
                               ...formData,
                               gender: e.target.value
-                            });
+                            })
                           }}
-                        >
-                          {formData.gender === "Female" ? (
-                            <>
-                              <option value="Female">Female</option>
-                              <option value="Male">Male</option>
-                            </>
-                          ) : (
-                            <>
-                              <option value="Male">Male</option>
-                              <option value="Female">Female</option>
-                            </>
-                          )}
-                        </Form.Control>
+                        />
                       </Form.Group>
-
                       <Form.Group className="mb-3" controlId="idCardNumber">
                         <Form.Label>Id Card Number</Form.Label>
                         <Form.Control
@@ -814,8 +791,10 @@ const Drivers = () => {
                         <Form.Control
                           type="text"
                           name="personalEmail"
-                          placeholder="No personal email available"
-                          value={formData.personalEmail || ""}
+                          placeholder="Personal Email"
+                          autoFocus
+                          required
+                          value={formData.personalEmail}
                           onChange={(e) => {
                             setFormData({
                               ...formData,
@@ -831,6 +810,7 @@ const Drivers = () => {
                         <Form.Control
                           type="date"
                           name="dateOfBirth"
+                          autoFocus
                           required
                           value={formData.dateOfBirth ? formData.dateOfBirth.slice(0, 10) : ''}
                           onChange={(e) => {
@@ -849,24 +829,20 @@ const Drivers = () => {
                       </Form.Group>
                       <Form.Group className="mb-3" controlId="avatar">
                         <Form.Label>Avatar File</Form.Label>
-                        {formData.avatar && (
-                          <a href={formData.avatar} target="_blank" rel="noopener noreferrer">
-                            {formData.avatar}
-                          </a>
-                        )}
                         <Form.Control
                           type="file"
                           name="avatar"
-                          value={formData.avatar || ""}
+                          autoFocus
+                          required
+                          value={formData.avatar}
                           onChange={(e) => {
                             setFormData({
                               ...formData,
                               avatar: e.target.value
-                            });
+                            })
                           }}
                         />
-                      </Form.Group>
-
+                      </Form.Group>                    
                     </Form>
                   </Modal.Body>
                   <Modal.Footer>
@@ -881,7 +857,7 @@ const Drivers = () => {
 
                 {/* Table list */}
                 <div className="list">
-                  <Button variant="primary" onClick={handleAddOpen} size="md" className="add_button">Add Driver +</Button>
+                  <Button variant="primary" onClick={() => setShowAdd(true)} size="md" className="add_button">Add Driver +</Button>
                   <Table striped bordered hover>
                     <thead>
                       <tr>
@@ -890,6 +866,7 @@ const Drivers = () => {
                         <th>Code</th>
                         <th>Email</th>
                         <th>Full Name</th>
+                        <th>Gender</th>
                         <th>Status</th>
                         <th>More Actions</th>
                       </tr>
@@ -919,12 +896,6 @@ const Drivers = () => {
                               e.preventDefault()
                               handleShowDetails(driver.id)
                             }}>{driver.email ? driver.email : "none"}</a>
-                          </td>
-                          <td>
-                            <a href="" onClick={(e) => {
-                              e.preventDefault()
-                              handleShowDetails(driver.id)
-                            }}>{driver.fullName ? driver.fullName : "none"}</a>
                           </td>
                           <td>
                             <span className={`status ${driver.status === 'ACTIVE' ? 'active' : driver.status === 'INACTIVE' ? 'inactive' : ''}`}>
@@ -979,7 +950,7 @@ const Drivers = () => {
                   >
                     <PaginationItem disabled={currentPage === 1}>
                       <PaginationLink
-                        href=""
+                        href="#"
                         onClick={() => handlePageClick(currentPage - 1)}
                         tabIndex="-1"
                       >
@@ -993,7 +964,7 @@ const Drivers = () => {
                         active={currentPage === index + 1}
                       >
                         <PaginationLink
-                          href=""
+                          href="#"
                           onClick={() => handlePageClick(index + 1)}
                         >
                           {index + 1}
@@ -1002,7 +973,7 @@ const Drivers = () => {
                     ))}
                     <PaginationItem disabled={currentPage === totalPages}>
                       <PaginationLink
-                        href=""
+                        href="#"
                         onClick={() => handlePageClick(currentPage + 1)}
                       >
                         <i className="fas fa-angle-right" />

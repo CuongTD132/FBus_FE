@@ -36,7 +36,7 @@ const AdminNavbar = () => {
         <Container className="px-4">
           <NavbarBrand to="/" tag={Link}>
             <img
-                   style={{ width: '25%', height: '25%' }}
+                   style={{ width: '30%', height: '30%' }}
               alt="..."
               src={require("../../assets/img/brand/bus-promax.jpg")}
             />

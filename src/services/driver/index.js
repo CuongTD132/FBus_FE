@@ -11,47 +11,46 @@ const END_POINTS = {
 
 export const addDriverAPI = async (driver) => {
     const formData = new FormData();
-    formData.append('email', driver.email);
-    formData.append('code', driver.code);
-    formData.append('fullName', driver.fullName);
-    formData.append('gender', driver.gender);
-    formData.append('idCardNumber', driver.idCardNumber);
-    formData.append('address', driver.address);
-    formData.append('phoneNumber', driver.phoneNumber);
-    formData.append('personalEmail', driver.personalEmail);
-    formData.append('dateOfBirth', driver.dateOfBirth);
-    formData.append('avatarFile', driver.avatarFile);
-    return await axios.post(`${URL}/${END_POINTS.addDriver}`, 
-        formData,
-        {
-            headers: {
-                Authorization: `Bearer ${JSON.parse(localStorage.getItem('user')).accessToken}`,
-            },
-        }
-    )
-}
-
-export const updateDriverAPI = async (driver, id) => {
+    formData.append("email", driver.email);
+    formData.append("code", driver.code);
+    formData.append("fullName", driver.fullName);
+    formData.append("gender", driver.gender);
+    formData.append("idCardNumber", driver.idCardNumber);
+    formData.append("address", driver.address);
+    formData.append("phoneNumber", driver.phoneNumber);
+    formData.append("personalEmail", driver.personalEmail);
+    formData.append("dateOfBirth", driver.dateOfBirth);
+    formData.append("avatarFile", driver.avatarFile); // Use 'avatarFile' as the key
+  
+    return await axios.post(`${URL}/${END_POINTS.addDriver}`, formData, {
+      headers: {
+        Authorization: `Bearer ${JSON.parse(localStorage.getItem("user")).accessToken}`,
+        "Content-Type": "multipart/form-data", // Set the content type
+      },
+    });
+  };
+  
+  export const updateDriverAPI = async (driver, id) => {
     const formData = new FormData();
-    formData.append('email', driver.email);
-    formData.append('code', driver.code);
-    formData.append('fullName', driver.fullName);
-    formData.append('gender', driver.gender);
-    formData.append('idCardNumber', driver.idCardNumber);
-    formData.append('address', driver.address);
-    formData.append('phoneNumber', driver.phoneNumber);
-    formData.append('personalEmail', driver.personalEmail);
-    formData.append('dateOfBirth', driver.dateOfBirth);
-    formData.append('avatarFile', driver.avatarFile);
-    return await axios.put(`${URL}/${END_POINTS.updateDriver}/${id}`, 
-        formData,
-        {
-            headers: {
-                Authorization: `Bearer ${JSON.parse(localStorage.getItem('user')).accessToken}`,
-            },
-        }
-    )
-}
+    formData.append("email", driver.email);
+    formData.append("code", driver.code);
+    formData.append("fullName", driver.fullName);
+    formData.append("gender", driver.gender);
+    formData.append("idCardNumber", driver.idCardNumber);
+    formData.append("address", driver.address);
+    formData.append("phoneNumber", driver.phoneNumber);
+    formData.append("personalEmail", driver.personalEmail);
+    formData.append("dateOfBirth", driver.dateOfBirth);
+    formData.append("avatarFile", driver.avatarFile); // Use 'avatarFile' as the key
+  
+    return await axios.put(`${URL}/${END_POINTS.updateDriver}/${id}`, formData, {
+      headers: {
+        Authorization: `Bearer ${JSON.parse(localStorage.getItem("user")).accessToken}`,
+        "Content-Type": "multipart/form-data", // Set the content type
+      },
+    });
+  };
+  
 
 export const getSingleDriver = async (id) => {
     return await axios.get(`${URL}/${END_POINTS.getSingleDriver}/${id}`,

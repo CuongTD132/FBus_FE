@@ -408,11 +408,11 @@ const Drivers = () => {
                         />
                       </Form.Group>
                       <Form.Group className="mb-3" controlId="fullName">
-                        <Form.Label>FullName</Form.Label>
+                        <Form.Label>Full Name</Form.Label>
                         <Form.Control
                           type="text"
                           name="fullName"
-                          placeholder="FullName"
+                          placeholder="Full Name"
                           autoFocus
                           required
                           value={formData.fullName}
@@ -446,11 +446,11 @@ const Drivers = () => {
                         </Form.Control>
                       </Form.Group>
                       <Form.Group className="mb-3" controlId="idCardNumber">
-                        <Form.Label>IdCardNumber</Form.Label>
+                        <Form.Label>Id Card Number</Form.Label>
                         <Form.Control
                           type="text"
                           name="idCardNumber"
-                          placeholder="IdCardNumber"
+                          placeholder="Id Card Number"
                           autoFocus
                           required
                           value={formData.idCardNumber}
@@ -480,11 +480,11 @@ const Drivers = () => {
                         />
                       </Form.Group>
                       <Form.Group className="mb-3" controlId="phoneNumber">
-                        <Form.Label>PhoneNumber</Form.Label>
+                        <Form.Label>Phone Number</Form.Label>
                         <Form.Control
                           type="text"
                           name="phoneNumber"
-                          placeholder="PhoneNumber"
+                          placeholder="Phone Number"
                           autoFocus
                           required
                           value={formData.phoneNumber}
@@ -497,11 +497,11 @@ const Drivers = () => {
                         />
                       </Form.Group>
                       <Form.Group className="mb-3" controlId="personalEmail">
-                        <Form.Label>PersonalEmail</Form.Label>
+                        <Form.Label>Personal Email</Form.Label>
                         <Form.Control
                           type="text"
                           name="personalEmail"
-                          placeholder="PersonalEmail"
+                          placeholder="Personal Email"
                           value={formData.personalEmail}
                           onChange={(e) => {
                             setFormData({
@@ -533,17 +533,16 @@ const Drivers = () => {
                         />
                       </Form.Group>
                       <Form.Group className="mb-3" controlId="avatar">
-                        <Form.Label>AvatarFile</Form.Label>
+                        <Form.Label>Avatar File</Form.Label>
                         <Form.Control
                           type="file"
                           name="avatar"
-                          placeholder="AvatarFile"
-                          value={formData.avatar}
+                          placeholder="Avatar File"
                           onChange={(e) => {
                             setFormData({
                               ...formData,
-                              avatar: e.target.value
-                            })
+                              avatar: e.target.files[0] // Store the selected file in the form data
+                            });
                           }}
                         />
                       </Form.Group>
@@ -685,7 +684,7 @@ const Drivers = () => {
                           type="text"
                           name="email"
                           placeholder="No email available"
-                          value={formData.email || ""}
+                          value={formData.email}
                           onChange={(e) => {
                             setFormData({
                               ...formData,
@@ -848,20 +847,14 @@ const Drivers = () => {
                         />
                       </Form.Group>
                       <Form.Group className="mb-3" controlId="avatar">
-                        <Form.Label>Avatar File</Form.Label>
-                        {formData.avatar && (
-                          <a href={formData.avatar} target="_blank" rel="noopener noreferrer">
-                            {formData.avatar}
-                          </a>
-                        )}
+                        <Form.Label>Avatar File</Form.Label>                        
                         <Form.Control
                           type="file"
                           name="avatar"
-                          value={formData.avatar || ""}
                           onChange={(e) => {
                             setFormData({
                               ...formData,
-                              avatar: e.target.value
+                              avatar: e.target.files[0] // Store the selected file in the form data
                             });
                           }}
                         />

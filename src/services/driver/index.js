@@ -11,18 +11,20 @@ const END_POINTS = {
 
 export const addDriverAPI = async (driver) => {
     const formData = new FormData();
-    formData.append("email", driver.email);
-    formData.append("code", driver.code);
-    formData.append("fullName", driver.fullName);
-    formData.append("gender", driver.gender);
-    formData.append("idCardNumber", driver.idCardNumber);
-    formData.append("address", driver.address);
-    formData.append("phoneNumber", driver.phoneNumber);
-    formData.append("personalEmail", driver.personalEmail);
-    formData.append("dateOfBirth", driver.dateOfBirth);
-    formData.append("avatarFile", driver.avatarFile); // Use 'avatarFile' as the key
-  
-    return await axios.post(`${URL}/${END_POINTS.addDriver}`, formData, {
+    formData.set("email", driver.email);
+    formData.set("code", driver.code);
+    formData.set("fullName", driver.fullName);
+    formData.set("gender", driver.gender);
+    formData.set("idCardNumber", driver.idCardNumber);
+    formData.set("address", driver.address);
+    formData.set("phoneNumber", driver.phoneNumber);
+    formData.set("personalEmail", driver.personalEmail);
+    formData.set("dateOfBirth", driver.dateOfBirth);
+    formData.set("avatarFile", driver.avatarFile); // Use 'avatarFile' as the key
+    
+    return await axios.post(`${URL}/${END_POINTS.addDriver}`, 
+    formData, 
+    {
       headers: {
         Authorization: `Bearer ${JSON.parse(localStorage.getItem("user")).accessToken}`,
         "Content-Type": "multipart/form-data", // Set the content type
@@ -41,16 +43,15 @@ export const addDriverAPI = async (driver) => {
     formData.append("phoneNumber", driver.phoneNumber);
     formData.append("personalEmail", driver.personalEmail);
     formData.append("dateOfBirth", driver.dateOfBirth);
-    formData.append("avatarFile", driver.avatarFile); // Use 'avatarFile' as the key
+    formData.append("avatarFile", driver.avatarFile); 
   
     return await axios.put(`${URL}/${END_POINTS.updateDriver}/${id}`, formData, {
       headers: {
         Authorization: `Bearer ${JSON.parse(localStorage.getItem("user")).accessToken}`,
-        "Content-Type": "multipart/form-data", // Set the content type
+        "Content-Type": "multipart/form-data",
       },
     });
-  };
-  
+  };  
 
 export const getSingleDriver = async (id) => {
     return await axios.get(`${URL}/${END_POINTS.getSingleDriver}/${id}`,

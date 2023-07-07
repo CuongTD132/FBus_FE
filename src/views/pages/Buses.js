@@ -31,8 +31,8 @@ import 'react-toastify/dist/ReactToastify.css';
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { updateBus } from "../../redux/reducer";
-import objectHash from "object-hash";
 import QRCode from 'qrcode.react';
+import { isTokenExpired } from "../../services/checkToken";
 
 const Buses = () => {
   const dispatch = useDispatch();
@@ -60,21 +60,39 @@ const Buses = () => {
     const user = JSON.parse(localStorage.getItem("user"));
     if (user == null || !user) {
       toast("You need to log in again to continue!", {
-        autoClose: 2000,
+        autoClose: 1000,
+        onClose: () => {
+          navigate("/auth/login");
+        },
       });
-      navigate('/auth/login');
-    }
-    if (user?.accessToken) {
-      getAllBuses(user.refreshToken)
-        .then((res) => setBusList(res.data.data))
-        .catch(() => {
-          // fetchNewAccessToken();
+      return;
+    } else {
+      if (isTokenExpired()) {
+        toast("You need to log in again to continue!", {
+          autoClose: 1000,
+          onClose: () => {
+            navigate("/auth/login");
+          },
+        });
+        return;
+      }
+      getAllBuses(user.accessToken)
+        .then((res) => {
+          if (res && res.data && res.data.data) {
+            setBusList(res.data.data);
+          } else {
+            console.log(user.accessToken)
+            console.log(res)
+            alert("Error: Invalid response data");
+            return;
+
+          }
         })
+        .catch((error) => {
+          alert("Error: " + error.message);
+        });
     }
-    getAllBuses(user?.accessToken)
-      .then((res) => {
-        setBusList(res.data.data)
-      })
+
   }, [])
 
   // Fetch detail information and pass to detail form
@@ -87,7 +105,7 @@ const Buses = () => {
 
   // Fetch list of bus and pass to table
   const fetchBuses = () => {
-    if (currentSearchBus != "") {
+    if (currentSearchBus !== "") {
       getMultiBusesAPI({
         licensePlate: currentSearchBus,
         code: currentSearchBus
@@ -99,7 +117,7 @@ const Buses = () => {
           dispatch(updateBus([]))
         }
       })
-    } else if (busList.length == 0) {
+    } else if (busList.length === 0) {
       getAllBuses()
         .then((res) => setBusList(res.data.data))
         .catch((error) => {
@@ -110,25 +128,55 @@ const Buses = () => {
 
   // Call show detail form
   const handleShowDetails = (id) => {
-    fetchBusDetails(id);
-    setShowDetails(true); // Show the modal
+    if (isTokenExpired()) {
+      toast("You need to log in again to continue!", {
+        autoClose: 1000,
+        onClose: () => {
+          navigate("/auth/login");
+        },
+      });
+    } else {
+      fetchBusDetails(id);
+      setShowDetails(true);
+    }
+
   }
 
   // QRCODE FUNCTIONS
   const [qrHash, setQrHash] = useState(null);
   const handleQrCode = (bus) => {
-    const myObject = { code: bus.code, licensePlate: bus.licensePlate };
-    setQrHash(objectHash(myObject));
-    setShowQrCode(true);
+    if (isTokenExpired()) {
+      toast("You need to log in again to continue!", {
+        autoClose: 1000,
+        onClose: () => {
+          navigate("/auth/login");
+        },
+      });
+    } else {
+      const myObject = { code: bus.code, licensePlate: bus.licensePlate };
+      setQrHash(JSON.stringify(myObject));
+      setShowQrCode(true);
+    }
   }
+
 
   // --UPDATE FUNCTIONS
   const handleUpdateClose = () => {
     setShowUpdate(false);
   }
   const handleUpdateShow = (bus) => {
-    fetchBusDetails(bus.id); // fetch old data
-    setShowUpdate(true); // show update modal
+    if (isTokenExpired()) {
+      toast("You need to log in again to continue!", {
+        autoClose: 1000,
+        onClose: () => {
+          navigate("/auth/login");
+        },
+      });
+    } else {
+      fetchBusDetails(bus.id); // fetch old data
+      setShowUpdate(true); // show update modal
+    }
+
   };
   const updateBusData = () => {
     updateBusAPI(formData, formData.id)
@@ -147,16 +195,9 @@ const Buses = () => {
         fetchBuses();
       })
       .catch((e) => {
-        if (e.response && e.response.status === 401) {
-          toast.error("You need to log in again to continue!", {
-            autoClose: 2000,
-          });
-          navigate("/auth/login");
-        } else {
-          toast.error("Failed to update the bus!", {
-            autoClose: 1000,
-          });
-        }
+        toast.error("Failed to update the bus!", {
+          autoClose: 1000,
+        });
       })
   }
   // END UPDATE FUNCTIONS
@@ -165,13 +206,23 @@ const Buses = () => {
   const [oldStatus, setOldStatus] = useState("");
   const [toggleBusId, setToggleBusId] = useState(null);
   const handleToggleStatus = (bus) => {
-    setOldStatus(bus.status)
-    setToggleBusId(bus.id)
-    setShowToggleStatus(true);
+    if (isTokenExpired()) {
+      toast.error("You need to log in again to continue!", {
+        autoClose: 1000,
+        onClose: () => {
+          navigate("/auth/login");
+        },
+      });
+    } else {
+      setOldStatus(bus.status)
+      setToggleBusId(bus.id)
+      setShowToggleStatus(true);
+    }
+
   }
   const toggleStatus = () => {
     let status = "INACTIVE";
-    if (oldStatus == "INACTIVE") {
+    if (oldStatus === "INACTIVE") {
       status = "ACTIVE"
     }
     toggleStatusAPI(toggleBusId, status)
@@ -182,18 +233,11 @@ const Buses = () => {
         setShowToggleStatus(false);
         fetchBuses()
       })
-      .catch((e) => {
-        if (e.response && e.response.status === 401) {
-          toast.error("You need to log in again to continue!", {
-            autoClose: 2000,
-          });
-          navigate("/auth/login");
-        } else {
-          toast.error("Failed to enable/disable status!", {
-            autoClose: 1000,
-          });
-          setShowToggleStatus(false);
-        }
+      .catch(() => {
+        toast.error("Failed to enable/disable status!", {
+          autoClose: 1000,
+        });
+        setShowToggleStatus(false);
       });
   }
   // END TOGGLE STATUS
@@ -201,8 +245,18 @@ const Buses = () => {
   // DELETE FUNCTIONS
   const [deleteBusId, setDeleteBusId] = useState();
   const handleDeleteBus = (id) => {
-    setDeleteBusId(id)
-    setShowDelete(true)
+    if (isTokenExpired()) {
+      toast.error("You need to log in again to continue!", {
+        autoClose: 1000,
+        onClose: () => {
+          navigate("/auth/login");
+        },
+      });
+    } else {
+      setDeleteBusId(id)
+      setShowDelete(true)
+    }
+
   };
   const deleteBus = () => {
     deleteBusAPI(deleteBusId)
@@ -219,17 +273,10 @@ const Buses = () => {
         setShowDelete(false);
         fetchBuses();
       })
-      .catch((e) => {
-        if (e.response && e.response.status === 401) {
-          toast.error("You need to log in again to continue!", {
-            autoClose: 2000,
-          });
-          navigate("/auth/login");
-        } else {
-          toast.error("Failed to delete the bus!", {
-            autoClose: 1000,
-          });
-        }
+      .catch(() => {
+        toast.error("Failed to delete the bus!", {
+          autoClose: 1000,
+        });
       });
   }
   // END DELETE FUNCTIONS
@@ -247,43 +294,37 @@ const Buses = () => {
           setShowAdd(false);
         }
       })
-      .catch((e) => {
-        if (e.response && e.response.status === 401) {
-          toast.error("You need to log in again to continue!", {
-            autoClose: 2000,
-          });
-          navigate("/auth/login");
-        } else {
-          toast.error("Failed to add this bus!", {
-            autoClose: 1000,
-          });
-          setShowAdd(false);
-        }
+      .catch(() => {
+        toast.error("Failed to add this bus!", {
+          autoClose: 1000,
+        });
+        setShowAdd(false);
       });
   };
   const handleAddClose = () => {
     setShowAdd(false);
-    setFormData({
-      code: "",
-      licensePlate: "",
-      brand: "",
-      model: "",
-      color: "",
-      seat: "",
-      dateOfRegistration: "",
-    })
   }
   const handleAddOpen = () => {
-    setFormData({
-      code: "",
-      licensePlate: "",
-      brand: "",
-      model: "",
-      color: "",
-      seat: "",
-      dateOfRegistration: "",
-    });
-    setShowAdd(true);
+    if (isTokenExpired()) {
+      toast.error("You need to log in again to continue!", {
+        autoClose: 1000,
+        onClose: () => {
+          navigate("/auth/login");
+        },
+      });
+    } else {
+      setFormData({
+        code: "",
+        licensePlate: "",
+        brand: "",
+        model: "",
+        color: "",
+        seat: "",
+        dateOfRegistration: "",
+      });
+      setShowAdd(true);
+    }
+
   };
   // END ADD
 
@@ -863,7 +904,7 @@ const Buses = () => {
                   >
                     <PaginationItem disabled={currentPage === 1}>
                       <PaginationLink
-                        href="#"
+                        href=""
                         onClick={() => handlePageClick(currentPage - 1)}
                         tabIndex="-1"
                       >
@@ -877,7 +918,7 @@ const Buses = () => {
                         active={currentPage === index + 1}
                       >
                         <PaginationLink
-                          href="#"
+                          href=""
                           onClick={() => handlePageClick(index + 1)}
                         >
                           {index + 1}
@@ -886,7 +927,7 @@ const Buses = () => {
                     ))}
                     <PaginationItem disabled={currentPage === totalPages}>
                       <PaginationLink
-                        href="#"
+                        href=""
                         onClick={() => handlePageClick(currentPage + 1)}
                       >
                         <i className="fas fa-angle-right" />

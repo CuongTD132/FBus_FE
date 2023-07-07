@@ -1,10 +1,9 @@
 
 import Index from "./views/Index";
-import Login from "./views/examples/Login";
-import Tables from "./views/examples/Tables";
-import Buses from "./views/examples/Buses";
-import Drivers from "./views/examples/Drivers";
-import Accounts from "./views/examples/Accounts";
+import Login from "./views/pages/Login";
+import Buses from "./views/pages/Buses";
+import Drivers from "./views/pages/Drivers";
+import Accounts from "./views/pages/Accounts";
 
 var routes = [
   {
@@ -25,24 +24,24 @@ var routes = [
   {
     path: "/accounts",
     name: "Accounts",
-    icon: "ni ni-circle-08 text-red",
+    icon: "ni ni-single-02 text-red",
     component: <Accounts />,
     layout: "/admin",
   },
   {
     path: "/drivers",
     name: "Drivers",
-    icon: "ni ni-single-02 text-yellow",
+    icon: "ni ni-badge text-green",
     component: <Drivers />,
     layout: "/admin",
   },
-  {
-    path: "/tables",
-    name: "Tables",
-    icon: "ni ni-bullet-list-67 text-red",
-    component: <Tables />,
-    layout: "/admin",
-  },
+  // {
+  //   path: "/tables",
+  //   name: "Tables",
+  //   icon: "ni ni-bullet-list-67 text-red",
+  //   component: <Tables />,
+  //   layout: "/admin",
+  // },
   {
     path: "/login",
     component: <Login />,

@@ -34,7 +34,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { updateDriver } from "../../redux/reducer";
-
+import { isTokenExpired } from "../../services/checkToken";
 
 const Drivers = () => {
   const dispatch = useDispatch();
@@ -55,7 +55,7 @@ const Drivers = () => {
     phoneNumber: "",
     personalEmail: "",
     dateOfBirth: "",
-    avatar: "",
+    avatarFile: "",
   });
 
   // Check accessToken
@@ -64,8 +64,10 @@ const Drivers = () => {
     if (user == null || !user) {
       toast("You need to log in again to continue!", {
         autoClose: 2000,
+        onClose: () => {
+          navigate("/auth/login");
+        },
       });
-      navigate('/auth/login');
     }
     if (user?.accessToken) {
       getAllDrivers(user.refreshToken)
@@ -113,8 +115,17 @@ const Drivers = () => {
 
   // Call show detail form
   const handleShowDetails = (id) => {
-    fetchDriverDetails(id);
-    setShowDetails(true); // Show the modal
+    if (isTokenExpired()) {
+      toast("You need to log in again to continue!", {
+        autoClose: 2000,
+        onClose: () => {
+          navigate("/auth/login");
+        },
+      });
+    } else {
+      fetchDriverDetails(id);
+      setShowDetails(true); // Show the modal
+    }
   }
 
   // --UPDATE FUNCTIONS
@@ -122,10 +133,22 @@ const Drivers = () => {
     setShowUpdate(false);
   }
   const handleUpdateShow = (driver) => {
-    fetchDriverDetails(driver.id); // fetch old data
-    setShowUpdate(true); // show update modal
+    if (isTokenExpired()) {
+      toast("You need to log in again to continue!", {
+        autoClose: 2000,
+        onClose: () => {
+          navigate("/auth/login");
+        },
+      });
+    } else {
+      fetchDriverDetails(driver.id); // fetch old data       
+      setShowUpdate(true); // show update modal
+    }
   };
   const updateDriverData = () => {
+    if (formData.personalEmail === null) {
+      formData.personalEmail = "";
+    }
     updateDriverAPI(formData, formData.id)
       .then((res) => {
         console.log(res);
@@ -160,9 +183,19 @@ const Drivers = () => {
   const [oldStatus, setOldStatus] = useState("");
   const [toggleDriverId, setToggleDriverId] = useState(null);
   const handleToggleStatus = (driver) => {
-    setOldStatus(driver.status)
-    setToggleDriverId(driver.id)
-    setShowToggleStatus(true);
+    if (isTokenExpired()) {
+      toast.error("You need to log in again to continue!", {
+        autoClose: 2000,
+        onClose: () => {
+          navigate("/auth/login");
+        },
+      });
+    } else {
+      setOldStatus(driver.status)
+      setToggleDriverId(driver.id)
+      setShowToggleStatus(true);
+    }
+
   }
   const toggleStatus = () => {
     let status = "INACTIVE";
@@ -171,6 +204,7 @@ const Drivers = () => {
     }
     toggleStatusAPI(toggleDriverId, status)
       .then((res) => {
+        console.log(res)
         toast.success("Successull to enable/disable status!", {
           autoClose: 1000,
         });
@@ -196,8 +230,17 @@ const Drivers = () => {
   // DELETE FUNCTIONS
   const [deleteDriverId, setDeleteDriverId] = useState();
   const handleDeleteDriver = (id) => {
-    setDeleteDriverId(id)
-    setShowDelete(true)
+    if (isTokenExpired()) {
+      toast.error("You need to log in again to continue!", {
+        autoClose: 2000,
+        onClose: () => {
+          navigate("/auth/login");
+        },
+      });
+    } else {
+      setDeleteDriverId(id)
+      setShowDelete(true)
+    }
   };
   const deleteDriver = () => {
     deleteDriverAPI(deleteDriverId)
@@ -259,33 +302,30 @@ const Drivers = () => {
   };
   const handleAddClose = () => {
     setShowAdd(false);
-    setFormData({
-      email: "",
-      code: "",
-      fullName: "",
-      gender: "",
-      idCardNumber: "",
-      address: "",
-      phoneNumber: "",
-      personalEmail: "",
-      dateOfBirth: "",
-      avatar: "",
-    })
   }
   const handleAddOpen = () => {
-    setFormData({
-      email: "",
-      code: "",
-      fullName: "",
-      gender: "",
-      idCardNumber: "",
-      address: "",
-      phoneNumber: "",
-      personalEmail: "",
-      dateOfBirth: "",
-      avatar: "",
-    });
-    setShowAdd(true);
+    if (isTokenExpired()) {
+      toast.error("You need to log in again to continue!", {
+        autoClose: 2000,
+        onClose: () => {
+          navigate("/auth/login");
+        },
+      });
+    } else {
+      setFormData({
+        email: "",
+        code: "",
+        fullName: "",
+        gender: "",
+        idCardNumber: "",
+        address: "",
+        phoneNumber: "",
+        personalEmail: "",
+        dateOfBirth: "",
+        avatarFile: "",
+      });
+      setShowAdd(true);
+    }
   };
   // END ADD
 
@@ -502,7 +542,7 @@ const Drivers = () => {
                           type="text"
                           name="personalEmail"
                           placeholder="Personal Email"
-                          value={formData.personalEmail}
+                          value={formData.personalEmail || ""}
                           onChange={(e) => {
                             setFormData({
                               ...formData,
@@ -532,16 +572,15 @@ const Drivers = () => {
                           }}
                         />
                       </Form.Group>
-                      <Form.Group className="mb-3" controlId="avatar">
+                      <Form.Group className="mb-3" controlId="avatarFile">
                         <Form.Label>Avatar File</Form.Label>
                         <Form.Control
                           type="file"
-                          name="avatar"
-                          placeholder="Avatar File"
+                          name="avatarFile"
                           onChange={(e) => {
                             setFormData({
                               ...formData,
-                              avatar: e.target.files[0] // Store the selected file in the form data
+                              avatarFile: e.target.files[0] // Store the selected file in the form data
                             });
                           }}
                         />
@@ -846,15 +885,15 @@ const Drivers = () => {
                           }}
                         />
                       </Form.Group>
-                      <Form.Group className="mb-3" controlId="avatar">
-                        <Form.Label>Avatar File</Form.Label>                        
+                      <Form.Group className="mb-3" controlId="avatarFile">
+                        <Form.Label>Avatar File</Form.Label>
                         <Form.Control
                           type="file"
-                          name="avatar"
+                          name="avatarFile"
                           onChange={(e) => {
                             setFormData({
                               ...formData,
-                              avatar: e.target.files[0] // Store the selected file in the form data
+                              avatarFile: e.target.files[0] // Store the selected file in the form data
                             });
                           }}
                         />

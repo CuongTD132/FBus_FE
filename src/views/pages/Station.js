@@ -62,26 +62,38 @@ const Stations = () => {
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem("user"));
     if (user == null || !user) {
-      toast("You need to log in again to continue!", {
-        autoClose: 2000,
+      toast("You need to log in to continue!", {
+        autoClose: 1000,
         onClose: () => {
           navigate("/auth/login");
         },
       });
-    }
-    if (user?.accessToken) {
-      getAllStations(user.refreshToken)
-        .then((res) => setStationList(res.data.data))
-        .catch(() => {
-          // fetchNewAccessToken();
+      return;
+    } else {
+      if (isTokenExpired()) {
+        toast("You need to log in again to continue!", {
+          autoClose: 1000,
+          onClose: () => {
+            navigate("/auth/login");
+          },
+        });
+        return;
+      }
+      getAllStations(user.accessToken)
+        .then((res) => {
+          if (res && res.data && res.data.data) {
+            setStationList(res.data.data);
+          } else {
+            alert("Error: Invalid response data");
+            return;
+          }
         })
+        .catch((error) => {
+          alert("Error: " + error.message);
+        });
     }
-    getAllStations(user?.accessToken)
-      .then((res) => {
-        setStationList(res.data.data)
-      })
-  }, [])
 
+  }, [])
   // Fetch detail information and pass to detail form
   const fetchStationDetails = (id) => {
     getSingleStation(id)
@@ -117,12 +129,12 @@ const Stations = () => {
   const handleShowDetails = (id) => {
     if (isTokenExpired()) {
       toast("You need to log in again to continue!", {
-        autoClose: 2000,
+        autoClose: 1000,
         onClose: () => {
           navigate("/auth/login");
         },
       });
-    } else {   
+    } else {
       fetchStationDetails(id);
       setShowDetails(true); // Show the modal
     }
@@ -135,7 +147,7 @@ const Stations = () => {
   const handleUpdateShow = (station) => {
     if (isTokenExpired()) {
       toast("You need to log in again to continue!", {
-        autoClose: 2000,
+        autoClose: 1000,
         onClose: () => {
           navigate("/auth/login");
         },
@@ -164,7 +176,7 @@ const Stations = () => {
       .catch((e) => {
         if (e.response && e.response.status === 401) {
           toast.error("You need to log in again to continue!", {
-            autoClose: 2000,
+            autoClose: 1000,
           });
           navigate("/auth/login");
         } else {
@@ -200,7 +212,7 @@ const Stations = () => {
       .catch((e) => {
         if (e.response && e.response.status === 401) {
           toast.error("You need to log in again to continue!", {
-            autoClose: 2000,
+            autoClose: 1000,
           });
           navigate("/auth/login");
         } else {
@@ -238,7 +250,7 @@ const Stations = () => {
       .catch((e) => {
         if (e.response && e.response.status === 401) {
           toast.error("You need to log in again to continue!", {
-            autoClose: 2000,
+            autoClose: 1000,
           });
           navigate("/auth/login");
         } else {
@@ -266,7 +278,7 @@ const Stations = () => {
       .catch((e) => {
         if (e.response && e.response.status === 401) {
           toast.error("You need to log in again to continue!", {
-            autoClose: 2000,
+            autoClose: 1000,
           });
           navigate("/auth/login");
         } else {
@@ -867,7 +879,7 @@ const Stations = () => {
                         />
                       </Form.Group>
                       <Form.Group className="mb-3" controlId="avatarFile">
-                        <Form.Label>Avatar File</Form.Label>                        
+                        <Form.Label>Avatar File</Form.Label>
                         <Form.Control
                           type="file"
                           name="avatarFile"

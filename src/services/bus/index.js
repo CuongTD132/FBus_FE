@@ -12,7 +12,6 @@ const END_POINTS = {
 
 export const addBusAPI = async (bus) => {
     const user = JSON.parse(localStorage.getItem('user'));
-
     const formData = new FormData();
     formData.append('code', bus.code);
     formData.append('licensePlate', bus.licensePlate);
@@ -31,12 +30,10 @@ export const addBusAPI = async (bus) => {
             }
         )
     }
-
 }
 
 export const updateBusAPI = async (bus, id) => {
-const user = JSON.parse(localStorage.getItem('user'));
-
+    const user = JSON.parse(localStorage.getItem('user'));
     const formData = new FormData();
     formData.append('code', bus.code);
     formData.append('licensePlate', bus.licensePlate);
@@ -56,12 +53,10 @@ const user = JSON.parse(localStorage.getItem('user'));
             }
         )
     }
-
 }
 
 export const getSingleBus = async (id) => {
-const user = JSON.parse(localStorage.getItem('user'));
-
+    const user = JSON.parse(localStorage.getItem('user'));
     if (user && user.accessToken) {
         return await axios.get(`${URL}/${END_POINTS.getSingleBus}/${id}`,
             {
@@ -70,15 +65,11 @@ const user = JSON.parse(localStorage.getItem('user'));
                 },
             })
     }
-
-
 }
 
 export const getMultiBusesAPI = async (data) => {
-const user = JSON.parse(localStorage.getItem('user'));
-
+    const user = JSON.parse(localStorage.getItem('user'));
     if (user && user.accessToken) {
-        console.log("Bearer ${user.accessToken}")
         return await axios.get(`${URL}/${END_POINTS.getMultiBuses}`, {
             params: {
                 ...data
@@ -88,12 +79,10 @@ const user = JSON.parse(localStorage.getItem('user'));
             },
         })
     }
-
 }
 
 export const getAllBuses = async () => {
-const user = JSON.parse(localStorage.getItem('user'));
-
+    const user = JSON.parse(localStorage.getItem('user'));
     if (user && user.accessToken) {
         return await axios.get(`${URL}/${END_POINTS.getMultiBuses}`, {
             headers: {
@@ -104,9 +93,7 @@ const user = JSON.parse(localStorage.getItem('user'));
 }
 
 export const deleteBusAPI = async (busId) => {
-const user = JSON.parse(localStorage.getItem('user'));
-
-    console.log(`[FROM API]: busId ${busId}`)
+    const user = JSON.parse(localStorage.getItem('user'));
     if (user && user.accessToken) {
         return await axios.delete(`${URL}/${END_POINTS.deleteBus}/${busId}`,
             {
@@ -115,12 +102,10 @@ const user = JSON.parse(localStorage.getItem('user'));
                 },
             });
     }
-
 }
 
 export const toggleStatusAPI = async (busId, status) => {
-const user = JSON.parse(localStorage.getItem('user'));
-
+    const user = JSON.parse(localStorage.getItem('user'));
     if (user && user.accessToken) {
         return await axios.patch(`${URL}/${END_POINTS.enableBus}/${busId}`,
             status,
@@ -131,5 +116,4 @@ const user = JSON.parse(localStorage.getItem('user'));
                 },
             })
     }
-
 }

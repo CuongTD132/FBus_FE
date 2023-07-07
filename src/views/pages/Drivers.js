@@ -62,24 +62,37 @@ const Drivers = () => {
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem("user"));
     if (user == null || !user) {
-      toast("You need to log in again to continue!", {
-        autoClose: 2000,
+      toast("You need to log in to continue!", {
+        autoClose: 1000,
         onClose: () => {
           navigate("/auth/login");
         },
       });
-    }
-    if (user?.accessToken) {
-      getAllDrivers(user.refreshToken)
-        .then((res) => setDriverList(res.data.data))
-        .catch(() => {
-          // fetchNewAccessToken();
+      return;
+    } else {
+      if (isTokenExpired()) {
+        toast("You need to log in again to continue!", {
+          autoClose: 1000,
+          onClose: () => {
+            navigate("/auth/login");
+          },
+        });
+        return;
+      }
+      getAllDrivers(user.accessToken)
+        .then((res) => {
+          if (res && res.data && res.data.data) {
+            setDriverList(res.data.data);
+          } else {
+            alert("Error: Invalid response data");
+            return;
+          }
         })
+        .catch((error) => {
+          alert("Error: " + error.message);
+        });
     }
-    getAllDrivers(user?.accessToken)
-      .then((res) => {
-        setDriverList(res.data.data)
-      })
+
   }, [])
 
   // Fetch detail information and pass to detail form
@@ -117,7 +130,7 @@ const Drivers = () => {
   const handleShowDetails = (id) => {
     if (isTokenExpired()) {
       toast("You need to log in again to continue!", {
-        autoClose: 2000,
+        autoClose: 1000,
         onClose: () => {
           navigate("/auth/login");
         },
@@ -135,7 +148,7 @@ const Drivers = () => {
   const handleUpdateShow = (driver) => {
     if (isTokenExpired()) {
       toast("You need to log in again to continue!", {
-        autoClose: 2000,
+        autoClose: 1000,
         onClose: () => {
           navigate("/auth/login");
         },
@@ -167,7 +180,7 @@ const Drivers = () => {
       .catch((e) => {
         if (e.response && e.response.status === 401) {
           toast.error("You need to log in again to continue!", {
-            autoClose: 2000,
+            autoClose: 1000,
           });
           navigate("/auth/login");
         } else {
@@ -185,7 +198,7 @@ const Drivers = () => {
   const handleToggleStatus = (driver) => {
     if (isTokenExpired()) {
       toast.error("You need to log in again to continue!", {
-        autoClose: 2000,
+        autoClose: 1000,
         onClose: () => {
           navigate("/auth/login");
         },
@@ -214,7 +227,7 @@ const Drivers = () => {
       .catch((e) => {
         if (e.response && e.response.status === 401) {
           toast.error("You need to log in again to continue!", {
-            autoClose: 2000,
+            autoClose: 1000,
           });
           navigate("/auth/login");
         } else {
@@ -232,7 +245,7 @@ const Drivers = () => {
   const handleDeleteDriver = (id) => {
     if (isTokenExpired()) {
       toast.error("You need to log in again to continue!", {
-        autoClose: 2000,
+        autoClose: 1000,
         onClose: () => {
           navigate("/auth/login");
         },
@@ -261,7 +274,7 @@ const Drivers = () => {
       .catch((e) => {
         if (e.response && e.response.status === 401) {
           toast.error("You need to log in again to continue!", {
-            autoClose: 2000,
+            autoClose: 1000,
           });
           navigate("/auth/login");
         } else {
@@ -289,7 +302,7 @@ const Drivers = () => {
       .catch((e) => {
         if (e.response && e.response.status === 401) {
           toast.error("You need to log in again to continue!", {
-            autoClose: 2000,
+            autoClose: 1000,
           });
           navigate("/auth/login");
         } else {
@@ -306,7 +319,7 @@ const Drivers = () => {
   const handleAddOpen = () => {
     if (isTokenExpired()) {
       toast.error("You need to log in again to continue!", {
-        autoClose: 2000,
+        autoClose: 1000,
         onClose: () => {
           navigate("/auth/login");
         },

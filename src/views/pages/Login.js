@@ -10,7 +10,6 @@ const Login = () => {
     loginWithGoogle(credentialResponse.credential)
       .then((res) => {
         if (res.data !== '') {
-          console.log(credentialResponse.credential)
           console.log(res)
           const userData = res.data;
           localStorage.setItem('user', JSON.stringify(res.data))

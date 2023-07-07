@@ -59,7 +59,7 @@ const Buses = () => {
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem("user"));
     if (user == null || !user) {
-      toast("You need to log in again to continue!", {
+      toast("You need to log in to continue!", {
         autoClose: 1000,
         onClose: () => {
           navigate("/auth/login");
@@ -81,11 +81,8 @@ const Buses = () => {
           if (res && res.data && res.data.data) {
             setBusList(res.data.data);
           } else {
-            console.log(user.accessToken)
-            console.log(res)
             alert("Error: Invalid response data");
             return;
-
           }
         })
         .catch((error) => {

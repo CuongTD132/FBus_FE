@@ -34,7 +34,6 @@ const AdminNavbar = (props) => {
   });
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem('user'))
-    console.log(user)
     if (user == null) {
       navigate('/auth/login')
     }

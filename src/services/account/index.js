@@ -7,19 +7,38 @@ const END_POINTS = {
 
 
 export const getMultiAccounts = async (data) => {
-    return await axios.get(`${URL}/${END_POINTS.getMultiAccounts}`, {
-        params: {
-            ...data
-        },
-    })
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (user && user.accessToken) {
+        return await axios.get(`${URL}/${END_POINTS.getMultiAccounts}`, {
+            params: {
+                ...data
+            },
+            headers: {
+                Authorization: `Bearer ${user.accessToken}`,
+            },
+        })
+    }
 }
 
 export const getAllAccounts = async () => {
-    return await axios.get(`${URL}/${END_POINTS.getMultiAccounts}`, {
-        
-    })
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (user && user.accessToken) {
+        return await axios.get(`${URL}/${END_POINTS.getMultiAccounts}`, {
+            headers: {
+                Authorization: `Bearer ${user.accessToken}`,
+            },
+        })
+    }
 }
 
 export const getSingleAccount = async (id) => {
-    return await axios.get(`${URL}/${END_POINTS.getSingleAccount}/${id}`)
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (user && user.accessToken) {
+        return await axios.get(`${URL}/${END_POINTS.getSingleAccount}/${id}`,{
+            headers: {
+                Authorization: `Bearer ${user.accessToken}`,
+            },
+        })
+        
+    }
 }

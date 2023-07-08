@@ -40,7 +40,11 @@ export const updateDriverAPI = async (driver, id) => {
     formData.append("email", driver.email);
     formData.append("code", driver.code);
     formData.append("fullName", driver.fullName);
-    formData.append("gender", driver.gender);
+    if (driver.gender === "Female") {
+        formData.append("gender", false);
+    } else if (driver.gender === "Male") {
+        formData.append("gender", true);
+    }
     formData.append("idCardNumber", driver.idCardNumber);
     formData.append("address", driver.address);
     formData.append("phoneNumber", driver.phoneNumber);

@@ -1,994 +1,322 @@
-import React, { useEffect, useState } from "react";
-import { Button, Form, Modal, Table } from 'react-bootstrap';
-import "../../style/Manager.css"
-import defaultAvatar from '../../assets/img/driver.png'
 
+import { useState } from "react";
+// node.js library that concatenates classes (strings)
+import classnames from "classnames";
+// javascipt plugin for creating charts
+import Chart from "chart.js";
+// react plugin used to create charts
+import { Line, Bar } from "react-chartjs-2";
+// reactstrap components
 import {
+  Button,
   Card,
   CardHeader,
   CardBody,
+  NavItem,
+  NavLink,
+  Nav,
+  Progress,
+  Table,
   Container,
   Row,
-  UncontrolledDropdown,
-  DropdownToggle,
-  DropdownMenu,
-  DropdownItem,
-  CardFooter,
-  Pagination,
-  PaginationItem,
-  PaginationLink,
+  Col,
 } from "reactstrap";
-import Header from "../../components/Headers/Header";
+
+// core components
 import {
-  addDriverAPI,
-  updateDriverAPI,
-  getSingleDriver,
-  getMultiDriversAPI,
-  getAllDrivers,
-  deleteDriverAPI,
-  toggleStatusAPI,
+  chartOptions,
+  parseOptions,
+  chartExample1,
+  chartExample2,
+} from "../variables/charts";
 
-} from "../../services/driver";
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-import { useNavigate } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
-import { updateDriver } from "../../redux/reducer";
+import Header from "../components/Headers/Header";
 
+const Index = (props) => {
+  const [activeNav, setActiveNav] = useState(1);
+  const [chartExample1Data, setChartExample1Data] = useState("data1");
 
-const Drivers = () => {
-  const dispatch = useDispatch();
-  const navigate = useNavigate();
-  const [driverList, setDriverList] = useState([]);
-  const [showAdd, setShowAdd] = useState(false);
-  const [showUpdate, setShowUpdate] = useState(false);
-  const [showDetails, setShowDetails] = useState(false);
-  const [showToggleStatus, setShowToggleStatus] = useState(false);
-  const [showDelete, setShowDelete] = useState(false);
-  const [formData, setFormData] = useState({
-    email: "",
-    code: "",
-    fullName: "",
-    gender: "",
-    idCardNumber: "",
-    address: "",
-    phoneNumber: "",
-    dateOfBirth: "",
-    avatar: "",
-    personalEmail: "",
-  });
+  if (window.Chart) {
+    parseOptions(Chart, chartOptions());
+  }
 
-  // Check accessToken
-  useEffect(() => {
-    const user = JSON.parse(localStorage.getItem("user"));
-    if (user == null || !user) {
-      toast("You need to log in again to continue!", {
-        autoClose: 2000,
-      });
-      navigate('/auth/login');
-    }
-    if (user?.accessToken) {
-      getAllDrivers(user.refreshToken)
-        .then((res) => setDriverList(res.data.data))
-        .catch(() => {
-          // fetchNewAccessToken();
-        })
-    }
-    getAllDrivers(user?.accessToken)
-      .then((res) => {
-        setDriverList(res.data.data)
-      })
-  }, [])
-
-  // Fetch detail information and pass to detail form
-  const fetchDriverDetails = (id) => {
-    getSingleDriver(id)
-      .then((res) => {
-        setFormData(res.data)
-      })
+  const toggleNavs = (e, index) => {
+    e.preventDefault();
+    setActiveNav(index);
+    setChartExample1Data("data" + index);
   };
-
-  // Fetch list of driver and pass to table
-  const fetchDrivers = () => {
-    if (currentSearchDriver != "") {
-      getMultiDriversAPI({
-        code: currentSearchDriver,
-        email: currentSearchDriver
-      }).then((res) => {
-        console.log(res.data.data)
-        if (res.data.data != null) {
-          dispatch(updateDriver(res.data.data))
-        } else {
-          dispatch(updateDriver([]))
-        }
-      })
-    } else if (driverList.length == 0) {
-      getAllDrivers()
-        .then((res) => setDriverList(res.data.data))
-        .catch((error) => {
-          console.log(error);
-        });
-    }
-  };
-
-  // Call show detail form
-  const handleShowDetails = (id) => {
-    fetchDriverDetails(id);
-    setShowDetails(true); // Show the modal
-  }
-
-  // --UPDATE FUNCTIONS
-  const handleUpdateClose = () => {
-    setShowUpdate(false);
-  }
-  const handleUpdateShow = (driver) => {
-    fetchDriverDetails(driver.id); // fetch old data
-    setShowUpdate(true); // show update modal
-  };
-  const updateDriverData = () => {
-    updateDriverAPI(formData, formData.id)
-      .then((res) => {
-        console.log(res);
-        if (res.status === 200) {
-          toast.success("Driver update successfully!", {
-            autoClose: 1000,
-          });
-        } else {
-          toast.warning("Can't update this driver!", {
-            autoClose: 1000,
-          });
-        }
-        setShowUpdate(false);
-        fetchDrivers();
-      })
-      .catch((e) => {
-        if (e.response && e.response.status === 401) {
-          toast.error("You need to log in again to continue!", {
-            autoClose: 2000,
-          });
-          navigate("/auth/login");
-        } else {
-          toast.error("Failed to update the driver!", {
-            autoClose: 1000,
-          });
-        }
-      })
-  }
-  // END UPDATE FUNCTIONS
-
-  // TOGGLE STATUS FUNCTION
-  const [oldStatus, setOldStatus] = useState("");
-  const [toggleDriverId, setToggleDriverId] = useState(null);
-  const handleToggleStatus = (driver) => {
-    setOldStatus(driver.status)
-    setToggleDriverId(driver.id)
-    setShowToggleStatus(true);
-  }
-  const toggleStatus = () => {
-    let status = "INACTIVE";
-    if (oldStatus == "INACTIVE") {
-      status = "ACTIVE"
-    }
-    toggleStatusAPI(toggleDriverId, status)
-      .then((res) => {
-        toast.success("Successull to enable/disable status!", {
-          autoClose: 1000,
-        });
-        setShowToggleStatus(false);
-        fetchDrivers()
-      })
-      .catch((e) => {
-        if (e.response && e.response.status === 401) {
-          toast.error("You need to log in again to continue!", {
-            autoClose: 2000,
-          });
-          navigate("/auth/login");
-        } else {
-          toast.error("Failed to enable/disable status!", {
-            autoClose: 1000,
-          });
-          setShowToggleStatus(false);
-        }
-      });
-  }
-  // END TOGGLE STATUS
-
-  // DELETE FUNCTIONS
-  const [deleteDriverId, setDeleteDriverId] = useState();
-  const handleDeleteDriver = (id) => {
-    setDeleteDriverId(id)
-    setShowDelete(true)
-  };
-  const deleteDriver = () => {
-    deleteDriverAPI(deleteDriverId)
-      .then((res) => {
-        if (res.status === 200) {
-          toast.success("Driver deleted successfully!", {
-            autoClose: 1000,
-          });
-        } else {
-          toast.warning("Can't delete the driver!", {
-            autoClose: 1000,
-          });
-        }
-        setShowDelete(false);
-        fetchDrivers();
-      })
-      .catch((e) => {
-        if (e.response && e.response.status === 401) {
-          toast.error("You need to log in again to continue!", {
-            autoClose: 2000,
-          });
-          navigate("/auth/login");
-        } else {
-          toast.error("Failed to delete the driver!", {
-            autoClose: 1000,
-          });
-        }
-      });
-  }
-  // END DELETE FUNCTIONS
-
-  // ADD
-  const handleAddDriver = () => {
-    addDriverAPI(formData)
-      .then((res) => {
-        console.log(res);
-        if (res.status === 200) {
-          toast.success("Driver has been add successfully!", {
-            autoClose: 1000,
-          });
-          fetchDrivers()
-          setShowAdd(false);
-        }
-      })
-      .catch((e) => {
-        if (e.response && e.response.status === 401) {
-          toast.error("You need to log in again to continue!", {
-            autoClose: 2000,
-          });
-          navigate("/auth/login");
-        } else {
-          toast.error("Failed to add this driver!", {
-            autoClose: 1000,
-          });
-          setShowAdd(false);
-        }
-      });
-  };
-  const handleAddClose = () => {
-    setShowAdd(false);
-    setFormData({
-      email: "",
-      code: "",
-      fullName: "",
-      gender: "",
-      idCardNumber: "",
-      address: "",
-      phoneNumber: "",
-      dateOfBirth: "",
-      avatar: "",
-      personalEmail: "",
-    })
-  }
-  // END ADD
-
-  // PAGING
-  const itemsPerPage = 5;
-  const [currentDriverList, setCurrentDriverList] = useState([]);
-  const [totalPages, setTotalPages] = useState(0);
-  const [startIndex, setStartIndex] = useState(0);
-  const [endIndex, setEndIndex] = useState(0);
-  const [currentPage, setCurrentPage] = useState(1);
-
-  useEffect(() => {
-    setTotalPages(Math.ceil(driverList.length / itemsPerPage));
-    setStartIndex((currentPage - 1) * itemsPerPage);
-  }, [driverList, currentPage]);
-
-  useEffect(() => {
-    setEndIndex(startIndex + itemsPerPage);
-    setCurrentDriverList(driverList.slice(startIndex, endIndex));
-  }, [driverList, startIndex, endIndex]);
-
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [driverList.length]);
-
-  const handlePageClick = (pageNumber) => {
-    setCurrentPage(pageNumber);
-  };
-  // END PAGING
-
-  // REDUX
-  const drivers = useSelector((state) => state.drivers.value);
-  const currentSearchDriver = useSelector((state) => state.drivers.currentSearchDriver);
-  React.useEffect(() => {
-    setDriverList(drivers)
-  }, [drivers])
-  // END REDUX
-
   return (
     <>
       <Header />
-      <ToastContainer />
+      {/* Page content */}
       <Container className="mt--7" fluid>
         <Row>
-          <div className="col">
-            <Card className=" card-container shadow">
+          <Col className="mb-5 mb-xl-0" xl="8">
+            <Card className="bg-gradient-default shadow">
               <CardHeader className="bg-transparent">
-                <h3 className="mb-0">Manager Drivers</h3>
+                <Row className="align-items-center">
+                  <div className="col">
+                    <h6 className="text-uppercase text-light ls-1 mb-1">
+                      Overview
+                    </h6>
+                    <h2 className="text-white mb-0">Sales value</h2>
+                  </div>
+                  <div className="col">
+                    <Nav className="justify-content-end" pills>
+                      <NavItem>
+                        <NavLink
+                          className={classnames("py-2 px-3", {
+                            active: activeNav === 1,
+                          })}
+                          href="#pablo"
+                          onClick={(e) => toggleNavs(e, 1)}
+                        >
+                          <span className="d-none d-md-block">Month</span>
+                          <span className="d-md-none">M</span>
+                        </NavLink>
+                      </NavItem>
+                      <NavItem>
+                        <NavLink
+                          className={classnames("py-2 px-3", {
+                            active: activeNav === 2,
+                          })}
+                          data-toggle="tab"
+                          href="#pablo"
+                          onClick={(e) => toggleNavs(e, 2)}
+                        >
+                          <span className="d-none d-md-block">Week</span>
+                          <span className="d-md-none">W</span>
+                        </NavLink>
+                      </NavItem>
+                    </Nav>
+                  </div>
+                </Row>
               </CardHeader>
               <CardBody>
-
-
-                <Modal show={showToggleStatus} onHide={() => setShowToggleStatus(false)} animation={false}>
-                  <Modal.Header closeButton>
-                    <Modal.Title>Enable/Disable driver</Modal.Title>
-                  </Modal.Header>
-                  <Modal.Body>Are you sure to enable/disable this driver?</Modal.Body>
-                  <Modal.Footer>
-                    <Button variant="secondary" onClick={() => setShowToggleStatus(false)}>
-                      Close
-                    </Button>
-                    <Button variant="primary" onClick={toggleStatus}>
-                      Enable/Disable
-                    </Button>
-                  </Modal.Footer>
-                </Modal>
-
-                <Modal show={showDelete} onHide={() => setShowDelete(false)} animation={false}>
-                  <Modal.Header closeButton>
-                    <Modal.Title>Delete driver</Modal.Title>
-                  </Modal.Header>
-                  <Modal.Body>Are you sure to delete this driver?</Modal.Body>
-                  <Modal.Footer>
-                    <Button variant="secondary" onClick={() => setShowDelete(false)}>
-                      Close
-                    </Button>
-                    <Button variant="primary" onClick={() => deleteDriver()}>
-                      Delete
-                    </Button>
-                  </Modal.Footer>
-                </Modal>
-
-                {/* Add model */}
-                <Modal show={showAdd} onHide={handleAddClose}>
-                  <Modal.Header closeButton>
-                    <Modal.Title>Add driver</Modal.Title>
-                  </Modal.Header>
-                  <Modal.Body>
-                    <Form>
-                      <Form.Group className="mb-3" controlId="email">
-                        <Form.Label>Email</Form.Label>
-                        <Form.Control
-                          type="text"
-                          name="email"
-                          placeholder="Email"
-                          autoFocus
-                          required
-                          value={formData.email}
-                          onChange={(e) => {
-                            setFormData({
-                              ...formData,
-                              email: e.target.value
-                            })
-                          }}
-                        />
-                      </Form.Group>
-                      <Form.Group className="mb-3" controlId="code">
-                        <Form.Label>Code</Form.Label>
-                        <Form.Control
-                          type="text"
-                          name="code"
-                          placeholder="Code"
-                          autoFocus
-                          required
-                          value={formData.code}
-                          onChange={(e) => {
-                            setFormData({
-                              ...formData,
-                              code: e.target.value
-                            })
-                          }}
-                        />
-                      </Form.Group>
-                      <Form.Group className="mb-3" controlId="fullName">
-                        <Form.Label>FullName</Form.Label>
-                        <Form.Control
-                          type="text"
-                          name="fullName"
-                          placeholder="FullName"
-                          autoFocus
-                          required
-                          value={formData.fullName}
-                          onChange={(e) => {
-                            setFormData({
-                              ...formData,
-                              fullName: e.target.value
-                            })
-                          }}
-                        />
-                      </Form.Group>
-                      <Form.Group className="mb-3" controlId="gender">
-                        <Form.Label>Gender</Form.Label>
-                        <Form.Control
-                          type="text"
-                          name="gender"
-                          placeholder="Gender"
-                          autoFocus
-                          required
-                          value={formData.gender}
-                          onChange={(e) => {
-                            setFormData({
-                              ...formData,
-                              gender: e.target.value
-                            })
-                          }}
-                        />
-                      </Form.Group>
-                      <Form.Group className="mb-3" controlId="idCardNumber">
-                        <Form.Label>IdCardNumber</Form.Label>
-                        <Form.Control
-                          type="text"
-                          name="idCardNumber"
-                          placeholder="IdCardNumber"
-                          autoFocus
-                          required
-                          value={formData.idCardNumber}
-                          onChange={(e) => {
-                            setFormData({
-                              ...formData,
-                              idCardNumber: e.target.value
-                            })
-                          }}
-                        />
-                      </Form.Group>
-                      <Form.Group className="mb-3" controlId="address">
-                        <Form.Label>Address</Form.Label>
-                        <Form.Control
-                          type="text"
-                          name="address"
-                          placeholder="Address"
-                          autoFocus
-                          required
-                          value={formData.address}
-                          onChange={(e) => {
-                            setFormData({
-                              ...formData,
-                              address: e.target.value
-                            })
-                          }}
-                        />
-                      </Form.Group>
-                      <Form.Group className="mb-3" controlId="phoneNumber">
-                        <Form.Label>PhoneNumber</Form.Label>
-                        <Form.Control
-                          type="text"
-                          name="phoneNumber"
-                          placeholder="PhoneNumber"
-                          autoFocus
-                          required
-                          value={formData.phoneNumber}
-                          onChange={(e) => {
-                            setFormData({
-                              ...formData,
-                              phoneNumber: e.target.value
-                            })
-                          }}
-                        />
-                      </Form.Group>
-                      <Form.Group className="mb-3" controlId="personalEmail">
-                        <Form.Label>PersonalEmail</Form.Label>
-                        <Form.Control
-                          type="text"
-                          name="personalEmail"
-                          placeholder="PersonalEmail"
-                          autoFocus
-                          required
-                          value={formData.personalEmail}
-                          onChange={(e) => {
-                            setFormData({
-                              ...formData,
-                              personalEmail: e.target.value
-                            })
-                          }}
-                        />
-                      </Form.Group>
-                      <Form.Group className="mb-3" controlId="dateOfBirth">
-                        <Form.Label>Date of Birth (MM-DD-YYYY)</Form.Label>
-                        <Form.Control
-                          type="date"
-                          name="dateOfBirth"
-                          autoFocus
-                          required
-                          value={formData.dateOfBirth}
-                          onChange={(e) => {
-                            const inputDate = e.target.value;
-                            const formattedDate = inputDate
-                              .split("-")
-                              .map((part) => part.padStart(2, "0"))
-                              .join("-");
-
-                            setFormData({
-                              ...formData,
-                              dateOfBirth: formattedDate
-                            })
-                          }}
-                        />
-                      </Form.Group>
-                      <Form.Group className="mb-3" controlId="avatar">
-                        <Form.Label>AvatarFile</Form.Label>
-                        <Form.Control
-                          type="file"
-                          name="avatar"
-                          placeholder="AvatarFile"
-                          autoFocus
-                          required
-                          value={formData.avatar}
-                          onChange={(e) => {
-                            setFormData({
-                              ...formData,
-                              avatar: e.target.value
-                            })
-                          }}
-                        />
-                      </Form.Group>
-                    </Form>
-                  </Modal.Body>
-                  <Modal.Footer>
-                    <Button variant="secondary" onClick={handleAddClose}>
-                      Close
-                    </Button>
-                    <Button variant="primary" onClick={handleAddDriver}>
-                      Add +
-                    </Button>
-                  </Modal.Footer>
-                </Modal>
-
-                {/* Detail model */}
-                <Modal show={showDetails} onHide={() => setShowDetails(false)}>
-                  <Modal.Header closeButton>
-                    <Modal.Title>Driver detail</Modal.Title>
-                  </Modal.Header>
-                  <Modal.Body>
-                    <Form>
-                      <Form.Group className="mb-3" controlId="email">
-                        <Form.Label>Email</Form.Label>
-                        <Form.Control
-                          type="text"
-                          name="email"
-                          placeholder="Email"
-                          autoFocus
-                          readOnly
-                          value={formData.email}
-                        />
-                      </Form.Group>
-                      <Form.Group className="mb-3" controlId="code">
-                        <Form.Label>Code</Form.Label>
-                        <Form.Control
-                          type="text"
-                          name="code"
-                          placeholder="Code"
-                          autoFocus
-                          readOnly
-                          value={formData.code}
-                        />
-                      </Form.Group>
-                      <Form.Group className="mb-3" controlId="fullName">
-                        <Form.Label>Full Name</Form.Label>
-                        <Form.Control
-                          type="text"
-                          name="fullName"
-                          placeholder="fullName"
-                          autoFocus
-                          readOnly
-                          value={formData.fullName}
-                        />
-                      </Form.Group>
-                      <Form.Group className="mb-3" controlId="gender">
-                        <Form.Label>Gender</Form.Label>
-                        <Form.Control
-                          type="text"
-                          name="gender"
-                          placeholder="Gender"
-                          autoFocus
-                          readOnly
-                          value={formData.gender}
-                        />
-                      </Form.Group>
-                      <Form.Group className="mb-3" controlId="idCardNumber">
-                        <Form.Label>Id Card Number</Form.Label>
-                        <Form.Control
-                          type="text"
-                          name="idCardNumber"
-                          placeholder="Id Card Number"
-                          autoFocus
-                          readOnly
-                          value={formData.idCardNumber}
-                        />
-                      </Form.Group>
-                      <Form.Group className="mb-3" controlId="address">
-                        <Form.Label>Address</Form.Label>
-                        <Form.Control
-                          type="text"
-                          name="address"
-                          placeholder="Address"
-                          autoFocus
-                          readOnly
-                          value={formData.address}
-                        />
-                      </Form.Group>
-                      <Form.Group className="mb-3" controlId="phoneNumber">
-                        <Form.Label>Phone Number</Form.Label>
-                        <Form.Control
-                          type="text"
-                          name="phoneNumber"
-                          placeholder="Phone Number"
-                          autoFocus
-                          readOnly
-                          value={formData.phoneNumber}
-                        />
-                      </Form.Group>
-                      <Form.Group className="mb-3" controlId="personalEmail">
-                        <Form.Label>Personal Email</Form.Label>
-                        <Form.Control
-                          type="text"
-                          name="personalEmail"
-                          placeholder="Personal Email"
-                          autoFocus
-                          readOnly
-                          value={formData.personalEmail}
-                        />
-                      </Form.Group>
-                      <Form.Group className="mb-3" controlId="dateOfBirth">
-                        <Form.Label>Date of Birth</Form.Label>
-                        <Form.Control
-                          type="text"
-                          name="dateOfBirth"
-                          placeholder="Date of Birth"
-                          autoFocus
-                          readOnly
-                          value={new Date(formData.dateOfRegistration.slice(0, 10)).toLocaleDateString("en-US")}
-                        />
-                      </Form.Group>
-                    </Form>
-                  </Modal.Body>
-                  <Modal.Footer>
-                    <Button variant="secondary" onClick={() => setShowDetails(false)}>
-                      Close
-                    </Button>
-                  </Modal.Footer>
-                </Modal>
-                {/* Update model */}
-                <Modal show={showUpdate} onHide={handleUpdateClose}>
-                  <Modal.Header closeButton>
-                    <Modal.Title>Update driver</Modal.Title>
-                  </Modal.Header>
-                  <Modal.Body>
-                    <Form>
-                      <Form.Group className="mb-3" controlId="email">
-                        <Form.Label>Email</Form.Label>
-                        <Form.Control
-                          type="text"
-                          name="email"
-                          placeholder="Email"
-                          autoFocus
-                          required
-                          value={formData.email}
-                          onChange={(e) => {
-                            setFormData({
-                              ...formData,
-                              email: e.target.value
-                            })
-                          }}
-                        />
-                      </Form.Group>
-                      <Form.Group className="mb-3" controlId="code">
-                        <Form.Label>Code</Form.Label>
-                        <Form.Control
-                          type="text"
-                          name="code"
-                          placeholder="code"
-                          autoFocus
-                          required
-                          value={formData.code}
-                          onChange={(e) => {
-                            setFormData({
-                              ...formData,
-                              code: e.target.value
-                            })
-                          }}
-                        />
-                      </Form.Group>
-                      <Form.Group className="mb-3" controlId="fullName">
-                        <Form.Label>Full Name</Form.Label>
-                        <Form.Control
-                          type="text"
-                          name="fullName"
-                          placeholder="Full Name"
-                          autoFocus
-                          required
-                          value={formData.fullName}
-                          onChange={(e) => {
-                            setFormData({
-                              ...formData,
-                              fullName: e.target.value
-                            })
-                          }}
-                        />
-                      </Form.Group>
-                      <Form.Group className="mb-3" controlId="gender">
-                        <Form.Label>Gender</Form.Label>
-                        <Form.Control
-                          type="text"
-                          name="gender"
-                          placeholder="Gender"
-                          autoFocus
-                          required
-                          value={formData.gender}
-                          onChange={(e) => {
-                            setFormData({
-                              ...formData,
-                              gender: e.target.value
-                            })
-                          }}
-                        />
-                      </Form.Group>
-                      <Form.Group className="mb-3" controlId="idCardNumber">
-                        <Form.Label>Id Card Number</Form.Label>
-                        <Form.Control
-                          type="text"
-                          name="idCardNumber"
-                          placeholder="Id Card Number"
-                          autoFocus
-                          required
-                          value={formData.idCardNumber}
-                          onChange={(e) => {
-                            setFormData({
-                              ...formData,
-                              idCardNumber: e.target.value
-                            })
-                          }}
-                        />
-                      </Form.Group>
-                      <Form.Group className="mb-3" controlId="address">
-                        <Form.Label>Address</Form.Label>
-                        <Form.Control
-                          type="text"
-                          name="address"
-                          placeholder="Address"
-                          autoFocus
-                          required
-                          value={formData.address}
-                          onChange={(e) => {
-                            setFormData({
-                              ...formData,
-                              address: e.target.value
-                            })
-                          }}
-                        />
-                      </Form.Group>
-                      <Form.Group className="mb-3" controlId="phoneNumber">
-                        <Form.Label>Phone Number</Form.Label>
-                        <Form.Control
-                          type="text"
-                          name="phoneNumber"
-                          placeholder="Phone Number"
-                          autoFocus
-                          required
-                          value={formData.phoneNumber}
-                          onChange={(e) => {
-                            setFormData({
-                              ...formData,
-                              phoneNumber: e.target.value
-                            })
-                          }}
-                        />
-                      </Form.Group>
-                      <Form.Group className="mb-3" controlId="personalEmail">
-                        <Form.Label>Personal Email</Form.Label>
-                        <Form.Control
-                          type="text"
-                          name="personalEmail"
-                          placeholder="Personal Email"
-                          autoFocus
-                          required
-                          value={formData.personalEmail}
-                          onChange={(e) => {
-                            setFormData({
-                              ...formData,
-                              personalEmail: e.target.value
-                            })
-                          }}
-                        />
-                      </Form.Group>
-                      <Form.Group className="mb-3" controlId="dateOfBirth">
-                        <Form.Label>
-                          Date of Birth (MM-DD-YYYY)
-                        </Form.Label>
-                        <Form.Control
-                          type="date"
-                          name="dateOfBirth"
-                          autoFocus
-                          required
-                          value={formData.dateOfBirth ? formData.dateOfBirth.slice(0, 10) : ''}
-                          onChange={(e) => {
-                            const inputDate = e.target.value;
-                            const formattedDate = inputDate
-                              .split("-")
-                              .map((part) => part.padStart(2, "0"))
-                              .join("-");
-
-                            setFormData({
-                              ...formData,
-                              dateOfBirth: formattedDate
-                            })
-                          }}
-                        />
-                      </Form.Group>
-                      <Form.Group className="mb-3" controlId="avatar">
-                        <Form.Label>Avatar File</Form.Label>
-                        <Form.Control
-                          type="file"
-                          name="avatar"
-                          autoFocus
-                          required
-                          value={formData.avatar}
-                          onChange={(e) => {
-                            setFormData({
-                              ...formData,
-                              avatar: e.target.value
-                            })
-                          }}
-                        />
-                      </Form.Group>                    
-                    </Form>
-                  </Modal.Body>
-                  <Modal.Footer>
-                    <Button variant="secondary" onClick={handleUpdateClose}>
-                      Close
-                    </Button>
-                    <Button variant="primary" onClick={updateDriverData}>
-                      Confirm
-                    </Button>
-                  </Modal.Footer>
-                </Modal>
-
-                {/* Table list */}
-                <div className="list">
-                  <Button variant="primary" onClick={() => setShowAdd(true)} size="md" className="add_button">Add Driver +</Button>
-                  <Table striped bordered hover>
-                    <thead>
-                      <tr>
-                        <th>Id</th>
-                        <th>Avatar </th>
-                        <th>Code</th>
-                        <th>Email</th>
-                        <th>Full Name</th>
-                        <th>Gender</th>
-                        <th>Status</th>
-                        <th>More Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {currentDriverList.map((driver, index) => (
-                        <tr key={index}>
-                          <td>
-                            <a>{driver.id ? driver.id : "none"}</a>
-                          </td>
-                          <td>
-                            {driver.avatar ? (
-                              <img className="driver-img" src={driver.avatar} alt="" />
-                            ) : (
-                              <img className="driver-img" src={defaultAvatar} alt="" />
-                            )}
-                          </td>
-                          <td>
-                            <a href="" onClick={(e) => {
-                              e.preventDefault()
-                              handleShowDetails(driver.id)
-                            }}>{driver.code ? driver.code : "none"}</a>
-
-                          </td>
-                          <td>
-                            <a href="" onClick={(e) => {
-                              e.preventDefault()
-                              handleShowDetails(driver.id)
-                            }}>{driver.email ? driver.email : "none"}</a>
-                          </td>
-                          <td>
-                            <span className={`status ${driver.status === 'ACTIVE' ? 'active' : driver.status === 'INACTIVE' ? 'inactive' : ''}`}>
-                              {driver.status}
-                            </span>
-                          </td>
-                          <td className="registration">
-                            <UncontrolledDropdown>
-                              <DropdownToggle
-                                className="btn-icon-only text-light"
-                                role="button"
-                                size="sm"
-                                color=""
-                              >
-                                <i className="fas fa-ellipsis-v" />
-                              </DropdownToggle>
-                              <DropdownMenu className="dropdown-menu-arrow" >
-                                <DropdownItem
-                                  className="update-dropdown-item"
-                                  onClick={() => handleUpdateShow(driver)}
-                                >
-                                  Update
-                                </DropdownItem>
-                                <DropdownItem
-                                  className="disable-enable-dropdown-item"
-                                  onClick={() => {
-                                    handleToggleStatus(driver)
-                                  }}
-                                >
-                                  Enable/Disable
-                                </DropdownItem>
-                                <DropdownItem
-                                  className="delete-dropdown-item"
-                                  onClick={() => handleDeleteDriver(driver.id)}
-                                >
-                                  Delete
-                                </DropdownItem>
-                              </DropdownMenu>
-                            </UncontrolledDropdown>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </Table>
+                {/* Chart */}
+                <div className="chart">
+                  <Line
+                    data={chartExample1[chartExample1Data]}
+                    options={chartExample1.options}
+                    getDatasetAtEvent={(e) => console.log(e)}
+                  />
                 </div>
               </CardBody>
-              <CardFooter className="py-4">
-                <nav aria-label="...">
-                  <Pagination
-                    className="pagination justify-content-end mb-0"
-                    listClassName="justify-content-end mb-0"
-                  >
-                    <PaginationItem disabled={currentPage === 1}>
-                      <PaginationLink
-                        href="#"
-                        onClick={() => handlePageClick(currentPage - 1)}
-                        tabIndex="-1"
-                      >
-                        <i className="fas fa-angle-left" />
-                        <span className="sr-only">Previous</span>
-                      </PaginationLink>
-                    </PaginationItem>
-                    {Array.from({ length: totalPages }, (_, index) => (
-                      <PaginationItem
-                        key={index + 1}
-                        active={currentPage === index + 1}
-                      >
-                        <PaginationLink
-                          href="#"
-                          onClick={() => handlePageClick(index + 1)}
-                        >
-                          {index + 1}
-                        </PaginationLink>
-                      </PaginationItem>
-                    ))}
-                    <PaginationItem disabled={currentPage === totalPages}>
-                      <PaginationLink
-                        href="#"
-                        onClick={() => handlePageClick(currentPage + 1)}
-                      >
-                        <i className="fas fa-angle-right" />
-                        <span className="sr-only">Next</span>
-                      </PaginationLink>
-                    </PaginationItem>
-                  </Pagination>
-                </nav>
-              </CardFooter>
             </Card>
-          </div>
+          </Col>
+          <Col xl="4">
+            <Card className="shadow">
+              <CardHeader className="bg-transparent">
+                <Row className="align-items-center">
+                  <div className="col">
+                    <h6 className="text-uppercase text-muted ls-1 mb-1">
+                      Performance
+                    </h6>
+                    <h2 className="mb-0">Total orders</h2>
+                  </div>
+                </Row>
+              </CardHeader>
+              <CardBody>
+                {/* Chart */}
+                <div className="chart">
+                  <Bar
+                    data={chartExample2.data}
+                    options={chartExample2.options}
+                  />
+                </div>
+              </CardBody>
+            </Card>
+          </Col>
+        </Row>
+        <Row className="mt-5">
+          <Col className="mb-5 mb-xl-0" xl="8">
+            <Card className="shadow">
+              <CardHeader className="border-0">
+                <Row className="align-items-center">
+                  <div className="col">
+                    <h3 className="mb-0">Page visits</h3>
+                  </div>
+                  <div className="col text-right">
+                    <Button
+                      color="primary"
+                      href="#pablo"
+                      onClick={(e) => e.preventDefault()}
+                      size="sm"
+                    >
+                      See all
+                    </Button>
+                  </div>
+                </Row>
+              </CardHeader>
+              <Table className="align-items-center table-flush" responsive>
+                <thead className="thead-light">
+                  <tr>
+                    <th scope="col">Page name</th>
+                    <th scope="col">Visitors</th>
+                    <th scope="col">Unique users</th>
+                    <th scope="col">Bounce rate</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <th scope="row">/argon/</th>
+                    <td>4,569</td>
+                    <td>340</td>
+                    <td>
+                      <i className="fas fa-arrow-up text-success mr-3" /> 46,53%
+                    </td>
+                  </tr>
+                  <tr>
+                    <th scope="row">/argon/index.html</th>
+                    <td>3,985</td>
+                    <td>319</td>
+                    <td>
+                      <i className="fas fa-arrow-down text-warning mr-3" />{" "}
+                      46,53%
+                    </td>
+                  </tr>
+                  <tr>
+                    <th scope="row">/argon/charts.html</th>
+                    <td>3,513</td>
+                    <td>294</td>
+                    <td>
+                      <i className="fas fa-arrow-down text-warning mr-3" />{" "}
+                      36,49%
+                    </td>
+                  </tr>
+                  <tr>
+                    <th scope="row">/argon/tables.html</th>
+                    <td>2,050</td>
+                    <td>147</td>
+                    <td>
+                      <i className="fas fa-arrow-up text-success mr-3" /> 50,87%
+                    </td>
+                  </tr>
+                  <tr>
+                    <th scope="row">/argon/profile.html</th>
+                    <td>1,795</td>
+                    <td>190</td>
+                    <td>
+                      <i className="fas fa-arrow-down text-danger mr-3" />{" "}
+                      46,53%
+                    </td>
+                  </tr>
+                </tbody>
+              </Table>
+            </Card>
+          </Col>
+          <Col xl="4">
+            <Card className="shadow">
+              <CardHeader className="border-0">
+                <Row className="align-items-center">
+                  <div className="col">
+                    <h3 className="mb-0">Social traffic</h3>
+                  </div>
+                  <div className="col text-right">
+                    <Button
+                      color="primary"
+                      href="#pablo"
+                      onClick={(e) => e.preventDefault()}
+                      size="sm"
+                    >
+                      See all
+                    </Button>
+                  </div>
+                </Row>
+              </CardHeader>
+              <Table className="align-items-center table-flush" responsive>
+                <thead className="thead-light">
+                  <tr>
+                    <th scope="col">Referral</th>
+                    <th scope="col">Visitors</th>
+                    <th scope="col" />
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <th scope="row">Facebook</th>
+                    <td>1,480</td>
+                    <td>
+                      <div className="d-flex align-items-center">
+                        <span className="mr-2">60%</span>
+                        <div>
+                          <Progress
+                            max="100"
+                            value="60"
+                            barClassName="bg-gradient-danger"
+                          />
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Facebook</th>
+                    <td>5,480</td>
+                    <td>
+                      <div className="d-flex align-items-center">
+                        <span className="mr-2">70%</span>
+                        <div>
+                          <Progress
+                            max="100"
+                            value="70"
+                            barClassName="bg-gradient-success"
+                          />
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Google</th>
+                    <td>4,807</td>
+                    <td>
+                      <div className="d-flex align-items-center">
+                        <span className="mr-2">80%</span>
+                        <div>
+                          <Progress max="100" value="80" />
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Instagram</th>
+                    <td>3,678</td>
+                    <td>
+                      <div className="d-flex align-items-center">
+                        <span className="mr-2">75%</span>
+                        <div>
+                          <Progress
+                            max="100"
+                            value="75"
+                            barClassName="bg-gradient-info"
+                          />
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <th scope="row">twitter</th>
+                    <td>2,645</td>
+                    <td>
+                      <div className="d-flex align-items-center">
+                        <span className="mr-2">30%</span>
+                        <div>
+                          <Progress
+                            max="100"
+                            value="30"
+                            barClassName="bg-gradient-warning"
+                          />
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </Table>
+            </Card>
+          </Col>
         </Row>
       </Container>
     </>
   );
 };
 
-export default Drivers;
+export default Index;

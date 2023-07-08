@@ -71,15 +71,20 @@
 
 .status {
     color: #707070;
-    /* Default color for INACTIVE status */
 }
 
 .status.active {
     color: #24a148;
-    /* Color for ACTIVE status */
 }
 
 .status.inactive {
     color: #F5365C;
-    /* Color for INACTIVE status */
+}
+
+.role.admin {
+    color: #fb6340
+}
+
+.role.driver {
+    color: #5b4283
 }

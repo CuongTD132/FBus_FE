@@ -1,24 +1,38 @@
 import { Card, CardHeader, Col } from "reactstrap";
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 import { loginWithGoogle } from "../../services/auth";
-import { useNavigate} from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { isTokenExpired } from "../../services/checkToken";
+import { useEffect } from "react";
 const Login = () => {
   const navigate = useNavigate();
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (user && !isTokenExpired()) {
+      if (user.role === 'Admin') {
+        navigate("/admin/buses");      
+      }
+    }else if (isTokenExpired()){
+        localStorage.removeItem('user');
+    }
+  }, []);
   const handleLoginWithGoogle = (credentialResponse) => {
     loginWithGoogle(credentialResponse.credential)
       .then((res) => {
-        if (res.data !== '') {
+        if (res.data !== '' && !isTokenExpired()) {
           console.log(res)
           const userData = res.data;
           localStorage.setItem('user', JSON.stringify(res.data))
-          if (userData.role === 'ADMIN') {
+          if (userData.role === 'Admin') {
             navigate("/admin/buses");
             toast.success(`Welcome ${userData.name} to Admin Page`, {
               autoClose: 1000,
             });
 
+          } else if (isTokenExpired(false)) {
+            navigate("/admin/buses");
           } else if (userData.role === 'DRIVER') {
             toast.warning("You're not Authorized", {
               autoClose: 1000,

@@ -61,24 +61,22 @@ const Drivers = () => {
   // Check accessToken
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem("user"));
-    if (user == null || !user) {
-      toast("You need to log in to continue!", {
-        autoClose: 1000,
+    if (user == null || !user || isTokenExpired()) {
+      toast.info("You need to log in to continue!", {
+        position: "top-center",
+        autoClose: 1500,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: false,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
         onClose: () => {
           navigate("/auth/login");
         },
       });
       return;
     } else {
-      if (isTokenExpired()) {
-        toast("You need to log in again to continue!", {
-          autoClose: 1000,
-          onClose: () => {
-            navigate("/auth/login");
-          },
-        });
-        return;
-      }
       getAllDrivers(user.accessToken)
         .then((res) => {
           if (res && res.data && res.data.data) {
@@ -105,7 +103,7 @@ const Drivers = () => {
 
   // Fetch list of driver and pass to table
   const fetchDrivers = () => {
-    if (currentSearchDriver != "") {
+    if (currentSearchDriver !== "") {
       getMultiDriversAPI({
         code: currentSearchDriver,
         email: currentSearchDriver
@@ -117,7 +115,7 @@ const Drivers = () => {
           dispatch(updateDriver([]))
         }
       })
-    } else if (driverList.length == 0) {
+    } else if (driverList.length === 0) {
       getAllDrivers()
         .then((res) => setDriverList(res.data.data))
         .catch((error) => {
@@ -129,8 +127,15 @@ const Drivers = () => {
   // Call show detail form
   const handleShowDetails = (id) => {
     if (isTokenExpired()) {
-      toast("You need to log in again to continue!", {
-        autoClose: 1000,
+      toast.info("You need to log in to continue!", {
+        position: "top-center",
+        autoClose: 1500,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: false,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
         onClose: () => {
           navigate("/auth/login");
         },
@@ -147,8 +152,15 @@ const Drivers = () => {
   }
   const handleUpdateShow = (driver) => {
     if (isTokenExpired()) {
-      toast("You need to log in again to continue!", {
-        autoClose: 1000,
+      toast.info("You need to log in to continue!", {
+        position: "top-center",
+        autoClose: 1500,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: false,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
         onClose: () => {
           navigate("/auth/login");
         },
@@ -179,7 +191,7 @@ const Drivers = () => {
       })
       .catch((e) => {
         if (e.response && e.response.status === 401) {
-          toast.error("You need to log in again to continue!", {
+          toast("You need to log in again to continue!", {
             autoClose: 1000,
           });
           navigate("/auth/login");
@@ -187,6 +199,8 @@ const Drivers = () => {
           toast.error("Failed to update the driver!", {
             autoClose: 1000,
           });
+          setShowUpdate(true);
+
         }
       })
   }
@@ -197,7 +211,7 @@ const Drivers = () => {
   const [toggleDriverId, setToggleDriverId] = useState(null);
   const handleToggleStatus = (driver) => {
     if (isTokenExpired()) {
-      toast.error("You need to log in again to continue!", {
+      toast("You need to log in again to continue!", {
         autoClose: 1000,
         onClose: () => {
           navigate("/auth/login");
@@ -212,7 +226,7 @@ const Drivers = () => {
   }
   const toggleStatus = () => {
     let status = "INACTIVE";
-    if (oldStatus == "INACTIVE") {
+    if (oldStatus === "INACTIVE") {
       status = "ACTIVE"
     }
     toggleStatusAPI(toggleDriverId, status)
@@ -244,7 +258,7 @@ const Drivers = () => {
   const [deleteDriverId, setDeleteDriverId] = useState();
   const handleDeleteDriver = (id) => {
     if (isTokenExpired()) {
-      toast.error("You need to log in again to continue!", {
+      toast("You need to log in again to continue!", {
         autoClose: 1000,
         onClose: () => {
           navigate("/auth/login");
@@ -273,7 +287,7 @@ const Drivers = () => {
       })
       .catch((e) => {
         if (e.response && e.response.status === 401) {
-          toast.error("You need to log in again to continue!", {
+          toast("You need to log in again to continue!", {
             autoClose: 1000,
           });
           navigate("/auth/login");
@@ -301,7 +315,7 @@ const Drivers = () => {
       })
       .catch((e) => {
         if (e.response && e.response.status === 401) {
-          toast.error("You need to log in again to continue!", {
+          toast("You need to log in again to continue!", {
             autoClose: 1000,
           });
           navigate("/auth/login");
@@ -309,7 +323,7 @@ const Drivers = () => {
           toast.error("Failed to add this driver!", {
             autoClose: 1000,
           });
-          setShowAdd(false);
+          setShowAdd(true);
         }
       });
   };
@@ -318,7 +332,7 @@ const Drivers = () => {
   }
   const handleAddOpen = () => {
     if (isTokenExpired()) {
-      toast.error("You need to log in again to continue!", {
+      toast("You need to log in again to continue!", {
         autoClose: 1000,
         onClose: () => {
           navigate("/auth/login");
@@ -494,8 +508,8 @@ const Drivers = () => {
                           }}
                         >
                           <option value="">Select gender</option>
-                          <option value="Male">Male</option>
-                          <option value="Female">Female</option>
+                          <option value="true">Male</option>
+                          <option value="false">Female</option>
                         </Form.Control>
                       </Form.Group>
                       <Form.Group className="mb-3" controlId="idCardNumber">
@@ -808,7 +822,6 @@ const Drivers = () => {
                           )}
                         </Form.Control>
                       </Form.Group>
-
                       <Form.Group className="mb-3" controlId="idCardNumber">
                         <Form.Label>Id Card Number</Form.Label>
                         <Form.Control

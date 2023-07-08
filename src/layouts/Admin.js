@@ -78,6 +78,7 @@ const Admin = (props) => {
           innerLink: "/admin/index",
           imgSrc: require("../assets/img/brand/bus-pro1.jpg"),
           imgAlt: "...",   
+          
         }}
       />
       <div className="main-content" ref={mainContent}>

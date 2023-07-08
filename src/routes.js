@@ -4,6 +4,7 @@ import Login from "./views/pages/Login";
 import Buses from "./views/pages/Buses";
 import Drivers from "./views/pages/Drivers";
 import Accounts from "./views/pages/Accounts";
+import Maps from "./views/pages/Maps.js";
 
 var routes = [
   {
@@ -42,6 +43,13 @@ var routes = [
   //   component: <Tables />,
   //   layout: "/admin",
   // },
+  {
+    path: "/maps",
+    name: "Maps",
+    icon: "ni ni-pin-3 text-orange",
+    component: <Maps />,
+    layout: "/admin",
+  },
   {
     path: "/login",
     component: <Login />,

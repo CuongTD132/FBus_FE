@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Button, Form, Modal, Table } from 'react-bootstrap';
+import { Table } from 'react-bootstrap';
 import "../../style/Manager.css"
 import {
   Card,
@@ -7,10 +7,6 @@ import {
   CardBody,
   Container,
   Row,
-  UncontrolledDropdown,
-  DropdownToggle,
-  DropdownMenu,
-  DropdownItem,
   CardFooter,
   Pagination,
   PaginationItem,
@@ -27,31 +23,49 @@ import 'react-toastify/dist/ReactToastify.css';
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { updateAccount } from "../../redux/reducer";
+import { isTokenExpired } from "../../services/checkToken";
 
 const Accounts = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const [accountList, setccountList] = useState([]);
+  const [accountList, setAccountList] = useState([]);
 
   // Check accessToken
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem("user"));
     if (user == null || !user) {
-      toast("You need to log in again to continue")
-      navigate('/auth/login');
-    }
-    if (user?.accessToken) {
-      getAllAccounts()
-        .then((res) => setccountList(res.data.data))
-        .catch(() => {
-          // fetchNewAccessToken();
+      toast("You need to log in to continue!", {
+        autoClose: 1000,
+        onClose: () => {
+          navigate("/auth/login");
+        },
+      });
+      return;
+    } else {
+      if (isTokenExpired()) {
+        toast("You need to log in again to continue!", {
+          autoClose: 1000,
+          onClose: () => {
+            navigate("/auth/login");
+          },
+        });
+        return;
+      }
+      getAllAccounts(user.accessToken)
+        .then((res) => {
+          if (res && res.data && res.data.data) {
+            setAccountList(res.data.data);
+          } else {
+            toast.error("Error: Invalid response data");
+            return;
+          }
         })
+        .catch((e) => {
+          toast.error("Error: " + e.message);
+        });
     }
-    getAllAccounts()
-      .then((res) => {
-        setccountList(res.data.data)
-      })
+
   }, [])
 
 
@@ -86,7 +100,7 @@ const Accounts = () => {
   const accounts = useSelector((state) => state.accounts.value);
   const currentSearchAccount = useSelector((state) => state.accounts.currentSearchAccount);
   React.useEffect(() => {
-    setccountList(accounts)
+    setAccountList(accounts)
   }, [accounts])
   // END REDUX
 
@@ -127,7 +141,9 @@ const Accounts = () => {
                             <a>{account.email ? account.email : "none"}</a>
                           </td>
                           <td>
-                            <a >{account.role ? account.role : "none"}</a>
+                          <span className={`role ${account.role === 'Admin' ? 'admin' : account.role === 'Driver' ? 'driver' : ''}`}>
+                              {account.role}
+                            </span>
                           </td>
                           <td>
                             <span className={`status ${account.status === 'ACTIVE' ? 'active' : account.status === 'INACTIVE' ? 'inactive' : ''}`}>

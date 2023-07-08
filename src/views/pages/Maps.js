@@ -1,41 +1,26 @@
-/*!
-
-=========================================================
-* Argon Dashboard React - v1.2.3
-=========================================================
-
-* Product Page: https://www.creative-tim.com/product/argon-dashboard-react
-* Copyright 2023 Creative Tim (https://www.creative-tim.com)
-* Licensed under MIT (https://github.com/creativetimofficial/argon-dashboard-react/blob/master/LICENSE.md)
-
-* Coded by Creative Tim
-
-=========================================================
-
-* The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-
-*/
-import React from "react";
-
-// reactstrap components
+import React, { useEffect, useRef } from "react";
 import { Card, Container, Row } from "reactstrap";
-
-// core components
 import Header from "../../components/Headers/Header";
+import { isTokenExpired } from "../../services/checkToken";
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { useNavigate } from "react-router-dom";
 
 const MapWrapper = () => {
-  const mapRef = React.useRef(null);
-  React.useEffect(() => {
-    let google = window.google;
+  const mapRef = useRef(null); // Move mapRef declaration inside the component
+  const navigate = useNavigate();
+
+  const initMap = () => {
     let map = mapRef.current;
-    let lat = "40.748817";
-    let lng = "-73.985428";
-    const myLatlng = new google.maps.LatLng(lat, lng);
+    let lat = "10.840903";
+    let lng = "106.809889";
+    const myLatlng = new window.google.maps.LatLng(lat, lng);
     const mapOptions = {
-      zoom: 12,
+      zoom: 19,
       center: myLatlng,
-      scrollwheel: false,
+      scrollwheel: true,
       zoomControl: true,
+      mapTypeId: 'hybrid',
       styles: [
         {
           featureType: "administrative",
@@ -50,7 +35,7 @@ const MapWrapper = () => {
         {
           featureType: "poi",
           elementType: "all",
-          stylers: [{ visibility: "off" }],
+          stylers: [{ visibility: "on" }],
         },
         {
           featureType: "road",
@@ -65,27 +50,27 @@ const MapWrapper = () => {
         {
           featureType: "road.arterial",
           elementType: "labels.icon",
-          stylers: [{ visibility: "off" }],
+          stylers: [{ visibility: "on" }],
         },
         {
           featureType: "transit",
           elementType: "all",
-          stylers: [{ visibility: "off" }],
+          stylers: [{ visibility: "on" }],
         },
         {
           featureType: "water",
           elementType: "all",
-          stylers: [{ color: "#5e72e4" }, { visibility: "on" }],
+          stylers: [{ color: "#5e72e4" }, { visibility: "off" }],
         },
       ],
     };
 
-    map = new google.maps.Map(map, mapOptions);
+    map = new window.google.maps.Map(map, mapOptions);
 
-    const marker = new google.maps.Marker({
+    const marker = new window.google.maps.Marker({
       position: myLatlng,
       map: map,
-      animation: google.maps.Animation.DROP,
+      animation: window.google.maps.Animation.DROP,
       title: "Light Bootstrap Dashboard PRO React!",
     });
 
@@ -93,18 +78,59 @@ const MapWrapper = () => {
       '<div class="info-window-content"><h2>Light Bootstrap Dashboard PRO React</h2>' +
       "<p>A premium Admin for React-Bootstrap, Bootstrap, React, and React Hooks.</p></div>";
 
-    const infowindow = new google.maps.InfoWindow({
+    const infowindow = new window.google.maps.InfoWindow({
       content: contentString,
     });
 
-    google.maps.event.addListener(marker, "click", function () {
+    window.google.maps.event.addListener(marker, "click", function () {
       infowindow.open(map, marker);
     });
+  };
+
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem("user"));
+    if (user == null || !user || isTokenExpired()) {
+      toast.info("You need to log in to continue!", {
+        position: "top-center",
+        autoClose: 1500,
+        hideProgressBar: true,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+        onClose: () => {
+          navigate("/auth/login");
+          if (isTokenExpired()) {
+            localStorage.removeItem('user');
+          }
+        },
+      });
+      return;
+    } else {
+      /// Check if the Google Maps API is already loaded
+      if (window.google && window.google.maps){
+        initMap(); // Call initMap directly
+      } else {
+        // Load the Google Maps JavaScript API asynchronously with a callback
+        const script = document.createElement("script");
+        script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyDudh0vzjI3X6lW92fBtW36F0PZRoezun4&callback=initMap`;
+        script.async = true;
+        script.defer = true;
+        document.body.appendChild(script);
+
+        // Clean up the script tag after the component is unmounted
+        return () => {
+          document.body.removeChild(script);
+        };
+      }
+    }
   }, []);
+
   return (
     <>
       <div
-        style={{ height: `600px` }}
+        style={{ height: `700px` }}
         className="map-canvas"
         id="map-canvas"
         ref={mapRef}
@@ -117,7 +143,7 @@ const Maps = () => {
   return (
     <>
       <Header />
-      {/* Page content */}
+      <ToastContainer />
       <Container className="mt--7" fluid>
         <Row>
           <div className="col">

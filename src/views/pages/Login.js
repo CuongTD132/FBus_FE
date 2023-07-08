@@ -17,7 +17,7 @@ const Login = () => {
     }else if (isTokenExpired()){
         localStorage.removeItem('user');
     }
-  }, []);
+  }, [navigate]);
   const handleLoginWithGoogle = (credentialResponse) => {
     loginWithGoogle(credentialResponse.credential)
       .then((res) => {
@@ -33,7 +33,7 @@ const Login = () => {
 
           } else if (isTokenExpired(false)) {
             navigate("/admin/buses");
-          } else if (userData.role === 'DRIVER') {
+          } else if (userData.role === 'Driver') {
             toast.warning("You're not Authorized", {
               autoClose: 1000,
             });

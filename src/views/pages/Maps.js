@@ -1,11 +1,10 @@
-import React, { useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { Card, Container, Row } from "reactstrap";
 import Header from "../../components/Headers/Header";
 import { isTokenExpired } from "../../services/checkToken";
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useNavigate } from "react-router-dom";
-
 const MapWrapper = () => {
   const mapRef = useRef(null); // Move mapRef declaration inside the component
   const navigate = useNavigate();
@@ -114,7 +113,7 @@ const MapWrapper = () => {
       } else {
         // Load the Google Maps JavaScript API asynchronously with a callback
         const script = document.createElement("script");
-        script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyDudh0vzjI3X6lW92fBtW36F0PZRoezun4&callback=initMap`;
+        script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.REACT_APP_GOOGLE_API_KEY}&callback=initMap`;
         script.async = true;
         script.defer = true;
         document.body.appendChild(script);
@@ -125,7 +124,7 @@ const MapWrapper = () => {
         };
       }
     }
-  }, []);
+  }, );
 
   return (
     <>

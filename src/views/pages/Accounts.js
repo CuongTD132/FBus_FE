@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Table } from 'react-bootstrap';
 import "../../style/Manager.css"
 import {
@@ -15,18 +15,14 @@ import {
 import Header from "../../components/Headers/Header";
 import {
   getAllAccounts,
-  getSingleAccount,
-  getMultiAccounts
 } from "../../services/account";
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useNavigate } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
-import { updateAccount } from "../../redux/reducer";
+import { useSelector } from "react-redux";
 import { isTokenExpired } from "../../services/checkToken";
 
 const Accounts = () => {
-  const dispatch = useDispatch();
   const navigate = useNavigate();
 
   const [accountList, setAccountList] = useState([]);
@@ -66,8 +62,9 @@ const Accounts = () => {
         });
     }
 
-  }, [])
+  }, [navigate])
 
+  
 
   // PAGING
   const itemsPerPage = 5;
@@ -98,8 +95,7 @@ const Accounts = () => {
 
   // REDUX
   const accounts = useSelector((state) => state.accounts.value);
-  const currentSearchAccount = useSelector((state) => state.accounts.currentSearchAccount);
-  React.useEffect(() => {
+  useEffect(() => {
     setAccountList(accounts)
   }, [accounts])
   // END REDUX
@@ -132,13 +128,13 @@ const Accounts = () => {
                       {currentAccountList.map((account, index) => (
                         <tr key={index}>
                           <td>
-                            <a>{account.id ? account.id : "none"}</a>
+                            <span>{account.id ? account.id : "none"}</span>
                           </td>
                           <td>
-                            <a>{account.code ? account.code : "none"}</a>
+                            <span className="normal-style">{account.code ? account.code : "none"}</span>
                           </td>
                           <td>
-                            <a>{account.email ? account.email : "none"}</a>
+                            <span className="normal-style">{account.email ? account.email : "none"}</span>
                           </td>
                           <td>
                           <span className={`role ${account.role === 'Admin' ? 'admin' : account.role === 'Driver' ? 'driver' : ''}`}>
@@ -164,7 +160,7 @@ const Accounts = () => {
                   >
                     <PaginationItem disabled={currentPage === 1}>
                       <PaginationLink
-                        href="#"
+                        href=""
                         onClick={() => handlePageClick(currentPage - 1)}
                         tabIndex="-1"
                       >
@@ -178,7 +174,7 @@ const Accounts = () => {
                         active={currentPage === index + 1}
                       >
                         <PaginationLink
-                          href="#"
+                          href=""
                           onClick={() => handlePageClick(index + 1)}
                         >
                           {index + 1}
@@ -187,7 +183,7 @@ const Accounts = () => {
                     ))}
                     <PaginationItem disabled={currentPage === totalPages}>
                       <PaginationLink
-                        href="#"
+                        href=""
                         onClick={() => handlePageClick(currentPage + 1)}
                       >
                         <i className="fas fa-angle-right" />

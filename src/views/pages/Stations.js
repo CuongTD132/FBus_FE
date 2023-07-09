@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Button, Form, Modal, Table } from 'react-bootstrap';
 import "../../style/Manager.css"
-import defaultAvatar from '../../assets/img/bus-stop.png'
+import defaultStation from '../../assets/img/station.png'
 
 import {
   Card,
@@ -53,8 +53,8 @@ const Stations = () => {
     ward: "",
     district: "",
     city: "",
-    imageFile: "",
-    longtitude: "",
+    image: "",
+    longitude: "",
     latitude: "",
   });
 
@@ -84,7 +84,7 @@ const Stations = () => {
         });
     }
 
-  }, [])
+  }, [navigate])
   // Fetch detail information and pass to detail form
   const fetchStationDetails = (id) => {
     getSingleStation(id)
@@ -95,10 +95,9 @@ const Stations = () => {
 
   // Fetch list of Station and pass to table
   const fetchStations = () => {
-    if (currentSearchStation != "") {
+    if (currentSearchStation !== "") {
       getMultiStationsAPI({
         code: currentSearchStation,
-        email: currentSearchStation
       }).then((res) => {
         console.log(res.data.data)
         if (res.data.data != null) {
@@ -107,7 +106,7 @@ const Stations = () => {
           dispatch(updateStation([]))
         }
       })
-    } else if (stationList.length == 0) {
+    } else if (stationList.length === 0) {
       getAllStations()
         .then((res) => setStationList(res.data.data))
         .catch((error) => {
@@ -174,6 +173,7 @@ const Stations = () => {
           toast.error("Failed to update the station!", {
             autoClose: 1000,
           });
+        setShowUpdate(true);
         }
       })
   }
@@ -189,7 +189,7 @@ const Stations = () => {
   }
   const toggleStatus = () => {
     let status = "INACTIVE";
-    if (oldStatus == "INACTIVE") {
+    if (oldStatus === "INACTIVE") {
       status = "ACTIVE"
     }
     toggleStatusAPI(toggleStationId, status)
@@ -228,10 +228,6 @@ const Stations = () => {
         if (res.status === 200) {
           console.log(res)
           toast.success("Station deleted successfully!", {
-            autoClose: 1000,
-          });
-        } else {
-          toast.warning("Can't delete the station!", {
             autoClose: 1000,
           });
         }
@@ -276,37 +272,37 @@ const Stations = () => {
           toast.error("Failed to add this station!", {
             autoClose: 1000,
           });
-          setShowAdd(false);
+          setShowAdd(true);
         }
       });
   };
   const handleAddClose = () => {
     setShowAdd(false);
     setFormData({
-      email: "",
+      name: "",
       code: "",
-      fullName: "",
-      gender: "",
-      idCardNumber: "",
-      address: "",
-      phoneNumber: "",
-      personalEmail: "",
-      dateOfBirth: "",
-      avatar: "",
+      addressNumber: "",
+      street: "",
+      ward: "",
+      district: "",
+      city: "",
+      image: "",
+      longitude: "",
+      latitude: "",
     })
   }
   const handleAddOpen = () => {
     setFormData({
-      email: "",
+      name: "",
       code: "",
-      fullName: "",
-      gender: "",
-      idCardNumber: "",
-      address: "",
-      phoneNumber: "",
-      personalEmail: "",
-      dateOfBirth: "",
-      avatar: "",
+      addressNumber: "",
+      street: "",
+      ward: "",
+      district: "",
+      city: "",
+      image: "",
+      longitude: "",
+      latitude: "",
     });
     setShowAdd(true);
   };
@@ -341,7 +337,7 @@ const Stations = () => {
 
   // REDUX
   const stations = useSelector((state) => state.stations.value);
-  const currentSearchStation = useSelector((state) => state.drstationsivers.currentSearchStation);
+  const currentSearchStation = useSelector((state) => state.stations.currentSearchStation);
   React.useEffect(() => {
     setStationList(stations)
   }, [stations])
@@ -397,22 +393,7 @@ const Stations = () => {
                     <Modal.Title>Add station</Modal.Title>
                   </Modal.Header>
                   <Modal.Body>
-                    <Form>
-                      <Form.Group className="mb-3" controlId="email">
-                        <Form.Label>Email</Form.Label>
-                        <Form.Control
-                          type="text"
-                          name="email"
-                          placeholder="Email"
-                          value={formData.email}
-                          onChange={(e) => {
-                            setFormData({
-                              ...formData,
-                              email: e.target.value
-                            })
-                          }}
-                        />
-                      </Form.Group>
+                    <Form>                      
                       <Form.Group className="mb-3" controlId="code">
                         <Form.Label>Code</Form.Label>
                         <Form.Control
@@ -430,141 +411,148 @@ const Stations = () => {
                           }}
                         />
                       </Form.Group>
-                      <Form.Group className="mb-3" controlId="fullName">
-                        <Form.Label>Full Name</Form.Label>
+                      <Form.Group className="mb-3" controlId="name">
+                        <Form.Label>Name</Form.Label>
                         <Form.Control
                           type="text"
-                          name="fullName"
-                          placeholder="Full Name"
-                          autoFocus
-                          required
-                          value={formData.fullName}
+                          name="name"
+                          placeholder="Name"
+                          value={formData.name}
                           onChange={(e) => {
                             setFormData({
                               ...formData,
-                              fullName: e.target.value
+                              name: e.target.value
                             })
                           }}
                         />
                       </Form.Group>
-                      <Form.Group className="mb-3" controlId="gender">
-                        <Form.Label>Gender</Form.Label>
+                      <Form.Group className="mb-3" controlId="addressNumber">
+                        <Form.Label>Address Number</Form.Label>
                         <Form.Control
-                          as="select"
-                          name="gender"
-                          placeholder="Gender"
+                          type="text"
+                          name="addressNumber"
+                          placeholder="Address Number"
                           autoFocus
                           required
-                          value={formData.gender}
+                          value={formData.addressNumber}
                           onChange={(e) => {
                             setFormData({
                               ...formData,
-                              gender: e.target.value
+                              addressNumber: e.target.value
+                            })
+                          }}
+                        />
+                      </Form.Group>
+                      <Form.Group className="mb-3" controlId="street">
+                        <Form.Label>Street</Form.Label>
+                        <Form.Control
+                          type="text"
+                          name="street"
+                          placeholder="Street"
+                          autoFocus
+                          required
+                          value={formData.street}
+                          onChange={(e) => {
+                            setFormData({
+                              ...formData,
+                              street: e.target.value
                             });
                           }}
-                        >
-                          <option value="">Select gender</option>
-                          <option value="Male">Male</option>
-                          <option value="Female">Female</option>
-                        </Form.Control>
+                        />
                       </Form.Group>
-                      <Form.Group className="mb-3" controlId="idCardNumber">
-                        <Form.Label>Id Card Number</Form.Label>
+                      <Form.Group className="mb-3" controlId="ward">
+                        <Form.Label>Ward</Form.Label>
                         <Form.Control
                           type="text"
-                          name="idCardNumber"
-                          placeholder="Id Card Number"
+                          name="ward"
+                          placeholder="Ward"
                           autoFocus
                           required
-                          value={formData.idCardNumber}
+                          value={formData.ward}
                           onChange={(e) => {
                             setFormData({
                               ...formData,
-                              idCardNumber: e.target.value
+                              ward: e.target.value
                             })
                           }}
                         />
                       </Form.Group>
-                      <Form.Group className="mb-3" controlId="address">
-                        <Form.Label>Address</Form.Label>
+                      <Form.Group className="mb-3" controlId="district">
+                        <Form.Label>District</Form.Label>
                         <Form.Control
                           type="text"
-                          name="address"
-                          placeholder="Address"
+                          name="district"
+                          placeholder="District"
                           autoFocus
                           required
-                          value={formData.address}
+                          value={formData.district}
                           onChange={(e) => {
                             setFormData({
                               ...formData,
-                              address: e.target.value
+                              district: e.target.value
                             })
                           }}
                         />
                       </Form.Group>
-                      <Form.Group className="mb-3" controlId="phoneNumber">
-                        <Form.Label>Phone Number</Form.Label>
+                      <Form.Group className="mb-3" controlId="city">
+                        <Form.Label>City</Form.Label>
                         <Form.Control
                           type="text"
-                          name="phoneNumber"
-                          placeholder="Phone Number"
+                          name="city"
+                          placeholder="City"
                           autoFocus
                           required
-                          value={formData.phoneNumber}
+                          value={formData.city}
                           onChange={(e) => {
                             setFormData({
                               ...formData,
-                              phoneNumber: e.target.value
+                              city: e.target.value
                             })
                           }}
                         />
                       </Form.Group>
-                      <Form.Group className="mb-3" controlId="personalEmail">
-                        <Form.Label>Personal Email</Form.Label>
+                      <Form.Group className="mb-3" controlId="longitude">
+                        <Form.Label>Longtitude</Form.Label>
                         <Form.Control
-                          type="text"
-                          name="personalEmail"
-                          placeholder="Personal Email"
-                          value={formData.personalEmail}
-                          onChange={(e) => {
-                            setFormData({
-                              ...formData,
-                              personalEmail: e.target.value
-                            })
-                          }}
-                        />
-                      </Form.Group>
-                      <Form.Group className="mb-3" controlId="dateOfBirth">
-                        <Form.Label>Date of Birth (MM-DD-YYYY)</Form.Label>
-                        <Form.Control
-                          type="date"
-                          name="dateOfBirth"
+                          type="number"
+                          name="longitude"
+                          placeholder="Longtitude"
                           required
-                          value={formData.dateOfBirth}
+                          value={formData.longitude}
                           onChange={(e) => {
-                            const inputDate = e.target.value;
-                            const formattedDate = inputDate
-                              .split("-")
-                              .map((part) => part.padStart(2, "0"))
-                              .join("-");
-
                             setFormData({
                               ...formData,
-                              dateOfBirth: formattedDate
+                              longitude: e.target.value
                             })
                           }}
                         />
                       </Form.Group>
-                      <Form.Group className="mb-3" controlId="avatarFile">
-                        <Form.Label>Avatar File</Form.Label>
+                      <Form.Group className="mb-3" controlId="latitude">
+                        <Form.Label>Latitude</Form.Label>
+                        <Form.Control
+                          type="number"
+                          name="latitude"
+                          placeholder="Latitude"
+                          required
+                          value={formData.latitude}
+                          onChange={(e) => {
+                            setFormData({
+                              ...formData,
+                              latitude: e.target.value
+                            })
+                          }}
+                        />
+                      </Form.Group>
+                      <Form.Group className="mb-3" controlId="image">
+                        <Form.Label>Image</Form.Label>
                         <Form.Control
                           type="file"
-                          name="avatarFile"
-                          placeholder="Avatar File"
+                          name="image"
+                          placeholder="Image"
                           onChange={(e) => {
                             setFormData({
                               ...formData,
-                              avatarFile: e.target.files[0] // Store the selected file in the form data
+                              image: e.target.files[0] // Store the selected file in the form data
                             });
                           }}
                         />
@@ -587,18 +575,7 @@ const Stations = () => {
                     <Modal.Title>Station detail</Modal.Title>
                   </Modal.Header>
                   <Modal.Body>
-                    <Form>
-                      <Form.Group className="mb-3" controlId="email">
-                        <Form.Label>Email</Form.Label>
-                        <Form.Control
-                          type="text"
-                          name="email"
-                          placeholder="No email available"
-                          autoFocus
-                          readOnly
-                          value={formData.email || ""}
-                        />
-                      </Form.Group>
+                  <Form>                      
                       <Form.Group className="mb-3" controlId="code">
                         <Form.Label>Code</Form.Label>
                         <Form.Control
@@ -607,85 +584,96 @@ const Stations = () => {
                           placeholder="Code"
                           autoFocus
                           readOnly
-                          value={formData.code}
+                          value={formData.code}                         
                         />
                       </Form.Group>
-                      <Form.Group className="mb-3" controlId="fullName">
-                        <Form.Label>Full Name</Form.Label>
+                      <Form.Group className="mb-3" controlId="name">
+                        <Form.Label>Name</Form.Label>
                         <Form.Control
                           type="text"
-                          name="fullName"
-                          placeholder="fullName"
+                          name="name"
+                          placeholder="Name"
+                          readOnly
+                          value={formData.name}
+                        />
+                      </Form.Group>
+                      <Form.Group className="mb-3" controlId="addressNumber">
+                        <Form.Label>Address Number</Form.Label>
+                        <Form.Control
+                          type="text"
+                          name="addressNumber"
+                          placeholder="Address Number"
                           autoFocus
                           readOnly
-                          value={formData.fullName}
+                          value={formData.addressNumber}
                         />
                       </Form.Group>
-                      <Form.Group className="mb-3" controlId="gender">
-                        <Form.Label>Gender</Form.Label>
+                      <Form.Group className="mb-3" controlId="street">
+                        <Form.Label>Street</Form.Label>
                         <Form.Control
                           type="text"
-                          name="gender"
-                          placeholder="Gender"
+                          name="street"
+                          placeholder="Street"
                           autoFocus
                           readOnly
-                          value={formData.gender}
+                          value={formData.street}
                         />
                       </Form.Group>
-                      <Form.Group className="mb-3" controlId="idCardNumber">
-                        <Form.Label>Id Card Number</Form.Label>
+                      <Form.Group className="mb-3" controlId="ward">
+                        <Form.Label>Ward</Form.Label>
                         <Form.Control
                           type="text"
-                          name="idCardNumber"
-                          placeholder="Id Card Number"
+                          name="ward"
+                          placeholder="Ward"
                           autoFocus
                           readOnly
-                          value={formData.idCardNumber}
+                          value={formData.ward}
                         />
                       </Form.Group>
-                      <Form.Group className="mb-3" controlId="address">
-                        <Form.Label>Address</Form.Label>
+                      <Form.Group className="mb-3" controlId="district">
+                        <Form.Label>District</Form.Label>
                         <Form.Control
                           type="text"
-                          name="address"
-                          placeholder="Address"
+                          name="district"
+                          placeholder="District"
                           autoFocus
                           readOnly
-                          value={formData.address}
+                          value={formData.district}
                         />
                       </Form.Group>
-                      <Form.Group className="mb-3" controlId="phoneNumber">
-                        <Form.Label>Phone Number</Form.Label>
+                      <Form.Group className="mb-3" controlId="city">
+                        <Form.Label>City</Form.Label>
                         <Form.Control
                           type="text"
-                          name="phoneNumber"
-                          placeholder="Phone Number"
+                          name="city"
+                          placeholder="City"
                           autoFocus
                           readOnly
-                          value={formData.phoneNumber}
+                          value={formData.city}
                         />
                       </Form.Group>
-                      <Form.Group className="mb-3" controlId="personalEmail">
-                        <Form.Label>Personal Email</Form.Label>
+                      <Form.Group className="mb-3" controlId="longitude">
+                        <Form.Label>Longtitude</Form.Label>
                         <Form.Control
-                          type="text"
-                          name="personalEmail"
-                          placeholder="No personal email available"
+                          type="number"
+                          name="longitude"
+                          placeholder="Longtitude"
                           autoFocus
                           readOnly
-                          value={formData.personalEmail || ""}
+                          value={formData.longitude}
                         />
                       </Form.Group>
-                      <Form.Group className="mb-3" controlId="dateOfBirth">
-                        <Form.Label>Date of Birth (MM-DD-YYYY)</Form.Label>
+                      <Form.Group className="mb-3" controlId="latitude">
+                        <Form.Label>Latitude</Form.Label>
                         <Form.Control
-                          type="text"
-                          name="dateOfBirth"
-                          placeholder="Date of Birth"
+                          type="number"
+                          name="latitude"
+                          placeholder="Latitude"
+                          autoFocus
                           readOnly
-                          value={new Date(formData.dateOfBirth.slice(0, 10)).toLocaleDateString("en-US")}
+                          value={formData.latitude}
                         />
-                      </Form.Group>
+                      </Form.Group>                    
                     </Form>
                   </Modal.Body>
                   <Modal.Footer>
@@ -700,28 +688,13 @@ const Stations = () => {
                     <Modal.Title>Update station</Modal.Title>
                   </Modal.Header>
                   <Modal.Body>
-                    <Form>
-                      <Form.Group className="mb-3" controlId="email">
-                        <Form.Label>Email</Form.Label>
-                        <Form.Control
-                          type="text"
-                          name="email"
-                          placeholder="No email available"
-                          value={formData.email}
-                          onChange={(e) => {
-                            setFormData({
-                              ...formData,
-                              email: e.target.value
-                            })
-                          }}
-                        />
-                      </Form.Group>
+                  <Form>                      
                       <Form.Group className="mb-3" controlId="code">
                         <Form.Label>Code</Form.Label>
                         <Form.Control
                           type="text"
                           name="code"
-                          placeholder="code"
+                          placeholder="Code"
                           autoFocus
                           required
                           value={formData.code}
@@ -733,156 +706,150 @@ const Stations = () => {
                           }}
                         />
                       </Form.Group>
-                      <Form.Group className="mb-3" controlId="fullName">
-                        <Form.Label>Full Name</Form.Label>
+                      <Form.Group className="mb-3" controlId="name">
+                        <Form.Label>Name</Form.Label>
                         <Form.Control
                           type="text"
-                          name="fullName"
-                          placeholder="Full Name"
-                          autoFocus
-                          required
-                          value={formData.fullName}
+                          name="name"
+                          placeholder="Name"
+                          value={formData.name}
                           onChange={(e) => {
                             setFormData({
                               ...formData,
-                              fullName: e.target.value
+                              name: e.target.value
                             })
                           }}
                         />
                       </Form.Group>
-                      <Form.Group className="mb-3" controlId="gender">
-                        <Form.Label>Gender</Form.Label>
+                      <Form.Group className="mb-3" controlId="addressNumber">
+                        <Form.Label>Address Number</Form.Label>
                         <Form.Control
-                          as="select"
-                          name="gender"
-                          placeholder="Gender"
+                          type="text"
+                          name="addressNumber"
+                          placeholder="Address Number"
                           autoFocus
                           required
-                          value={formData.gender}
+                          value={formData.addressNumber}
                           onChange={(e) => {
                             setFormData({
                               ...formData,
-                              gender: e.target.value
+                              addressNumber: e.target.value
+                            })
+                          }}
+                        />
+                      </Form.Group>
+                      <Form.Group className="mb-3" controlId="street">
+                        <Form.Label>Street</Form.Label>
+                        <Form.Control
+                          type="text"
+                          name="street"
+                          placeholder="Street"
+                          autoFocus
+                          required
+                          value={formData.street}
+                          onChange={(e) => {
+                            setFormData({
+                              ...formData,
+                              street: e.target.value
                             });
                           }}
-                        >
-                          {formData.gender === "Female" ? (
-                            <>
-                              <option value="Female">Female</option>
-                              <option value="Male">Male</option>
-                            </>
-                          ) : (
-                            <>
-                              <option value="Male">Male</option>
-                              <option value="Female">Female</option>
-                            </>
-                          )}
-                        </Form.Control>
+                        />
                       </Form.Group>
-
-                      <Form.Group className="mb-3" controlId="idCardNumber">
-                        <Form.Label>Id Card Number</Form.Label>
+                      <Form.Group className="mb-3" controlId="ward">
+                        <Form.Label>Ward</Form.Label>
                         <Form.Control
                           type="text"
-                          name="idCardNumber"
-                          placeholder="Id Card Number"
+                          name="ward"
+                          placeholder="Ward"
                           autoFocus
                           required
-                          value={formData.idCardNumber}
+                          value={formData.ward}
                           onChange={(e) => {
                             setFormData({
                               ...formData,
-                              idCardNumber: e.target.value
+                              ward: e.target.value
                             })
                           }}
                         />
                       </Form.Group>
-                      <Form.Group className="mb-3" controlId="address">
-                        <Form.Label>Address</Form.Label>
+                      <Form.Group className="mb-3" controlId="district">
+                        <Form.Label>District</Form.Label>
                         <Form.Control
                           type="text"
-                          name="address"
-                          placeholder="Address"
+                          name="district"
+                          placeholder="District"
                           autoFocus
                           required
-                          value={formData.address}
+                          value={formData.district}
                           onChange={(e) => {
                             setFormData({
                               ...formData,
-                              address: e.target.value
+                              district: e.target.value
                             })
                           }}
                         />
                       </Form.Group>
-                      <Form.Group className="mb-3" controlId="phoneNumber">
-                        <Form.Label>Phone Number</Form.Label>
+                      <Form.Group className="mb-3" controlId="city">
+                        <Form.Label>City</Form.Label>
                         <Form.Control
                           type="text"
-                          name="phoneNumber"
-                          placeholder="Phone Number"
+                          name="city"
+                          placeholder="City"
                           autoFocus
                           required
-                          value={formData.phoneNumber}
+                          value={formData.city}
                           onChange={(e) => {
                             setFormData({
                               ...formData,
-                              phoneNumber: e.target.value
+                              city: e.target.value
                             })
                           }}
                         />
                       </Form.Group>
-                      <Form.Group className="mb-3" controlId="personalEmail">
-                        <Form.Label>Personal Email</Form.Label>
+                      <Form.Group className="mb-3" controlId="longitude">
+                        <Form.Label>Longtitude</Form.Label>
                         <Form.Control
-                          type="text"
-                          name="personalEmail"
-                          placeholder="No personal email available"
-                          value={formData.personalEmail || ""}
+                          type="number"
+                          name="longitude"
+                          placeholder="Longtitude"
+                          value={formData.longitude}
                           onChange={(e) => {
                             setFormData({
                               ...formData,
-                              personalEmail: e.target.value
+                              longitude: e.target.value
                             })
                           }}
                         />
                       </Form.Group>
-                      <Form.Group className="mb-3" controlId="dateOfBirth">
-                        <Form.Label>
-                          Date of Birth (MM-DD-YYYY)
-                        </Form.Label>
+                      <Form.Group className="mb-3" controlId="latitude">
+                        <Form.Label>Latitude</Form.Label>
                         <Form.Control
-                          type="date"
-                          name="dateOfBirth"
-                          required
-                          value={formData.dateOfBirth ? formData.dateOfBirth.slice(0, 10) : ''}
+                          type="number"
+                          name="latitude"
+                          placeholder="Latitude"
+                          value={formData.latitude}
                           onChange={(e) => {
-                            const inputDate = e.target.value;
-                            const formattedDate = inputDate
-                              .split("-")
-                              .map((part) => part.padStart(2, "0"))
-                              .join("-");
-
                             setFormData({
                               ...formData,
-                              dateOfBirth: formattedDate
+                              latitude: e.target.value
                             })
                           }}
                         />
                       </Form.Group>
-                      <Form.Group className="mb-3" controlId="avatarFile">
-                        <Form.Label>Avatar File</Form.Label>
+                      <Form.Group className="mb-3" controlId="image">
+                        <Form.Label>Image</Form.Label>
                         <Form.Control
                           type="file"
-                          name="avatarFile"
+                          name="image"
+                          placeholder="Image"
                           onChange={(e) => {
                             setFormData({
                               ...formData,
-                              avatarFile: e.target.files[0] // Store the selected file in the form data
+                              image: e.target.files[0] // Store the selected file in the form data
                             });
                           }}
                         />
                       </Form.Group>
-
                     </Form>
                   </Modal.Body>
                   <Modal.Footer>
@@ -902,10 +869,11 @@ const Stations = () => {
                     <thead>
                       <tr>
                         <th>Id</th>
-                        <th>Avatar </th>
+                        <th>Image</th>
                         <th>Code</th>
-                        <th>Email</th>
-                        <th>Full Name</th>
+                        <th>Name</th>
+                        <th>District</th>
+                        <th>City</th>
                         <th>Status</th>
                         <th>More Actions</th>
                       </tr>
@@ -914,33 +882,39 @@ const Stations = () => {
                       {currentStationList.map((station, index) => (
                         <tr key={index}>
                           <td>
-                            <a>{station.id ? station.id : "none"}</a>
+                            <span>{station.id ? station.id : "none"}</span>
                           </td>
                           <td>
-                            {station.avatar ? (
-                              <img className="station-img" src={station.avatar} alt="" />
+                            {station.image ? (
+                              <img className="station-img" src={station.image} alt="" />
                             ) : (
-                              <img className="station-img" src={defaultAvatar} alt="" />
+                              <img className="station-img" src={defaultStation} alt="" />
                             )}
                           </td>
                           <td>
-                            <a href="" onClick={(e) => {
+                            <span className="link-style" onClick={(e) => {
                               e.preventDefault()
                               handleShowDetails(station.id)
-                            }}>{station.code ? station.code : "none"}</a>
+                            }}>{station.code ? station.code : "none"}</span>
 
                           </td>
                           <td>
-                            <a href="" onClick={(e) => {
+                            <span className="link-style" onClick={(e) => {
                               e.preventDefault()
                               handleShowDetails(station.id)
-                            }}>{station.email ? station.email : "none"}</a>
+                            }}>{station.name ? station.name : "none"}</span>
                           </td>
                           <td>
-                            <a href="" onClick={(e) => {
+                            <span className="link-style" onClick={(e) => {
                               e.preventDefault()
                               handleShowDetails(station.id)
-                            }}>{station.fullName ? station.fullName : "none"}</a>
+                            }}>{station.district ? station.district : "none"}</span>
+                          </td>
+                          <td>
+                            <span className="link-style" onClick={(e) => {
+                              e.preventDefault()
+                              handleShowDetails(station.id)
+                            }}>{station.city ? station.city : "none"}</span>
                           </td>
                           <td>
                             <span className={`status ${station.status === 'ACTIVE' ? 'active' : station.status === 'INACTIVE' ? 'inactive' : ''}`}>

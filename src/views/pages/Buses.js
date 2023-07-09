@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Button, Form, Modal, Table } from 'react-bootstrap';
 import "../../style/Manager.css"
 import {
@@ -90,7 +90,7 @@ const Buses = () => {
         });
     }
 
-  }, [])
+  }, [navigate])
 
   // Fetch detail information and pass to detail form
   const fetchBusDetails = (id) => {
@@ -150,7 +150,7 @@ const Buses = () => {
         },
       });
     } else {
-      const myObject = { code: bus.code, licensePlate: bus.licensePlate };
+      const myObject = `${bus.code}-${bus.licensePlate}`;
       setQrHash(JSON.stringify(myObject));
       setShowQrCode(true);
     }
@@ -195,6 +195,7 @@ const Buses = () => {
         toast.error("Failed to update the bus!", {
           autoClose: 1000,
         });
+        setShowUpdate(true);
       })
   }
   // END UPDATE FUNCTIONS
@@ -291,11 +292,16 @@ const Buses = () => {
           setShowAdd(false);
         }
       })
-      .catch(() => {
+      .catch((e) => {
         toast.error("Failed to add this bus!", {
           autoClose: 1000,
         });
-        setShowAdd(false);
+        Object.keys(e.response.data.errors).forEach((key) => {
+          toast.error("Error: " + e.response.data.errors[key], {
+            autoClose: 3000,
+          });
+        });
+        setShowAdd(true);
       });
   };
   const handleAddClose = () => {
@@ -355,7 +361,7 @@ const Buses = () => {
   // REDUX
   const buses = useSelector((state) => state.buses.value);
   const currentSearchBus = useSelector((state) => state.buses.currentSearchBus);
-  React.useEffect(() => {
+  useEffect(() => {
     setBusList(buses)
   }, [buses])
   // END REDUX
@@ -499,9 +505,9 @@ const Buses = () => {
                       <Form.Group className="mb-3" controlId="seat">
                         <Form.Label>Seat</Form.Label>
                         <Form.Control
-                          type="number"
+                          as="select"
                           name="seat"
-                          placeholder="1"
+                          placeholder="Seat"
                           autoFocus
                           required
                           value={formData.seat}
@@ -511,7 +517,15 @@ const Buses = () => {
                               seat: e.target.value
                             })
                           }}
-                        />
+                        >
+                          <option value="">Select seat</option>
+                          <option value="4">4</option>
+                          <option value="7">7</option>
+                          <option value="16">16</option>
+                          <option value="25">25</option>
+                          <option value="35">35</option>
+                          <option value="45">45</option>
+                        </Form.Control>
                       </Form.Group>
                       <Form.Group className="mb-3" controlId="dateOfRegistration">
                         <Form.Label>Date of Registration</Form.Label>
@@ -737,7 +751,7 @@ const Buses = () => {
                       <Form.Group className="mb-3" controlId="seat">
                         <Form.Label>Seat</Form.Label>
                         <Form.Control
-                          type="number"
+                          as="select"
                           name="seat"
                           placeholder="Seat"
                           autoFocus
@@ -749,7 +763,15 @@ const Buses = () => {
                               seat: e.target.value
                             })
                           }}
-                        />
+                        >
+                          {/* <option value="">Select seat</option> */}
+                          <option value="4" disabled={formData.seat === '4'}>4</option>
+                          <option value="7" disabled={formData.seat === '7'}>7</option>
+                          <option value="16" disabled={formData.seat === '16'}>16</option>
+                          <option value="25" disabled={formData.seat === '25'}>25</option>
+                          <option value="35" disabled={formData.seat === '35'}>35</option>
+                          <option value="45" disabled={formData.seat === '45'}>45</option>
+                        </Form.Control>
                       </Form.Group>
                       <Form.Group className="mb-3" controlId="dateOfRegistration">
                         <Form.Label>
@@ -827,20 +849,20 @@ const Buses = () => {
                       {currentBusList.map((bus, index) => (
                         <tr key={index}>
                           <td>
-                            <a>{bus.id ? bus.id : "none"}</a>
+                            <span>{bus.id ? bus.id : "none"}</span>
                           </td>
                           <td>
-                            <a href="" onClick={(e) => {
+                            <span className="link-style"  onClick={(e) => {
                               e.preventDefault()
                               handleShowDetails(bus.id)
-                            }}>{bus.code ? bus.code : "none"}</a>
+                            }}>{bus.code ? bus.code : "none"}</span>
 
                           </td>
                           <td>
-                            <a href="" onClick={(e) => {
+                            <span className="link-style"  onClick={(e) => {
                               e.preventDefault()
                               handleShowDetails(bus.id)
-                            }}>{bus.licensePlate ? bus.licensePlate : "none"}</a>
+                            }}>{bus.licensePlate ? bus.licensePlate : "none"}</span>
                           </td>
                           <td>
                             <span className={`status ${bus.status === 'ACTIVE' ? 'active' : bus.status === 'INACTIVE' ? 'inactive' : ''}`}>

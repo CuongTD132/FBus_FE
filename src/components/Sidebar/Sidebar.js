@@ -35,7 +35,6 @@ import {
   Col,
 } from "reactstrap";
 import { useDispatch } from "react-redux";
-import { setCurrentSearchBus } from "../../redux/reducer";
 
 var ps;
 
@@ -59,7 +58,7 @@ const Sidebar = (props) => {
     return routes.map((prop, key) => {
       // console.log(prop)'
       const { path, layout } = prop;
-      if (path != '/login' && layout != '/auth') {
+      if (path !== '/login' && layout !== '/auth') {
         return (
           <NavItem key={key} >
             <NavLink

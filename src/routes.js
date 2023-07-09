@@ -5,7 +5,8 @@ import Buses from "./views/pages/Buses";
 import Drivers from "./views/pages/Drivers";
 import Accounts from "./views/pages/Accounts";
 import Maps from "./views/pages/Maps.js";
-
+import Routes from "./views/pages/Routes";
+import Stations from "./views/pages/Stations";
 var routes = [
   {
     path: "/index",
@@ -43,6 +44,20 @@ var routes = [
   //   component: <Tables />,
   //   layout: "/admin",
   // },
+  {
+    path: "/routes",
+    name: "Routes",
+    icon: "ni ni-map-big text-yellow",
+    component: <Routes />,
+    layout: "/admin",
+  },
+  {
+    path: "/stations",
+    name: "Stations",
+    icon: "ni ni-square-pin text-purple",
+    component: <Stations />,
+    layout: "/admin",
+  },
   {
     path: "/maps",
     name: "Maps",

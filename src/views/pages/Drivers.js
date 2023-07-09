@@ -91,7 +91,7 @@ const Drivers = () => {
         });
     }
 
-  }, [])
+  }, [navigate])
 
   // Fetch detail information and pass to detail form
   const fetchDriverDetails = (id) => {
@@ -551,7 +551,7 @@ const Drivers = () => {
                         <Form.Control
                           type="text"
                           name="phoneNumber"
-                          placeholder="Phone Number"
+                          placeholder="Input with your country code. For example +84 xxxxxxxxx "
                           autoFocus
                           required
                           value={formData.phoneNumber}
@@ -956,7 +956,7 @@ const Drivers = () => {
                       {currentDriverList.map((driver, index) => (
                         <tr key={index}>
                           <td>
-                            <a>{driver.id ? driver.id : "none"}</a>
+                            <span>{driver.id ? driver.id : "none"}</span>
                           </td>
                           <td>
                             {driver.avatar ? (
@@ -966,23 +966,23 @@ const Drivers = () => {
                             )}
                           </td>
                           <td>
-                            <a href="" onClick={(e) => {
+                            <span className="link-style" onClick={(e) => {
                               e.preventDefault()
                               handleShowDetails(driver.id)
-                            }}>{driver.code ? driver.code : "none"}</a>
+                            }}>{driver.code ? driver.code : "none"}</span>
 
                           </td>
                           <td>
-                            <a href="" onClick={(e) => {
+                            <span className="link-style" onClick={(e) => {
                               e.preventDefault()
                               handleShowDetails(driver.id)
-                            }}>{driver.email ? driver.email : "none"}</a>
+                            }}>{driver.email ? driver.email : "none"}</span>
                           </td>
                           <td>
-                            <a href="" onClick={(e) => {
+                            <span className="link-style" onClick={(e) => {
                               e.preventDefault()
                               handleShowDetails(driver.id)
-                            }}>{driver.fullName ? driver.fullName : "none"}</a>
+                            }}>{driver.fullName ? driver.fullName : "none"}</span>
                           </td>
                           <td>
                             <span className={`status ${driver.status === 'ACTIVE' ? 'active' : driver.status === 'INACTIVE' ? 'inactive' : ''}`}>

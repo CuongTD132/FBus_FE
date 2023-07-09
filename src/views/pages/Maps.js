@@ -1,18 +1,20 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Card, Container, Row } from "reactstrap";
 import Header from "../../components/Headers/Header";
 import { isTokenExpired } from "../../services/checkToken";
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useNavigate } from "react-router-dom";
+
 const MapWrapper = () => {
-  const mapRef = useRef(null); // Move mapRef declaration inside the component
+  const mapRef = useRef(null);
+  const markerRef = useRef(null);
   const navigate = useNavigate();
 
   const initMap = () => {
     let map = mapRef.current;
-    let lat = "10.840903";
-    let lng = "106.809889";
+    let lat = 10.840903;
+    let lng = 106.809889;
     const myLatlng = new window.google.maps.LatLng(lat, lng);
     const mapOptions = {
       zoom: 19,
@@ -21,46 +23,7 @@ const MapWrapper = () => {
       zoomControl: true,
       mapTypeId: 'hybrid',
       styles: [
-        {
-          featureType: "administrative",
-          elementType: "labels.text.fill",
-          stylers: [{ color: "#444444" }],
-        },
-        {
-          featureType: "landscape",
-          elementType: "all",
-          stylers: [{ color: "#f2f2f2" }],
-        },
-        {
-          featureType: "poi",
-          elementType: "all",
-          stylers: [{ visibility: "on" }],
-        },
-        {
-          featureType: "road",
-          elementType: "all",
-          stylers: [{ saturation: -100 }, { lightness: 45 }],
-        },
-        {
-          featureType: "road.highway",
-          elementType: "all",
-          stylers: [{ visibility: "simplified" }],
-        },
-        {
-          featureType: "road.arterial",
-          elementType: "labels.icon",
-          stylers: [{ visibility: "on" }],
-        },
-        {
-          featureType: "transit",
-          elementType: "all",
-          stylers: [{ visibility: "on" }],
-        },
-        {
-          featureType: "water",
-          elementType: "all",
-          stylers: [{ color: "#5e72e4" }, { visibility: "off" }],
-        },
+        // map styles
       ],
     };
 
@@ -70,12 +33,16 @@ const MapWrapper = () => {
       position: myLatlng,
       map: map,
       animation: window.google.maps.Animation.DROP,
-      title: "Light Bootstrap Dashboard PRO React!",
+      title: "Bus Station",
     });
 
+    markerRef.current = marker;
+
     const contentString =
-      '<div class="info-window-content"><h2>Light Bootstrap Dashboard PRO React</h2>' +
-      "<p>A premium Admin for React-Bootstrap, Bootstrap, React, and React Hooks.</p></div>";
+      '<div class="info-window-content"><h2>Bus Station</h2>' +
+      `<p>Latitude: ${myLatlng.lat()}</p>` +
+      `<p>Longitude: ${myLatlng.lng()}</p>` +
+      '</div>';
 
     const infowindow = new window.google.maps.InfoWindow({
       content: contentString,
@@ -83,6 +50,17 @@ const MapWrapper = () => {
 
     window.google.maps.event.addListener(marker, "click", function () {
       infowindow.open(map, marker);
+    });
+
+    window.google.maps.event.addListener(map, "click", function (event) {
+      const clickedLatlng = event.latLng;
+      marker.setPosition(clickedLatlng);
+      infowindow.setContent(
+        '<div class="info-window-content"><h2>Bus Station</h2>' +
+        `<p>Latitude: ${clickedLatlng.lat()}</p>` +
+        `<p>Longitude: ${clickedLatlng.lng()}</p>` +
+        '</div>'
+      );
     });
   };
 
@@ -107,18 +85,15 @@ const MapWrapper = () => {
       });
       return;
     } else {
-      /// Check if the Google Maps API is already loaded
-      if (window.google && window.google.maps){
-        initMap(); // Call initMap directly
+      if (window.google && window.google.maps) {
+        initMap();
       } else {
-        // Load the Google Maps JavaScript API asynchronously with a callback
         const script = document.createElement("script");
         script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.REACT_APP_GOOGLE_API_KEY}&callback=initMap`;
         script.async = true;
         script.defer = true;
         document.body.appendChild(script);
 
-        // Clean up the script tag after the component is unmounted
         return () => {
           document.body.removeChild(script);
         };

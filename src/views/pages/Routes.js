@@ -13,7 +13,7 @@ import {
 // core components
 import Header from "../../components/Headers/Header.js";
 
-const Profile = () => {
+const Routes = () => {
   return (
     <>
       <Header />
@@ -307,4 +307,4 @@ const Profile = () => {
   );
 };
 
-export default Profile;
+export default Routes;

@@ -42,11 +42,30 @@ export const  driverSlide = createSlice({
         updateDriver: (state, action) => {
             state.value = action.payload;
         },
-        setcurrentSearchDriver: (state, action) => {
+        setCurrentSearchDriver: (state, action) => {
             state.currentSearchDriver = action.payload;
         },
     }
 });
+
+export const  stationSlide = createSlice({
+    name: 'STATIONS',
+    initialState: {
+        value: [],
+        currentSearchStation: ""
+    },
+    reducers: {
+        updateStation: (state, action) => {
+            state.value = action.payload;
+        },
+        setCurrentSearchStation: (state, action) => {
+            state.currentSearchStation = action.payload;
+        },
+    }
+});
+
 export const { updateBus, setCurrentSearchBus } = busSlice.actions;
 export const { updateAccount, setCurrentSearchAccount } = accountSlide.actions;
-export const { updateDriver, setcurrentSearchDriver } = driverSlide.actions;
+export const { updateDriver, setCurrentSearchDriver } = driverSlide.actions;
+export const { updateStation, setCurrentSearchStation } = stationSlide.actions;
+

@@ -23,8 +23,9 @@ import { useEffect, useState } from "react";
 import { getMultiBusesAPI } from "../../services/bus";
 import { getMultiDriversAPI } from "../../services/driver";
 import { getMultiAccounts } from "../../services/account";
+import { getMultiStationsAPI } from "../../services/station";
 import { useDispatch, useSelector } from "react-redux";
-import { setCurrentSearchBus, updateBus, setCurrentSearchAccount, updateAccount, setcurrentSearchDriver, updateDriver } from "../../redux/reducer";
+import { setCurrentSearchBus, updateBus, setCurrentSearchAccount, updateAccount, setCurrentSearchDriver, updateDriver, updateStation, setCurrentSearchStation } from "../../redux/reducer";
 
 const AdminNavbar = (props) => {
   const navigate = useNavigate();
@@ -75,24 +76,36 @@ const AdminNavbar = (props) => {
       console.log(res.data)
       if (res.data.data != null) {
         dispatch(updateDriver(res.data.data))
-        dispatch(setcurrentSearchDriver(searchString))
+        dispatch(setCurrentSearchDriver(searchString))
       } else {
         dispatch(updateDriver([]))
       }
     })
 
-    // getMultiAccounts({
-    //   code: searchString,
-    //   email: searchString
-    // }).then((res) => {
-    //   console.log(res.data)
-    //   if (res.data.data != null) {
-    //     dispatch(updateAccount(res.data.data))
-    //     dispatch(setCurrentSearchAccount(searchString))
-    //   } else {
-    //     dispatch(updateAccount([]))
-    //   }
-    // })
+    getMultiAccounts({
+      code: searchString,
+      email: searchString
+    }).then((res) => {
+      console.log(res.data)
+      if (res.data.data != null) {
+        dispatch(updateAccount(res.data.data))
+        dispatch(setCurrentSearchAccount(searchString))
+      } else {
+        dispatch(updateAccount([]))
+      }
+    })
+
+    getMultiStationsAPI({
+      code: searchString,
+    }).then((res) => {
+      console.log(res.data)
+      if (res.data.data != null) {
+        dispatch(updateStation(res.data.data))
+        dispatch(setCurrentSearchStation(searchString))
+      } else {
+        dispatch(updateStation([]))
+      }
+    })
   }
   // END FUNCTIONS
 

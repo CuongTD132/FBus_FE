@@ -69,6 +69,26 @@
     height: 66.666px;
 }
 
+.station-img {
+    width: 300px;
+    height: 200px;
+  }
+
+.normal-style {
+    color: #5e72e4;
+}
+
+.link-style {
+    color: #5e72e4;
+    transition: color 0.5s;
+    cursor: pointer;
+
+}
+
+.link-style:hover {
+    color: #233dd2;
+}
+
 .status {
     color: #707070;
 }

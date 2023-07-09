@@ -35,10 +35,9 @@ export const addStationAPI = async (station) => {
     formData.append('ward', station.ward);
     formData.append('district', station.district);
     formData.append('city', station.city);
-    formData.append('imageFile', station.imageFile);
+    formData.append('image', station.image);
     formData.append('longtitude', station.longtitude);
     formData.append('latitude', station.latitude);
-    formData.append('status', station.status);
     if (user && user.accessToken) {
         return await axios.post(`${URL}/${END_POINTS.addStation}`,
             formData,
@@ -53,7 +52,6 @@ export const addStationAPI = async (station) => {
 
 export const updateStationAPI = async (station, id) => {
     const user = JSON.parse(localStorage.getItem('user'));
-
     const formData = new FormData();
     formData.append('code', station.code);
     formData.append('name', station.name);
@@ -62,10 +60,9 @@ export const updateStationAPI = async (station, id) => {
     formData.append('ward', station.ward);
     formData.append('district', station.district);
     formData.append('city', station.city);
-    formData.append('imageFile', station.imageFile);
+    formData.append('image', station.image);
     formData.append('longtitude', station.longtitude);
     formData.append('latitude', station.latitude);
-    formData.append('status', station.status);
     if (user && user.accessToken) {
         return await axios.put(`${URL}/${END_POINTS.updateStation}/${id}`,
             formData,

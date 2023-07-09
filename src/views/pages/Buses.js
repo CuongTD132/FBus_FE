@@ -45,6 +45,7 @@ const Buses = () => {
   const [showDetails, setShowDetails] = useState(false);
   const [showToggleStatus, setShowToggleStatus] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
+  const [showBackdrop, setShowBackdrop] = useState(false);
   const [formData, setFormData] = useState({
     code: "",
     licensePlate: "",
@@ -58,24 +59,11 @@ const Buses = () => {
   // Check accessToken
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem("user"));
-    if (user == null || !user) {
-      toast("You need to log in to continue!", {
-        autoClose: 1000,
-        onClose: () => {
-          navigate("/auth/login");
-        },
-      });
+    if (user == null || !user || isTokenExpired()) {
+      setShowBackdrop(true)
+      
       return;
     } else {
-      if (isTokenExpired()) {
-        toast("You need to log in again to continue!", {
-          autoClose: 1000,
-          onClose: () => {
-            navigate("/auth/login");
-          },
-        });
-        return;
-      }
       getAllBuses(user.accessToken)
         .then((res) => {
           if (res && res.data && res.data.data) {
@@ -114,7 +102,7 @@ const Buses = () => {
           dispatch(updateBus([]))
         }
       })
-    }  else {
+    } else {
       getAllBuses()
         .then((res) => {
           setBusList(res.data.data);
@@ -159,6 +147,12 @@ const Buses = () => {
     }
   }
 
+  // LOGOUT
+  const handleLogoutClose = () => {
+    navigate("/auth/login");
+    setShowBackdrop(false);
+    
+  }
 
   // --UPDATE FUNCTIONS
   const handleUpdateClose = () => {
@@ -382,8 +376,24 @@ const Buses = () => {
               </CardHeader>
               <CardBody>
 
+                <Modal
+                  show={showBackdrop}
+                  onHide={() => setShowBackdrop(false)}
+                  animation={true}
+                  backdrop="static"                  
+                >
+                  <Modal.Header >
+                    <Modal.Title>SORRY MATE</Modal.Title>
+                  </Modal.Header>
+                  <Modal.Body>YOU NEED TO LOG IN AGAIN TO CONTINUE</Modal.Body>
+                  <Modal.Footer>
+                    <Button color="primary" onClick={handleLogoutClose}>
+                      OK
+                    </Button>
+                  </Modal.Footer>
+                </Modal>
 
-                <Modal show={showToggleStatus} onHide={() => setShowToggleStatus(false)} animation={false}>
+                <Modal className="modal-right" show={showToggleStatus} onHide={() => setShowToggleStatus(false)} animation={true}>
                   <Modal.Header >
                     <Modal.Title>Enable/Disable bus</Modal.Title>
                   </Modal.Header>
@@ -398,7 +408,7 @@ const Buses = () => {
                   </Modal.Footer>
                 </Modal>
 
-                <Modal show={showDelete} onHide={() => setShowDelete(false)} animation={false}>
+                <Modal show={showDelete} onHide={() => setShowDelete(false)} animation={true}>
                   <Modal.Header >
                     <Modal.Title>Delete bus</Modal.Title>
                   </Modal.Header>

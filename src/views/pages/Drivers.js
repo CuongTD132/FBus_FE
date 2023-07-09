@@ -405,7 +405,7 @@ const Drivers = () => {
               <CardBody>
 
 
-                <Modal show={showToggleStatus} onHide={() => setShowToggleStatus(false)} animation={false}>
+                <Modal show={showToggleStatus} onHide={() => setShowToggleStatus(false)} animation={true}>
                   <Modal.Header >
                     <Modal.Title>Enable/Disable driver</Modal.Title>
                   </Modal.Header>
@@ -420,7 +420,7 @@ const Drivers = () => {
                   </Modal.Footer>
                 </Modal>
 
-                <Modal show={showDelete} onHide={() => setShowDelete(false)} animation={false}>
+                <Modal show={showDelete} onHide={() => setShowDelete(false)} animation={true}>
                   <Modal.Header >
                     <Modal.Title>Delete driver</Modal.Title>
                   </Modal.Header>

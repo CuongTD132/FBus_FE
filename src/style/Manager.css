@@ -67,11 +67,15 @@
     border: 1px solid black;
     width: 100px;
     height: 133.333333px;
+    border-radius: 10px;
 }
 
 .station-img {
+    
     width: 200px;
     height: 150px;
+    border-radius: 10px;
+
   }
 
 .normal-style {
@@ -108,3 +112,9 @@
 .role.driver {
     color: #5b4283
 }
+
+.modal-right {
+    top: 10px;
+    left: 1px;
+  }
+  

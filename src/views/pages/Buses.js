@@ -107,16 +107,19 @@ const Buses = () => {
         licensePlate: currentSearchBus,
         code: currentSearchBus
       }).then((res) => {
-        console.log(res.data.data)
+        // console.log(res.data.data)
         if (res.data.data != null) {
           dispatch(updateBus(res.data.data))
         } else {
           dispatch(updateBus([]))
         }
       })
-    } else if (busList.length === 0) {
+    }  else {
       getAllBuses()
-        .then((res) => setBusList(res.data.data))
+        .then((res) => {
+          setBusList(res.data.data);
+          dispatch(updateBus(res.data.data));
+        })
         .catch((error) => {
           console.log(error);
         });
@@ -178,7 +181,7 @@ const Buses = () => {
   const updateBusData = () => {
     updateBusAPI(formData, formData.id)
       .then((res) => {
-        console.log(res);
+        // console.log(res);
         if (res.status === 200) {
           toast.success("Bus update successfully!", {
             autoClose: 1000,
@@ -283,7 +286,7 @@ const Buses = () => {
   const handleAddBus = () => {
     addBusAPI(formData)
       .then((res) => {
-        console.log(res);
+        // console.log(res);
         if (res.status === 200) {
           toast.success("Bus has been add successfully!", {
             autoClose: 1000,
@@ -381,7 +384,7 @@ const Buses = () => {
 
 
                 <Modal show={showToggleStatus} onHide={() => setShowToggleStatus(false)} animation={false}>
-                  <Modal.Header closeButton>
+                  <Modal.Header >
                     <Modal.Title>Enable/Disable bus</Modal.Title>
                   </Modal.Header>
                   <Modal.Body>Are you sure to enable/disable this bus?</Modal.Body>
@@ -396,7 +399,7 @@ const Buses = () => {
                 </Modal>
 
                 <Modal show={showDelete} onHide={() => setShowDelete(false)} animation={false}>
-                  <Modal.Header closeButton>
+                  <Modal.Header >
                     <Modal.Title>Delete bus</Modal.Title>
                   </Modal.Header>
                   <Modal.Body>Are you sure to delete this bus?</Modal.Body>
@@ -412,7 +415,7 @@ const Buses = () => {
 
                 {/* Add model */}
                 <Modal show={showAdd} onHide={handleAddClose}>
-                  <Modal.Header closeButton>
+                  <Modal.Header >
                     <Modal.Title>Add bus</Modal.Title>
                   </Modal.Header>
                   <Modal.Body>
@@ -563,7 +566,7 @@ const Buses = () => {
 
                 {/* Detail model */}
                 <Modal show={showDetails} onHide={() => setShowDetails(false)}>
-                  <Modal.Header closeButton>
+                  <Modal.Header >
                     <Modal.Title>Bus detail</Modal.Title>
                   </Modal.Header>
                   <Modal.Body>
@@ -658,7 +661,7 @@ const Buses = () => {
 
                 {/* Update model */}
                 <Modal show={showUpdate} onHide={handleUpdateClose}>
-                  <Modal.Header closeButton>
+                  <Modal.Header >
                     <Modal.Title>Update bus</Modal.Title>
                   </Modal.Header>
                   <Modal.Body>
@@ -852,14 +855,14 @@ const Buses = () => {
                             <span>{bus.id ? bus.id : "none"}</span>
                           </td>
                           <td>
-                            <span className="link-style"  onClick={(e) => {
+                            <span className="link-style" onClick={(e) => {
                               e.preventDefault()
                               handleShowDetails(bus.id)
                             }}>{bus.code ? bus.code : "none"}</span>
 
                           </td>
                           <td>
-                            <span className="link-style"  onClick={(e) => {
+                            <span className="link-style" onClick={(e) => {
                               e.preventDefault()
                               handleShowDetails(bus.id)
                             }}>{bus.licensePlate ? bus.licensePlate : "none"}</span>

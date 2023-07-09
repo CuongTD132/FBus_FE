@@ -42,7 +42,7 @@ export const updateBusAPI = async (bus, id) => {
     formData.append('color', bus.color);
     formData.append('seat', bus.seat);
     formData.append('dateOfRegistration', bus.dateOfRegistration);
-    console.log(`Update data from API: ${bus}`)
+    // console.log(`Update data from API: ${bus}`)
     if (user && user.accessToken) {
         return await axios.put(`${URL}/${END_POINTS.updateBus}/${id}`,
             formData,

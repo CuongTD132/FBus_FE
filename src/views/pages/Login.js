@@ -22,7 +22,7 @@ const Login = () => {
     loginWithGoogle(credentialResponse.credential)
       .then((res) => {
         if (res.data !== '' && !isTokenExpired()) {
-          console.log(res)
+          // console.log(res)
           const userData = res.data;
           localStorage.setItem('user', JSON.stringify(res.data))
           if (userData.role === 'Admin') {

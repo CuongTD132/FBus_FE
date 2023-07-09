@@ -108,14 +108,14 @@ const Drivers = () => {
         code: currentSearchDriver,
         email: currentSearchDriver
       }).then((res) => {
-        console.log(res.data.data)
+        // console.log(res.data.data)
         if (res.data.data != null) {
           dispatch(updateDriver(res.data.data))
         } else {
           dispatch(updateDriver([]))
         }
       })
-    } else if (driverList.length === 0) {
+    } else {
       getAllDrivers()
         .then((res) => setDriverList(res.data.data))
         .catch((error) => {
@@ -176,7 +176,7 @@ const Drivers = () => {
     }
     updateDriverAPI(formData, formData.id)
       .then((res) => {
-        console.log(res);
+        // console.log(res);
         if (res.status === 200) {
           toast.success("Driver update successfully!", {
             autoClose: 1000,
@@ -231,7 +231,7 @@ const Drivers = () => {
     }
     toggleStatusAPI(toggleDriverId, status)
       .then((res) => {
-        console.log(res)
+        // console.log(res)
         toast.success("Successull to enable/disable status!", {
           autoClose: 1000,
         });
@@ -273,7 +273,7 @@ const Drivers = () => {
     deleteDriverAPI(deleteDriverId)
       .then((res) => {
         if (res.status === 200) {
-          console.log(res)
+          // console.log(res)
           toast.success("Driver deleted successfully!", {
             autoClose: 1000,
           });
@@ -304,7 +304,7 @@ const Drivers = () => {
   const handleAddDriver = () => {
     addDriverAPI(formData)
       .then((res) => {
-        console.log(res);
+        // console.log(res);
         if (res.status === 200) {
           toast.success("Driver has been add successfully!", {
             autoClose: 1000,
@@ -406,7 +406,7 @@ const Drivers = () => {
 
 
                 <Modal show={showToggleStatus} onHide={() => setShowToggleStatus(false)} animation={false}>
-                  <Modal.Header closeButton>
+                  <Modal.Header >
                     <Modal.Title>Enable/Disable driver</Modal.Title>
                   </Modal.Header>
                   <Modal.Body>Are you sure to enable/disable this driver?</Modal.Body>
@@ -421,7 +421,7 @@ const Drivers = () => {
                 </Modal>
 
                 <Modal show={showDelete} onHide={() => setShowDelete(false)} animation={false}>
-                  <Modal.Header closeButton>
+                  <Modal.Header >
                     <Modal.Title>Delete driver</Modal.Title>
                   </Modal.Header>
                   <Modal.Body>Are you sure to delete this driver?</Modal.Body>
@@ -437,7 +437,7 @@ const Drivers = () => {
 
                 {/* Add model */}
                 <Modal show={showAdd} onHide={handleAddClose}>
-                  <Modal.Header closeButton>
+                  <Modal.Header >
                     <Modal.Title>Add driver</Modal.Title>
                   </Modal.Header>
                   <Modal.Body>
@@ -626,7 +626,7 @@ const Drivers = () => {
 
                 {/* Detail model */}
                 <Modal show={showDetails} onHide={() => setShowDetails(false)}>
-                  <Modal.Header closeButton>
+                  <Modal.Header >
                     <Modal.Title>Driver detail</Modal.Title>
                   </Modal.Header>
                   <Modal.Body>
@@ -739,7 +739,7 @@ const Drivers = () => {
                 </Modal>
                 {/* Update model */}
                 <Modal show={showUpdate} onHide={handleUpdateClose}>
-                  <Modal.Header closeButton>
+                  <Modal.Header >
                     <Modal.Title>Update driver</Modal.Title>
                   </Modal.Header>
                   <Modal.Body>

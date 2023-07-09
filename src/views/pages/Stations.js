@@ -99,14 +99,14 @@ const Stations = () => {
       getMultiStationsAPI({
         code: currentSearchStation,
       }).then((res) => {
-        console.log(res.data.data)
+        // console.log(res.data.data)
         if (res.data.data != null) {
           dispatch(updateStation(res.data.data))
         } else {
           dispatch(updateStation([]))
         }
       })
-    } else if (stationList.length === 0) {
+    } else{
       getAllStations()
         .then((res) => setStationList(res.data.data))
         .catch((error) => {
@@ -150,13 +150,9 @@ const Stations = () => {
   const updateStationData = () => {
     updateStationAPI(formData, formData.id)
       .then((res) => {
-        console.log(res);
+        // console.log(res);
         if (res.status === 200) {
           toast.success("Station update successfully!", {
-            autoClose: 1000,
-          });
-        } else {
-          toast.warning("Can't update this station!", {
             autoClose: 1000,
           });
         }
@@ -226,7 +222,7 @@ const Stations = () => {
     deleteStationAPI(deleteStationId)
       .then((res) => {
         if (res.status === 200) {
-          console.log(res)
+          // console.log(res)
           toast.success("Station deleted successfully!", {
             autoClose: 1000,
           });
@@ -253,7 +249,7 @@ const Stations = () => {
   const handleAddStation = () => {
     addStationAPI(formData)
       .then((res) => {
-        console.log(res);
+        // console.log(res);
         if (res.status === 200) {
           toast.success("Station has been add successfully!", {
             autoClose: 1000,
@@ -358,7 +354,7 @@ const Stations = () => {
 
 
                 <Modal show={showToggleStatus} onHide={() => setShowToggleStatus(false)} animation={false}>
-                  <Modal.Header closeButton>
+                  <Modal.Header >
                     <Modal.Title>Enable/Disable station</Modal.Title>
                   </Modal.Header>
                   <Modal.Body>Are you sure to enable/disable this station?</Modal.Body>
@@ -373,7 +369,7 @@ const Stations = () => {
                 </Modal>
 
                 <Modal show={showDelete} onHide={() => setShowDelete(false)} animation={false}>
-                  <Modal.Header closeButton>
+                  <Modal.Header >
                     <Modal.Title>Delete station</Modal.Title>
                   </Modal.Header>
                   <Modal.Body>Are you sure to delete this station?</Modal.Body>
@@ -389,7 +385,7 @@ const Stations = () => {
 
                 {/* Add model */}
                 <Modal show={showAdd} onHide={handleAddClose}>
-                  <Modal.Header closeButton>
+                  <Modal.Header >
                     <Modal.Title>Add station</Modal.Title>
                   </Modal.Header>
                   <Modal.Body>
@@ -571,7 +567,7 @@ const Stations = () => {
 
                 {/* Detail model */}
                 <Modal show={showDetails} onHide={() => setShowDetails(false)}>
-                  <Modal.Header closeButton>
+                  <Modal.Header >
                     <Modal.Title>Station detail</Modal.Title>
                   </Modal.Header>
                   <Modal.Body>
@@ -684,7 +680,7 @@ const Stations = () => {
                 </Modal>
                 {/* Update model */}
                 <Modal show={showUpdate} onHide={handleUpdateClose}>
-                  <Modal.Header closeButton>
+                  <Modal.Header >
                     <Modal.Title>Update station</Modal.Title>
                   </Modal.Header>
                   <Modal.Body>

@@ -65,13 +65,13 @@
 
 .driver-img {
     border: 1px solid black;
-    width: 50px;
-    height: 66.666px;
+    width: 100px;
+    height: 133.333333px;
 }
 
 .station-img {
-    width: 300px;
-    height: 200px;
+    width: 200px;
+    height: 150px;
   }
 
 .normal-style {

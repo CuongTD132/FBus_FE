@@ -1,7 +1,7 @@
 
 import { useNavigate } from "react-router-dom";
-import { GoogleOAuthProvider, googleLogout } from '@react-oauth/google';
-import { toast, ToastContainer } from 'react-toastify';
+import { GoogleOAuthProvider } from '@react-oauth/google';
+import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import {
   DropdownMenu,
@@ -60,7 +60,7 @@ const AdminNavbar = (props) => {
       licensePlate: searchString,
       code: searchString
     }).then((res) => {
-      console.log(res.data)
+      // console.log(res.data)
       if (res.data.data != null) {
         dispatch(updateBus(res.data.data))
         dispatch(setCurrentSearchBus(searchString))
@@ -73,7 +73,7 @@ const AdminNavbar = (props) => {
       code: searchString,
       email: searchString
     }).then((res) => {
-      console.log(res.data)
+      // console.log(res.data)
       if (res.data.data != null) {
         dispatch(updateDriver(res.data.data))
         dispatch(setCurrentSearchDriver(searchString))
@@ -86,7 +86,7 @@ const AdminNavbar = (props) => {
       code: searchString,
       email: searchString
     }).then((res) => {
-      console.log(res.data)
+      // console.log(res.data)
       if (res.data.data != null) {
         dispatch(updateAccount(res.data.data))
         dispatch(setCurrentSearchAccount(searchString))
@@ -98,7 +98,7 @@ const AdminNavbar = (props) => {
     getMultiStationsAPI({
       code: searchString,
     }).then((res) => {
-      console.log(res.data)
+      // console.log(res.data)
       if (res.data.data != null) {
         dispatch(updateStation(res.data.data))
         dispatch(setCurrentSearchStation(searchString))

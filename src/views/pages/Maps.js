@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { Card, Container, Row } from "reactstrap";
 import Header from "../../components/Headers/Header";
 import { isTokenExpired } from "../../services/checkToken";
@@ -70,9 +70,9 @@ const MapWrapper = () => {
       toast.info("You need to log in to continue!", {
         position: "top-center",
         autoClose: 1500,
-        hideProgressBar: true,
+        hideProgressBar: false,
         closeOnClick: true,
-        pauseOnHover: true,
+        pauseOnHover: false,
         draggable: true,
         progress: undefined,
         theme: "light",

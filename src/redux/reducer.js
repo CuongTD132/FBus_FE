@@ -64,8 +64,43 @@ export const  stationSlide = createSlice({
     }
 });
 
+export const  routeSlide = createSlice({
+    name: 'ROUTES',
+    initialState: {
+        value: [],
+        currentSearchRoute: ""
+    },
+    reducers: {
+        updateRoute: (state, action) => {
+            state.value = action.payload;
+        },
+        setCurrentSearchRoute: (state, action) => {
+            state.currentSearchRoute = action.payload;
+        },
+    }
+});
+// export const  coordinationSlide = createSlice({
+//     name: 'COORDINATIONS',
+//     initialState: {
+//         value: [],
+//         currentSearchCoordination: ""
+//     },
+//     reducers: {
+//         updateCoordination: (state, action) => {
+//             state.value = action.payload;
+//         },
+//         setCurrentSearchCoordination: (state, action) => {
+//             state.currentSearchCoordination = action.payload;
+//         },
+//     }
+// });
+
 export const { updateBus, setCurrentSearchBus } = busSlice.actions;
 export const { updateAccount, setCurrentSearchAccount } = accountSlide.actions;
 export const { updateDriver, setCurrentSearchDriver } = driverSlide.actions;
 export const { updateStation, setCurrentSearchStation } = stationSlide.actions;
+export const { updateRoute, setCurrentSearchRoute } = routeSlide.actions;
+
+// export const { updateCoordination, setCurrentSearchCoordination } = stationSlide.actions;
+
 

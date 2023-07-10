@@ -180,10 +180,6 @@ const Buses = () => {
           toast.success("Bus update successfully!", {
             autoClose: 1000,
           });
-        } else {
-          toast.warning("Can't update this bus!", {
-            autoClose: 1000,
-          });
         }
         setShowUpdate(false);
         fetchBuses();
@@ -258,10 +254,6 @@ const Buses = () => {
       .then((res) => {
         if (res.status === 200) {
           toast.success("Bus deleted successfully!", {
-            autoClose: 1000,
-          });
-        } else {
-          toast.warning("Can't delete the bus!", {
             autoClose: 1000,
           });
         }

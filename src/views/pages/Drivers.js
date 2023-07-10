@@ -181,10 +181,6 @@ const Drivers = () => {
           toast.success("Driver update successfully!", {
             autoClose: 1000,
           });
-        } else {
-          toast.warning("Can't update this driver!", {
-            autoClose: 1000,
-          });
         }
         setShowUpdate(false);
         fetchDrivers();
@@ -275,10 +271,6 @@ const Drivers = () => {
         if (res.status === 200) {
           // console.log(res)
           toast.success("Driver deleted successfully!", {
-            autoClose: 1000,
-          });
-        } else {
-          toast.warning("Can't delete the driver!", {
             autoClose: 1000,
           });
         }

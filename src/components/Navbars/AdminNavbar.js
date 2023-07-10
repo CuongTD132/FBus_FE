@@ -24,8 +24,10 @@ import { getMultiBusesAPI } from "../../services/bus";
 import { getMultiDriversAPI } from "../../services/driver";
 import { getMultiAccounts } from "../../services/account";
 import { getMultiStationsAPI } from "../../services/station";
-import { useDispatch, useSelector } from "react-redux";
-import { setCurrentSearchBus, updateBus, setCurrentSearchAccount, updateAccount, setCurrentSearchDriver, updateDriver, updateStation, setCurrentSearchStation } from "../../redux/reducer";
+import { getMultiRoutesAPI } from "../../services/routes";
+// import { getMultiCoordinationsAPI } from "../../services/coordinations";
+import { useDispatch } from "react-redux";
+import { setCurrentSearchBus, updateBus, setCurrentSearchAccount, updateAccount, setCurrentSearchDriver, updateDriver, updateStation, setCurrentSearchStation, updateRoute, setCurrentSearchRoute, updateCoordination, setCurrentSearchCoordination } from "../../redux/reducer";
 
 const AdminNavbar = (props) => {
   const navigate = useNavigate();
@@ -39,7 +41,7 @@ const AdminNavbar = (props) => {
       navigate('/auth/login')
     }
     setUser(user)
-  }, [])
+  }, [navigate])
   const handleLogout = () => {
     localStorage.removeItem('user');
     toast.success("Logout successful", {
@@ -53,9 +55,8 @@ const AdminNavbar = (props) => {
   const dispatch = useDispatch();
 
   const handleSearch = (searchString = "") => {
-    localStorage.setItem('currentSearchBus', searchString);
-    localStorage.setItem('currentSearchDriver', searchString);
-    
+    localStorage.setItem('currentSearch', searchString);
+
     getMultiBusesAPI({
       licensePlate: searchString,
       code: searchString
@@ -106,7 +107,36 @@ const AdminNavbar = (props) => {
         dispatch(updateStation([]))
       }
     })
+
+    getMultiRoutesAPI({
+      beginning: searchString,
+      destination: searchString,
+    }).then((res) => {
+      // console.log(res.data)
+      if (res.data.data != null) {
+        dispatch(updateRoute(res.data.data))
+        dispatch(setCurrentSearchRoute(searchString))
+      } else {
+        dispatch(updateRoute([]))
+      }
+    })
+
+    // getMultiCoordinationsAPI({
+    //   driverId: searchString,
+    //   busId: searchString,
+    //   routeId: searchString,
+    // }).then((res) => {
+    //   // console.log(res.data)
+    //   if (res.data.data != null) {
+    //     dispatch(updateCoordination(res.data.data))
+    //     dispatch(setCurrentSearchCoordination(searchString))
+    //   } else {
+    //     dispatch(updateCoordination([]))
+    //   }
+    // })
   }
+
+
   // END FUNCTIONS
 
   return (

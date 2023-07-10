@@ -7,6 +7,7 @@ import Accounts from "./views/pages/Accounts";
 import Maps from "./views/pages/Maps.js";
 import Routes from "./views/pages/Routes";
 import Stations from "./views/pages/Stations";
+import Coords from "./views/pages/Coordinations";
 var routes = [
   {
     path: "/index",
@@ -59,12 +60,19 @@ var routes = [
     layout: "/admin",
   },
   {
-    path: "/maps",
-    name: "Maps",
-    icon: "ni ni-pin-3 text-orange",
-    component: <Maps />,
+    path: "/coords",
+    name: "Coordinations",
+    icon: "ni ni-archive-2 text-info",
+    component: <Coords />,
     layout: "/admin",
   },
+  // {
+  //   path: "/maps",
+  //   name: "Maps",
+  //   icon: "ni ni-pin-3 text-orange",
+  //   component: <Maps />,
+  //   layout: "/admin",
+  // },
   {
     path: "/login",
     component: <Login />,

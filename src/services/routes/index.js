@@ -13,7 +13,7 @@ const END_POINTS = {
 export const addRouteAPI = async (route) => {
     const user = JSON.parse(localStorage.getItem('user'));
     const formData = new FormData();
-    formData.set("begining", route.email);
+    formData.set("beginning", route.email);
     formData.set("destination", route.code);
     formData.set("distance", route.fullName);
     formData.set("stationIds", route.stationIds);
@@ -32,7 +32,7 @@ export const addRouteAPI = async (route) => {
 export const updateRouteAPI = async (route, id) => {
     const user = JSON.parse(localStorage.getItem('user'));
     const formData = new FormData();
-    formData.set("begining", route.email);
+    formData.set("beginning", route.email);
     formData.set("destination", route.code);
     formData.set("distance", route.fullName);
     formData.set("stationIds", route.stationIds);
@@ -59,7 +59,7 @@ export const getSingleRoute = async (id) => {
     }
 }
 
-export const getMultiRouteAPI = async (data) => {
+export const getMultiRoutesAPI = async (data) => {
     const user = JSON.parse(localStorage.getItem('user'));
     if (user && user.accessToken) {
         return await axios.get(`${URL}/${END_POINTS.getMultiRoutes}`, {

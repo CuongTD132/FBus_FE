@@ -461,9 +461,8 @@ const Routes = () => {
                         <Form.Control
                           type="text"
                           name="beginning"
-                          placeholder="Beginning "
                           autoFocus
-                          required
+                          readOnly
                           value={formData.beginning}
                         />
                       </Form.Group>
@@ -473,6 +472,7 @@ const Routes = () => {
                           type="text"
                           name="destination"
                           placeholder="Destination "
+                          readOnly
                           value={formData.destination}
                         />
                       </Form.Group>
@@ -481,8 +481,7 @@ const Routes = () => {
                         <Form.Control
                           type="number"
                           name="distance"
-                          placeholder="Distance "
-                          required
+                          readOnly
                           value={formData.distance}
                         />
                       </Form.Group>
@@ -491,8 +490,7 @@ const Routes = () => {
                         <Form.Control
                           type="text"
                           name="stationIds"
-                          placeholder="StationIds"
-                          required
+                          readOnly
                           value={formData.stationIds}
                         />
                       </Form.Group>

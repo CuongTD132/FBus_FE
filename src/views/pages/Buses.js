@@ -147,6 +147,22 @@ const Buses = () => {
     }
   }
 
+  const downloadQR = () => {
+    const canvas = document.getElementById("qr-gen");
+    const pngUrl = canvas
+      .toDataURL("image/png")
+      .replace("image/png", "image/octet-stream");
+    let downloadLink = document.createElement("a");
+    
+    downloadLink.href = pngUrl;
+    downloadLink.download = `${JSON.parse(qrHash).split('-')[0]}.png`;
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    document.body.removeChild(downloadLink);
+    setShowQrCode(false);
+  };
+  
+
   // LOGOUT
   const handleLogoutClose = () => {
     navigate("/auth/login");
@@ -823,16 +839,17 @@ const Buses = () => {
                   </Modal.Header>
                   <Modal.Body className="text-center">
                     <Form>
-                      <Form.Group>
-                        <div className="qr-code-container">
-                          <QRCode size={200} value={qrHash} />
-                        </div>
+                      <Form.Group>                        
+                          <QRCode className="qr-code-container" size={300} id="qr-gen" includeMargin={true} value={qrHash} />                      
                       </Form.Group>
                     </Form>
                   </Modal.Body>
-                  <Modal.Footer>
+                  <Modal.Footer>                    
                     <Button variant="secondary" onClick={() => setShowQrCode(false)}>
                       Close
+                    </Button>
+                    <Button variant="primary" onClick={downloadQR}>
+                      Download QR
                     </Button>
                   </Modal.Footer>
                 </Modal>

@@ -66,7 +66,7 @@ const Admin = (props) => {
         navigate("/auth/login");
       }
     }
-  }, [])
+  }, [navigate])
 
 
   return (

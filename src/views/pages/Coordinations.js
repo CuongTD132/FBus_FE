@@ -640,13 +640,13 @@ const Coords = () => {
                                                 {/* <th>Bus Id</th> */}
                                                 <th>Bus Code</th>
                                                 {/* <th>License Plate</th> */}
-                                                <th>Route Id</th>
+                                                {/* <th>Route Id</th> */}
                                                 <th>Beginning</th>
                                                 <th>Destination</th>
                                                 <th>Date Line</th>
                                                 <th>Due Date</th>
                                                 <th>Status</th>
-                                                <th>More Actions</th>
+                                                <th>More</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -686,12 +686,12 @@ const Coords = () => {
                                                             handleShowDetails(coordination.id)
                                                         }}>{coordination.licensePlate ? coordination.licensePlate : "none"}</span>
                                                     </td> */}
-                                                    <td>
+                                                    {/* <td>
                                                         <span className="link-style" onClick={(e) => {
                                                             e.preventDefault()
                                                             handleShowDetails(coordination.id)
                                                         }}>{coordination.routeId ? coordination.routeId : "none"}</span>
-                                                    </td>
+                                                    </td> */}
                                                     <td>
                                                         <span className="link-style" onClick={(e) => {
                                                             e.preventDefault()
@@ -730,7 +730,7 @@ const Coords = () => {
                                                         </span>
                                                     </td>
                                                     <td className="registration">
-                                                        <UncontrolledDropdown>
+                                                        <UncontrolledDropdown >
                                                             <DropdownToggle
                                                                 className="btn-icon-only text-light"
                                                                 role="button"
@@ -739,7 +739,7 @@ const Coords = () => {
                                                             >
                                                                 <i className="fas fa-ellipsis-v" />
                                                             </DropdownToggle>
-                                                            <DropdownMenu className="dropdown-menu-arrow" >
+                                                            <DropdownMenu className="dropdown-menu-arrow" right>
                                                                 <DropdownItem
                                                                     className="update-dropdown-item"
                                                                     onClick={() => handleUpdateShow(coordination)}

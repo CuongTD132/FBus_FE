@@ -99,7 +99,7 @@ const MapWrapper = () => {
         };
       }
     }
-  }, );
+  }, [navigate]);
 
   return (
     <>

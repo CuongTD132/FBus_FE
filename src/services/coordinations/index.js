@@ -1,12 +1,12 @@
 import axios from "axios";
 const URL = process.env.REACT_APP_SERVER;
 const END_POINTS = {
-    getMultiCoordinations: '/api/Coordinations',
-    addCoordination: '/api/Coordinations',
-    updateCoordination: '/api/Coordinations',
-    getSingleCoordination: '/api/Coordinations',
-    patchCoordination: '/api/Coordinations',
-    deleteCoordination: '/api/Coordinations'
+    getMultiCoordinations: 'api/Coordinations',
+    addCoordination: 'api/Coordinations',
+    updateCoordination: 'api/Coordinations',
+    getSingleCoordination: 'api/Coordinations',
+    patchCoordination: 'api/Coordinations',
+    deleteCoordination: 'api/Coordinations'
 }
 
 
@@ -40,6 +40,7 @@ export const addCoordinationAPI = async (coordination) => {
             {
                 headers: {
                     Authorization: `Bearer ${user.accessToken}`,
+                    "Content-Type": "multipart/form-data",
                 },
             }
         )
@@ -61,6 +62,7 @@ export const updateCoordinationAPI = async (coordination, id) => {
             {
                 headers: {
                     Authorization: `Bearer ${user.accessToken}`,
+                    "Content-Type": "multipart/form-data",
                 },
             }
         )

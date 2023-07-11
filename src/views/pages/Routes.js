@@ -426,8 +426,7 @@ const Routes = () => {
                           type="text"
                           name="stationIds"
                           placeholder="StationIds"
-                          required
-                          value={formData.stationIds}
+                          value={formData.stationIds || ""}
                           onChange={(e) => {
                             const inputArray = e.target.value.split(",");
                             setFormData({
@@ -479,10 +478,10 @@ const Routes = () => {
                       <Form.Group className="mb-3" controlId="distance">
                         <Form.Label>Distance </Form.Label>
                         <Form.Control
-                          type="number"
+                          type="text"
                           name="distance"
                           readOnly
-                          value={formData.distance}
+                          value={formData.distance + " km"} 
                         />
                       </Form.Group>
                       <Form.Group className="mb-3" controlId="stationIds">
@@ -490,8 +489,9 @@ const Routes = () => {
                         <Form.Control
                           type="text"
                           name="stationIds"
+                          placeholder="Stations have not been added yet"
                           readOnly
-                          value={formData.stationIds}
+                          value={formData.stationIds || ""}
                         />
                       </Form.Group>
                     </Form>
@@ -548,7 +548,7 @@ const Routes = () => {
                           name="distance"
                           placeholder="Distance "
                           required
-                          value={formData.distance}
+                          value={formData.distance }
                           onChange={(e) => {
                             setFormData({
                               ...formData,
@@ -562,9 +562,8 @@ const Routes = () => {
                         <Form.Control
                           type="text"
                           name="stationIds"
-                          placeholder="StationIds"
-                          required
-                          value={formData.stationIds}
+                          placeholder="Stations have not been added yet"
+                          value={formData.stationIds || ""}
                           onChange={(e) => {
                             const inputArray = e.target.value.split(",");
                             setFormData({
@@ -623,7 +622,7 @@ const Routes = () => {
                             <span className="link-style" onClick={(e) => {
                               e.preventDefault()
                               handleShowDetails(route.id)
-                            }}>{route.distance }</span>
+                            }}>{route.distance + " km"}</span>
                           </td>
                           <td>
                             <span className={`status ${route.status === 'ACTIVE' ? 'active' : route.status === 'INACTIVE' ? 'inactive' : ''}`}>

@@ -1,12 +1,12 @@
 import axios from "axios";
 const URL = process.env.REACT_APP_SERVER;
 const END_POINTS = {
-    addRoute: '/api/Routes',
-    updateRoute: '/api/Routes',
-    getSingleRoute: '/api/Routes',
-    getMultiRoutes: '/api/Routes',
-    enableRoute: '/api/Routes',
-    deleteRoute: '/api/Routes'
+    addRoute: 'api/Routes',
+    updateRoute: 'api/Routes',
+    getSingleRoute: 'api/Routes',
+    getMultiRoutes: 'api/Routes',
+    enableRoute: 'api/Routes',
+    deleteRoute: 'api/Routes'
 }
 
 

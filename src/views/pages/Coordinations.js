@@ -611,7 +611,7 @@ const Coords = () => {
                                                     onChange={(e) => {
                                                         setFormData({
                                                             ...formData,
-                                                            datedueDateTime: e.target.value
+                                                            dueDate: e.target.value
                                                         });
                                                     }}
                                                 />
@@ -653,7 +653,7 @@ const Coords = () => {
                                             {currentCoordinationList.map((coordination, index) => (
                                                 <tr key={index}>
                                                     <td>
-                                                        <span>{coordination.id ? coordination.id : "none"}</span>
+                                                        <span>{coordination.id}</span>
                                                     </td>
                                                     {/* <td>
                                                         <span className="link-style" onClick={(e) => {
@@ -664,8 +664,8 @@ const Coords = () => {
                                                     <td>
                                                         <span className="link-style" onClick={(e) => {
                                                             e.preventDefault()
-                                                            // handleShowDetails(coordination.id)
-                                                        }}>{coordination.driverCode ? coordination.driverCode : "none"}</span>
+                                                            handleShowDetails(coordination.id)
+                                                        }}>{coordination.driverCode}</span>
 
                                                     </td>
                                                     {/* <td>
@@ -678,7 +678,7 @@ const Coords = () => {
                                                         <span className="link-style" onClick={(e) => {
                                                             e.preventDefault()
                                                             handleShowDetails(coordination.id)
-                                                        }}>{coordination.busCode ? coordination.busCode : "none"}</span>
+                                                        }}>{coordination.busCode}</span>
                                                     </td>
                                                     {/* <td>
                                                         <span className="link-style" onClick={(e) => {
@@ -696,22 +696,20 @@ const Coords = () => {
                                                         <span className="link-style" onClick={(e) => {
                                                             e.preventDefault()
                                                             handleShowDetails(coordination.id)
-                                                        }}>{coordination.beginning ? coordination.beginning : "none"}</span>
+                                                        }}>{coordination.beginning}</span>
                                                     </td>
                                                     <td>
                                                         <span className="link-style" onClick={(e) => {
                                                             e.preventDefault()
                                                             handleShowDetails(coordination.id)
-                                                        }}>{coordination.destination ? coordination.destination : "none"}</span>
+                                                        }}>{coordination.destination}</span>
                                                     </td>
                                                     <td>
                                                         <span className="link-style" onClick={(e) => {
                                                             e.preventDefault();
                                                             handleShowDetails(coordination.id);
                                                         }}>
-                                                            {coordination.dateLine
-                                                                ? format(new Date(coordination.dateLine), 'MM-dd-yyyy HH:mm')
-                                                                : 'none'}
+                                                            {coordination.dueDate && format(new Date(coordination.dateLine), 'MM-dd-yyyy HH:mm')}
                                                         </span>
                                                     </td>
                                                     <td>
@@ -719,9 +717,7 @@ const Coords = () => {
                                                             e.preventDefault();
                                                             handleShowDetails(coordination.id);
                                                         }}>
-                                                            {coordination.dueDate
-                                                                ? format(new Date(coordination.dueDate), 'MM-dd-yyyy HH:mm')
-                                                                : 'none'}
+                                                            {coordination.dueDate && format(new Date(coordination.dueDate), 'MM-dd-yyyy HH:mm')}
                                                         </span>
                                                     </td>
                                                     <td>

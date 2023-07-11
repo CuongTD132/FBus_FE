@@ -1,7 +1,9 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button, Form, Modal, Table } from 'react-bootstrap';
 import "../../style/Manager.css"
 import defaultStation from '../../assets/img/station.png'
+import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import axios from "axios";
 
 import {
   Card,
@@ -35,7 +37,6 @@ import { useDispatch, useSelector } from "react-redux";
 import { updateStation } from "../../redux/reducer";
 import { isTokenExpired } from "../../services/checkToken";
 
-
 const Stations = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -44,7 +45,13 @@ const Stations = () => {
   const [showUpdate, setShowUpdate] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
   const [showToggleStatus, setShowToggleStatus] = useState(false);
+  const [showMap, setShowMap] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
+  const markerRef = useRef(null);
+  const [address, setAddress] = useState(null);
+  const [display_name, setDisplay_name] = useState(null);
+  const [markerPosition, setMarkerPosition] = useState({ lat: 10.840903, lng: 106.809889 });
+  const [markerDraggable, setMarkerDraggable] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     code: "",
@@ -89,8 +96,10 @@ const Stations = () => {
   const fetchStationDetails = (id) => {
     getSingleStation(id)
       .then((res) => {
-        setFormData(res.data)
-      })
+        setFormData(res.data);
+        const { latitude, longitude } = res.data;
+        setMarkerPosition({ lat: latitude, lng: longitude });
+      });
   };
 
   // Fetch list of Station and pass to table
@@ -106,7 +115,7 @@ const Stations = () => {
           dispatch(updateStation([]))
         }
       })
-    } else{
+    } else {
       getAllStations()
         .then((res) => setStationList(res.data.data))
         .catch((error) => {
@@ -115,20 +124,6 @@ const Stations = () => {
     }
   };
 
-  // Call show detail form
-  const handleShowDetails = (id) => {
-    if (isTokenExpired()) {
-      toast("You need to log in again to continue!", {
-        autoClose: 1000,
-        onClose: () => {
-          navigate("/auth/login");
-        },
-      });
-    } else {
-      fetchStationDetails(id);
-      setShowDetails(true); // Show the modal
-    }
-  }
 
   // --UPDATE FUNCTIONS
   const handleUpdateClose = () => {
@@ -169,7 +164,7 @@ const Stations = () => {
           toast.error("Failed to update the station!", {
             autoClose: 1000,
           });
-        setShowUpdate(true);
+          setShowUpdate(true);
         }
       })
   }
@@ -334,10 +329,100 @@ const Stations = () => {
   // REDUX
   const stations = useSelector((state) => state.stations.value);
   const currentSearchStation = useSelector((state) => state.stations.currentSearchStation);
-  React.useEffect(() => {
+  useEffect(() => {
     setStationList(stations)
   }, [stations])
   // END REDUX
+
+  //MAPPING
+  const handleMarkerMove = (e) => {
+    const { lat, lng } = e.target.getLatLng();
+    setMarkerPosition({ lat, lng });
+    setFormData(prevFormData => ({
+      ...prevFormData,
+      latitude: lat,
+      longitude: lng
+    }));
+  };
+  const handleShowCurrentMap = (id) => {
+    if (isTokenExpired()) {
+      toast("You need to log in again to continue!", {
+        autoClose: 1000,
+        onClose: () => {
+          navigate("/auth/login");
+        },
+      });
+    } else {
+      fetchStationDetails(id);
+      setTimeout(() => {
+        setShowMap(true);
+      }, 500);
+    }
+  }
+
+
+  const handleShowNewMap = () => {
+    if (isTokenExpired()) {
+      toast("You need to log in again to continue!", {
+        autoClose: 1000,
+        onClose: () => {
+          navigate("/auth/login");
+        },
+      });
+    } else {
+      setMarkerPosition({ lat: 10.840903, lng: 106.809889 });
+      setTimeout(() => {
+        setShowMap(true);
+      }, 500);
+    }
+  }
+
+
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem("user"));
+    if (user == null || !user || isTokenExpired()) {
+      toast.info("You need to log in to continue!", {
+        position: "top-center",
+        autoClose: 1500,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: false,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+        onClose: () => {
+          navigate("/auth/login");
+          if (isTokenExpired()) {
+            localStorage.removeItem('user');
+          }
+        },
+      });
+      return;
+    }
+  }, [navigate]);
+
+  useEffect(() => {
+    const fetchAddress = async () => {
+      try {
+        const response = await axios.get(
+          `https://nominatim.openstreetmap.org/reverse?format=json&lat=${markerPosition.lat}&lon=${markerPosition.lng}&zoom=18&addressdetails=1`
+        );
+        if (response.status === 200) {
+          const { address } = response.data;
+          const display_name = response.data.display_name;
+          setAddress(address);
+          setDisplay_name(display_name)
+
+        }
+      } catch (error) {
+        console.log("Error:", error);
+      }
+    };
+
+    fetchAddress();
+  }, [markerPosition]);
+  //END MAPPING
+
 
   return (
     <>
@@ -351,7 +436,64 @@ const Stations = () => {
                 <h3 className="mb-0">Manager Stations</h3>
               </CardHeader>
               <CardBody>
-
+                <Modal show={showMap} backdrop="static" onHide={() => setShowMap(false)} size="lg" animation={true}>
+                  {/* <Modal.Header > */}
+                  {/* </Modal.Header> */}
+                  <Modal.Body >
+                    <MapContainer
+                      center={markerPosition}
+                      zoom={15}
+                      scrollWheelZoom={true}
+                      zoomControl={true}
+                      style={{ height: "700px", borderRadius: "5px" }}
+                    >
+                      <TileLayer
+                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                        attribution='Map data © <a href="https://openstreetmap.org">OpenStreetMap</a> contributors'
+                      />
+                      <Marker
+                        position={[markerPosition.lat, markerPosition.lng]}
+                        draggable={markerDraggable}
+                        eventHandlers={
+                          markerDraggable
+                            ? {
+                              dragend: handleMarkerMove,
+                            }
+                            :
+                            {
+                              click: () => setShowDetails(true),
+                            }
+                        }
+                        ref={markerRef}
+                      >
+                        {markerDraggable && ( // Show the popup only when markerDraggable is true
+                          <Popup>
+                            <div className="info-window-content">
+                              {/* {address && (
+                                <>
+                                  <p>{address.amenity}</p>
+                                  <p>{address.house_number}</p>
+                                  <p>{address.road}</p>
+                                  <p>{address.suburb}</p>
+                                  <p>{address.city}</p>
+                                  <p>{address.state}</p>
+                                </>
+                              )} */}
+                              <p>{display_name}</p>
+                              {/* <p>Latitude: {markerPosition.lat}</p>
+                              <p>Longitude: {markerPosition.lng}</p> */}
+                            </div>
+                          </Popup>
+                        )}
+                      </Marker>
+                    </MapContainer>
+                  </Modal.Body>
+                  <Modal.Footer>
+                    <Button variant="secondary" onClick={() => { setShowMap(false); setMarkerDraggable(false); }}>
+                      Close
+                    </Button>
+                  </Modal.Footer>
+                </Modal>
 
                 <Modal show={showToggleStatus} onHide={() => setShowToggleStatus(false)} animation={true}>
                   <Modal.Header >
@@ -389,7 +531,7 @@ const Stations = () => {
                     <Modal.Title>Add station</Modal.Title>
                   </Modal.Header>
                   <Modal.Body>
-                    <Form>                      
+                    <Form>
                       <Form.Group className="mb-3" controlId="code">
                         <Form.Label>Code</Form.Label>
                         <Form.Control
@@ -507,21 +649,10 @@ const Stations = () => {
                           }}
                         />
                       </Form.Group>
-                      <Form.Group className="mb-3" controlId="longitude">
-                        <Form.Label>Longtitude</Form.Label>
-                        <Form.Control
-                          type="number"
-                          name="longitude"
-                          placeholder="Longtitude"
-                          required
-                          value={formData.longitude}
-                          onChange={(e) => {
-                            setFormData({
-                              ...formData,
-                              longitude: e.target.value
-                            })
-                          }}
-                        />
+                      <Form.Group className="mb-3" >
+                        <Button variant="primary" size="sm" onClick={() => { handleShowNewMap(); setMarkerDraggable(true); }}>
+                          Add Location
+                        </Button>
                       </Form.Group>
                       <Form.Group className="mb-3" controlId="latitude">
                         <Form.Label>Latitude</Form.Label>
@@ -529,7 +660,7 @@ const Stations = () => {
                           type="number"
                           name="latitude"
                           placeholder="Latitude"
-                          required
+                          readOnly
                           value={formData.latitude}
                           onChange={(e) => {
                             setFormData({
@@ -539,12 +670,27 @@ const Stations = () => {
                           }}
                         />
                       </Form.Group>
+                      <Form.Group className="mb-3" controlId="longitude">
+                        <Form.Label>Longitude</Form.Label>
+                        <Form.Control
+                          type="number"
+                          name="longitude"
+                          placeholder="Longitude"
+                          readOnly
+                          value={formData.longitude}
+                          onChange={(e) => {
+                            setFormData({
+                              ...formData,
+                              longitude: e.target.value
+                            })
+                          }}
+                        />
+                      </Form.Group>
                       <Form.Group className="mb-3" controlId="image">
                         <Form.Label>Image</Form.Label>
                         <Form.Control
                           type="file"
                           name="image"
-                          placeholder="Image"
                           onChange={(e) => {
                             setFormData({
                               ...formData,
@@ -571,7 +717,14 @@ const Stations = () => {
                     <Modal.Title>Station detail</Modal.Title>
                   </Modal.Header>
                   <Modal.Body>
-                  <Form>                      
+                    <Form>
+                      <Form.Group className="mb-3 d-flex justify-content-center align-items-center" >
+                        {formData.image ? (
+                          <img className="station-img" src={formData.image} alt="" />
+                        ) : (
+                          <img className="station-img" src={defaultStation} alt="" />
+                        )}
+                      </Form.Group>
                       <Form.Group className="mb-3" controlId="code">
                         <Form.Label>Code</Form.Label>
                         <Form.Control
@@ -580,7 +733,7 @@ const Stations = () => {
                           placeholder="Code"
                           autoFocus
                           readOnly
-                          value={formData.code}                         
+                          value={formData.code}
                         />
                       </Form.Group>
                       <Form.Group className="mb-3" controlId="name">
@@ -648,17 +801,6 @@ const Stations = () => {
                           value={formData.city}
                         />
                       </Form.Group>
-                      <Form.Group className="mb-3" controlId="longitude">
-                        <Form.Label>Longtitude</Form.Label>
-                        <Form.Control
-                          type="number"
-                          name="longitude"
-                          placeholder="Longtitude"
-                          autoFocus
-                          readOnly
-                          value={formData.longitude}
-                        />
-                      </Form.Group>
                       <Form.Group className="mb-3" controlId="latitude">
                         <Form.Label>Latitude</Form.Label>
                         <Form.Control
@@ -669,7 +811,18 @@ const Stations = () => {
                           readOnly
                           value={formData.latitude}
                         />
-                      </Form.Group>                    
+                      </Form.Group>
+                      <Form.Group className="mb-3" controlId="longitude">
+                        <Form.Label>Longitude</Form.Label>
+                        <Form.Control
+                          type="number"
+                          name="longitude"
+                          placeholder="Longitude"
+                          autoFocus
+                          readOnly
+                          value={formData.longitude}
+                        />
+                      </Form.Group>
                     </Form>
                   </Modal.Body>
                   <Modal.Footer>
@@ -682,9 +835,10 @@ const Stations = () => {
                 <Modal show={showUpdate} onHide={handleUpdateClose}>
                   <Modal.Header >
                     <Modal.Title>Update station</Modal.Title>
+
                   </Modal.Header>
                   <Modal.Body>
-                  <Form>                      
+                    <Form>
                       <Form.Group className="mb-3" controlId="code">
                         <Form.Label>Code</Form.Label>
                         <Form.Control
@@ -802,32 +956,40 @@ const Stations = () => {
                           }}
                         />
                       </Form.Group>
-                      <Form.Group className="mb-3" controlId="longitude">
-                        <Form.Label>Longtitude</Form.Label>
-                        <Form.Control
-                          type="number"
-                          name="longitude"
-                          placeholder="Longtitude"
-                          value={formData.longitude}
-                          onChange={(e) => {
-                            setFormData({
-                              ...formData,
-                              longitude: e.target.value
-                            })
-                          }}
-                        />
+                      <Form.Group className="mb-3" >
+                        <Button variant="primary" size="sm" onClick={() => { setShowMap(true); setMarkerDraggable(true); }}>
+                          Change Location
+                        </Button>
                       </Form.Group>
                       <Form.Group className="mb-3" controlId="latitude">
                         <Form.Label>Latitude</Form.Label>
                         <Form.Control
-                          type="number"
+                          type="text"
                           name="latitude"
                           placeholder="Latitude"
+                          readOnly
                           value={formData.latitude}
                           onChange={(e) => {
                             setFormData({
                               ...formData,
                               latitude: e.target.value
+                            })
+                          }}
+                        />
+                      </Form.Group>
+
+                      <Form.Group className="mb-3" controlId="longitude">
+                        <Form.Label>Longitude</Form.Label>
+                        <Form.Control
+                          type="text"
+                          name="longitude"
+                          placeholder="Longitude"
+                          readOnly
+                          value={formData.longitude}
+                          onChange={(e) => {
+                            setFormData({
+                              ...formData,
+                              longitude: e.target.value
                             })
                           }}
                         />
@@ -860,12 +1022,11 @@ const Stations = () => {
 
                 {/* Table list */}
                 <div className="list">
-                  <Button variant="primary" onClick={handleAddOpen} size="md" className="add_button">Add Station +</Button>
+                  <Button variant="primary" onClick={handleAddOpen} className="add_button">Add Station +</Button>
                   <Table striped bordered hover>
                     <thead>
                       <tr>
                         <th>Id</th>
-                        <th>Image</th>
                         <th>Code</th>
                         <th>Name</th>
                         <th>District</th>
@@ -880,36 +1041,36 @@ const Stations = () => {
                           <td>
                             <span>{station.id ? station.id : "none"}</span>
                           </td>
-                          <td>
+                          {/* <td>
                             {station.image ? (
                               <img className="station-img" src={station.image} alt="" />
                             ) : (
                               <img className="station-img" src={defaultStation} alt="" />
                             )}
-                          </td>
+                          </td> */}
                           <td>
                             <span className="link-style" onClick={(e) => {
                               e.preventDefault()
-                              handleShowDetails(station.id)
+                              handleShowCurrentMap(station.id);
                             }}>{station.code ? station.code : "none"}</span>
 
                           </td>
                           <td>
                             <span className="link-style" onClick={(e) => {
                               e.preventDefault()
-                              handleShowDetails(station.id)
+                              handleShowCurrentMap(station.id);
                             }}>{station.name ? station.name : "none"}</span>
                           </td>
                           <td>
                             <span className="link-style" onClick={(e) => {
                               e.preventDefault()
-                              handleShowDetails(station.id)
+                              handleShowCurrentMap(station.id);
                             }}>{station.district ? station.district : "none"}</span>
                           </td>
                           <td>
                             <span className="link-style" onClick={(e) => {
                               e.preventDefault()
-                              handleShowDetails(station.id)
+                              handleShowCurrentMap(station.id);
                             }}>{station.city ? station.city : "none"}</span>
                           </td>
                           <td>

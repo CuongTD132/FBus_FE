@@ -401,7 +401,7 @@ const Buses = () => {
                   </Modal.Footer>
                 </Modal>
 
-                <Modal className="modal-right" show={showToggleStatus} onHide={() => setShowToggleStatus(false)} animation={true}>
+                <Modal className="modal" show={showToggleStatus} onHide={() => setShowToggleStatus(false)} animation={true}>
                   <Modal.Header >
                     <Modal.Title>Enable/Disable bus</Modal.Title>
                   </Modal.Header>

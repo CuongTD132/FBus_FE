@@ -1,67 +1,23 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Card, Container, Row } from "reactstrap";
 import Header from "../../components/Headers/Header";
 import { isTokenExpired } from "../../services/checkToken";
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useNavigate } from "react-router-dom";
+import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import axios from "axios";
 
 const MapWrapper = () => {
-  const mapRef = useRef(null);
   const markerRef = useRef(null);
   const navigate = useNavigate();
+  const [address, setAddress] = useState(null);
+  const [markerPosition, setMarkerPosition] = useState({ lat: 10.840903, lng: 106.809889 });
 
-  const initMap = () => {
-    let map = mapRef.current;
-    let lat = 10.840903;
-    let lng = 106.809889;
-    const myLatlng = new window.google.maps.LatLng(lat, lng);
-    const mapOptions = {
-      zoom: 19,
-      center: myLatlng,
-      scrollwheel: true,
-      zoomControl: true,
-      mapTypeId: 'hybrid',
-      styles: [
-        // map styles
-      ],
-    };
-
-    map = new window.google.maps.Map(map, mapOptions);
-
-    const marker = new window.google.maps.Marker({
-      position: myLatlng,
-      map: map,
-      animation: window.google.maps.Animation.DROP,
-      title: "Bus Station",
-    });
-
-    markerRef.current = marker;
-
-    const contentString =
-      '<div class="info-window-content"><h2>Bus Station</h2>' +
-      `<p>Latitude: ${myLatlng.lat()}</p>` +
-      `<p>Longitude: ${myLatlng.lng()}</p>` +
-      '</div>';
-
-    const infowindow = new window.google.maps.InfoWindow({
-      content: contentString,
-    });
-
-    window.google.maps.event.addListener(marker, "click", function () {
-      infowindow.open(map, marker);
-    });
-
-    window.google.maps.event.addListener(map, "click", function (event) {
-      const clickedLatlng = event.latLng;
-      marker.setPosition(clickedLatlng);
-      infowindow.setContent(
-        '<div class="info-window-content"><h2>Bus Station</h2>' +
-        `<p>Latitude: ${clickedLatlng.lat()}</p>` +
-        `<p>Longitude: ${clickedLatlng.lng()}</p>` +
-        '</div>'
-      );
-    });
+  
+  const handleMarkerMove = (e) => {
+    const { lat, lng } = e.target.getLatLng();
+    setMarkerPosition({ lat, lng });
   };
 
   useEffect(() => {
@@ -84,31 +40,66 @@ const MapWrapper = () => {
         },
       });
       return;
-    } else {
-      if (window.google && window.google.maps) {
-        initMap();
-      } else {
-        const script = document.createElement("script");
-        script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.REACT_APP_GOOGLE_API_KEY}&callback=initMap`;
-        script.async = true;
-        script.defer = true;
-        document.body.appendChild(script);
-
-        return () => {
-          document.body.removeChild(script);
-        };
-      }
     }
   }, [navigate]);
 
+  useEffect(() => {
+    const fetchAddress = async () => {
+      try {
+        const response = await axios.get(
+          `https://nominatim.openstreetmap.org/reverse?format=json&lat=${markerPosition.lat}&lon=${markerPosition.lng}&zoom=18&addressdetails=1`
+        );
+        if (response.status === 200) {
+          const { address } = response.data;
+          setAddress(address);
+          console.log(address);
+
+        }
+      } catch (error) {
+        console.log("Error:", error);
+      }
+    };
+
+    fetchAddress();
+  }, [markerPosition]);
+
   return (
     <>
-      <div
-        style={{ height: `700px` }}
-        className="map-canvas"
-        id="map-canvas"
-        ref={mapRef}
-      ></div>
+      <MapContainer
+        center={[markerPosition.lat, markerPosition.lng]}
+        zoom={19}
+        scrollWheelZoom={true}
+        zoomControl={true}
+        style={{ height: "700px", borderRadius: "5px" }}
+      >
+        <TileLayer
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution='Map data © <a href="https://openstreetmap.org">OpenStreetMap</a> contributors'
+        />
+        <Marker
+          position={[markerPosition.lat, markerPosition.lng]}
+          draggable={true}
+          eventHandlers={{
+            dragend: handleMarkerMove,
+          }}
+          ref={markerRef}
+        >
+          <Popup>
+            <div className="info-window-content">
+              <h2>Bus Station</h2>
+              {address && (
+                <>
+                  <p>{address.amenity}</p>
+                  <p>Address: {address.house_number}, {address.road}, {address.suburb}, {address.city} </p>
+                </>
+              )}
+              <p>Latitude: {markerPosition.lat}</p>
+              <p>Longitude: {markerPosition.lng}</p>
+
+            </div>
+          </Popup>
+        </Marker>        
+      </MapContainer>
     </>
   );
 };

@@ -1,12 +1,12 @@
 import axios from "axios";
 const URL = process.env.REACT_APP_SERVER;
 const END_POINTS = {
-    getMultiStations: '/api/Stations',
-    addStation: '/api/Stations',
-    updateStation: '/api/Stations',
-    getSingleStation: '/api/Stations',
-    patchStation: '/api/Stations',
-    deleteStation: '/api/Stations'
+    getMultiStations: 'api/Stations',
+    addStation: 'api/Stations',
+    updateStation: 'api/Stations',
+    getSingleStation: 'api/Stations',
+    patchStation: 'api/Stations',
+    deleteStation: 'api/Stations'
 }
 
 
@@ -36,7 +36,7 @@ export const addStationAPI = async (station) => {
     formData.append('district', station.district);
     formData.append('city', station.city);
     formData.append('image', station.image);
-    formData.append('longtitude', station.longtitude);
+    formData.append('longitude', station.longitude);
     formData.append('latitude', station.latitude);
     if (user && user.accessToken) {
         return await axios.post(`${URL}/${END_POINTS.addStation}`,
@@ -61,7 +61,7 @@ export const updateStationAPI = async (station, id) => {
     formData.append('district', station.district);
     formData.append('city', station.city);
     formData.append('image', station.image);
-    formData.append('longtitude', station.longtitude);
+    formData.append('longitude', station.longitude);
     formData.append('latitude', station.latitude);
     if (user && user.accessToken) {
         return await axios.put(`${URL}/${END_POINTS.updateStation}/${id}`,

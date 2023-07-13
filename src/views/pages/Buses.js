@@ -204,6 +204,9 @@ const Buses = () => {
         toast.error("Failed to update the bus!", {
           autoClose: 1000,
         });
+        toast.error(e.response, {
+          autoClose: 1000,
+        });
         setShowUpdate(true);
       })
   }
@@ -301,6 +304,7 @@ const Buses = () => {
         toast.error("Failed to add this bus!", {
           autoClose: 1000,
         });
+        //toast error from API
         Object.keys(e.response.data.errors).forEach((key) => {
           toast.error("Error: " + e.response.data.errors[key], {
             autoClose: 3000,

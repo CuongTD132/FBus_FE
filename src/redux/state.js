@@ -1,5 +1,5 @@
 import { configureStore } from "@reduxjs/toolkit";
-import { busSlice, accountSlide, driverSlide, stationSlide, routeSlide, coordinationSlide } from "./reducer";
+import { busSlice, accountSlide, driverSlide, stationSlide, routeSlide } from "./reducer";
 
 export const store = configureStore({
     reducer: {
@@ -8,6 +8,5 @@ export const store = configureStore({
         drivers: driverSlide.reducer,
         stations: stationSlide.reducer,
         routes: routeSlide.reducer,
-        // coordinations: coordinationSlide.reducer,
     }
 })

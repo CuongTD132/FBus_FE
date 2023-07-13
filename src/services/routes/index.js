@@ -24,7 +24,7 @@ export const addRouteAPI = async (route) => {
             formData,
             {
                 headers: {
-                    Authorization: `Bearer ${JSON.parse(localStorage.getItem("user")).accessToken}`,
+                    Authorization: `Bearer ${user.accessToken}`,
                     "Content-Type": "multipart/form-data",
                 },
             });
@@ -41,9 +41,11 @@ export const updateRouteAPI = async (route, id) => {
         formData.append("stationIds[]", stationId);
     });
     if (user && user.accessToken) {
-        return await axios.post(`${URL}/${END_POINTS.updateRoute}`, formData, {
+        return await axios.put(`${URL}/${END_POINTS.updateRoute}/${id}`, 
+        formData, 
+        {
             headers: {
-                Authorization: `Bearer ${JSON.parse(localStorage.getItem("user")).accessToken}`,
+                Authorization: `Bearer ${user.accessToken}`,
                 "Content-Type": "multipart/form-data",
             },
         });
@@ -90,23 +92,29 @@ export const getAllRoutes = async () => {
 
 
 export const deleteRouteAPI = async (routId) => {
-    return await axios.delete(`${URL}/${END_POINTS.deleteRoute}/${routId}`,
-        {
-            headers: {
-                Authorization: `Bearer ${JSON.parse(localStorage.getItem('user')).accessToken}`,
-            },
-        });
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (user && user.accessToken) {
+        return await axios.delete(`${URL}/${END_POINTS.deleteRoute}/${routId}`,
+            {
+                headers: {
+                    Authorization: `Bearer ${user.accessToken}`,
+                },
+            });
+    }
 }
 
 
 export const toggleStatusAPI = async (routId, status) => {
-    return await axios.patch(`${URL}/${END_POINTS.enableRoute}/${routId}`,
-        status,
-        {
-            headers: {
-                Authorization: `Bearer ${JSON.parse(localStorage.getItem('user')).accessToken}`,
-                "Content-Type": "application/json"
-            },
-        })
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (user && user.accessToken) {
+        return await axios.patch(`${URL}/${END_POINTS.enableRoute}/${routId}`,
+            status,
+            {
+                headers: {
+                    Authorization: `Bearer ${user.accessToken}`,
+                    "Content-Type": "application/json"
+                },
+            })
+    }
 }
 

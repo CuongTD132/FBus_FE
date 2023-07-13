@@ -79,28 +79,12 @@ export const  routeSlide = createSlice({
         },
     }
 });
-// export const  coordinationSlide = createSlice({
-//     name: 'COORDINATIONS',
-//     initialState: {
-//         value: [],
-//         currentSearchCoordination: ""
-//     },
-//     reducers: {
-//         updateCoordination: (state, action) => {
-//             state.value = action.payload;
-//         },
-//         setCurrentSearchCoordination: (state, action) => {
-//             state.currentSearchCoordination = action.payload;
-//         },
-//     }
-// });
+
 
 export const { updateBus, setCurrentSearchBus } = busSlice.actions;
 export const { updateAccount, setCurrentSearchAccount } = accountSlide.actions;
 export const { updateDriver, setCurrentSearchDriver } = driverSlide.actions;
 export const { updateStation, setCurrentSearchStation } = stationSlide.actions;
 export const { updateRoute, setCurrentSearchRoute } = routeSlide.actions;
-
-// export const { updateCoordination, setCurrentSearchCoordination } = stationSlide.actions;
 
 

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Button, Form, Modal, Table } from 'react-bootstrap';
 import "../../style/Manager.css"
 import { format } from 'date-fns';
+import axios from "axios";
 import {
     Card,
     CardHeader,
@@ -19,8 +20,8 @@ import {
 } from "reactstrap";
 import Header from "../../components/Headers/Header";
 import {
-    addCoordinationAPI,
-    updateCoordinationAPI,
+    // addCoordinationAPI,
+    // updateCoordinationAPI,
     getSingleCoordination,
     getAllCoordinations,
     deleteCoordinationAPI,
@@ -140,36 +141,51 @@ const Coords = () => {
             setShowUpdate(true); // show update modal
         }
     };
-    const updateCoordinationData = () => {
+    const updateCoordinationData = async () => {
         if (formData.note === null) {
             formData.note = "";
         }
-        updateCoordinationAPI(formData, formData.id)
-            .then((res) => {
-                // console.log(res);
-                if (res.status === 200) {
-                    toast.success("Coordination update successfully!", {
-                        autoClose: 1000,
-                    });
+        try {
+            const user = JSON.parse(localStorage.getItem('user'));
+            const res = await axios.put(
+                `https://fbus-final.azurewebsites.net/api/coordinations/${formData.id}`,
+                formData,
+                {
+                    headers: {
+                        "Authorization": `Bearer ${user.accessToken}`,
+                        "Content-Type": "multipart/form-data"
+                    }
                 }
-                setShowUpdate(false);
-                // fetchCoordinations();
-            })
-            .catch((e) => {
-                if (e.response && e.response.status === 401) {
-                    toast("You need to log in again to continue!", {
-                        autoClose: 1000,
-                    });
-                    navigate("/auth/login");
-                } else {
-                    toast.error("Failed to update the coordination!", {
-                        autoClose: 1000,
-                    });
-                    setShowUpdate(true);
+            );
+    
+            if (res.status === 200) {
+                toast.success("Coordination updated successfully!", {
+                    autoClose: 1000,
+                });
+            }
+            setShowUpdate(false);
+            try {
+                const response = await getAllCoordinations();
+                setCoordinationList(response.data.data);
+            } catch (error) {
+                console.log(error);
+            }
+        } catch (e) {
+            if (e.response && e.response.status === 401) {
+                toast("You need to log in again to continue!", {
+                    autoClose: 1000,
+                });
+                navigate("/auth/login");
+            } else {
+                toast.error("Failed to update the coordination!", {
+                    autoClose: 1000,
+                });
+                setShowUpdate(true);
+            }
+        }
+    };
+    
 
-                }
-            })
-    }
     // END UPDATE FUNCTIONS
 
     // TOGGLE STATUS FUNCTION
@@ -191,6 +207,13 @@ const Coords = () => {
                     autoClose: 1000,
                 });
                 setShowToggleStatus(false);
+                getAllCoordinations()
+                    .then((res) => {
+                        setCoordinationList(res.data.data);
+                    })
+                    .catch((error) => {
+                        console.log(error);
+                    });
             })
             .catch((e) => {
                 if (e.response && e.response.status === 401) {
@@ -234,7 +257,13 @@ const Coords = () => {
                     });
                 }
                 setShowDelete(false);
-                // fetchCoordinations();
+                getAllCoordinations()
+                    .then((res) => {
+                        setCoordinationList(res.data.data);
+                    })
+                    .catch((error) => {
+                        console.log(error);
+                    });
             })
             .catch((e) => {
                 if (e.response && e.response.status === 401) {
@@ -252,19 +281,29 @@ const Coords = () => {
     // END DELETE FUNCTIONS
 
     // ADD
-    const handleAddCoordination = () => {
-        addCoordinationAPI(formData)
-            .then((res) => {
-                // console.log(res);
+    const handleAddCoordination = async () => {
+        const user = JSON.parse(localStorage.getItem('user'));
+
+        if (user?.accessToken) {
+            try {
+                const res = await axios.post(
+                    "https://fbus-final.azurewebsites.net/api/coordinations",
+                    formData,
+                    {
+                        headers: {
+                            "Authorization": `Bearer ${user.accessToken}`,
+                            "Content-Type": "multipart/form-data"
+                        }
+                    }
+                );
+
                 if (res.status === 200) {
-                    toast.success("Coordination has been add successfully!", {
+                    toast.success("Coordination has been added successfully!", {
                         autoClose: 1000,
                     });
-                    // fetchCoordinations()
                     setShowAdd(false);
                 }
-            })
-            .catch((e) => {
+            } catch (e) {
                 if (e.response && e.response.status === 401) {
                     toast("You need to log in again to continue!", {
                         autoClose: 1000,
@@ -276,8 +315,10 @@ const Coords = () => {
                     });
                     setShowAdd(true);
                 }
-            });
+            }
+        }
     };
+
     const handleAddClose = () => {
         setShowAdd(false);
     }
@@ -390,24 +431,24 @@ const Coords = () => {
                                                     placeholder="DriverID"
                                                     autoFocus
                                                     required
-                                                    // value={formData.driverId}
                                                     onChange={(e) => {
                                                         setFormData({
                                                             ...formData,
                                                             driverId: e.target.value
-                                                        })
+                                                        });
                                                     }}
                                                 />
+
                                             </Form.Group>
                                             <Form.Group className="mb-3" controlId="busId">
                                                 <Form.Label>BusID</Form.Label>
+
                                                 <Form.Control
                                                     type="number"
                                                     name="busId"
                                                     placeholder="BusID"
                                                     autoFocus
                                                     required
-                                                    // value={formData.busId}
                                                     onChange={(e) => {
                                                         setFormData({
                                                             ...formData,
@@ -424,7 +465,6 @@ const Coords = () => {
                                                     placeholder="RouteID"
                                                     autoFocus
                                                     required
-                                                    // value={formData.routeId}
                                                     onChange={(e) => {
                                                         setFormData({
                                                             ...formData,
@@ -439,7 +479,7 @@ const Coords = () => {
                                                     type="text"
                                                     name="note"
                                                     placeholder="Note"
-                                                    // value={formData.note || ""}
+                                                    value={formData.note || ""}
                                                     onChange={(e) => {
                                                         setFormData({
                                                             ...formData,
@@ -454,17 +494,11 @@ const Coords = () => {
                                                     type="datetime-local"
                                                     name="dateLine"
                                                     required
-                                                    // value={formData.dateLine}
                                                     onChange={(e) => {
-                                                        // const inputDate = e.target.value;
-                                                        // const formattedDate = inputDate.replace("T", " ");
-                                                        // const test = ("2023-07-16T11:41")
                                                         setFormData({
                                                             ...formData,
                                                             dateLine: e.target.value
                                                         });
-                                                        console.log(e.target.value)
-
                                                     }}
                                                 />
                                             </Form.Group>
@@ -472,19 +506,13 @@ const Coords = () => {
                                                 <Form.Label>Due Date(MM-DD-YYYY HH:mm)</Form.Label>
                                                 <Form.Control
                                                     type="datetime-local"
-                                                    name="dueDate"
+                                                    name="dateLine"
                                                     required
-                                                    value={formData.dueDate}
                                                     onChange={(e) => {
-                                                        // const inputDate = e.target.value;
-                                                        // const formattedDate = inputDate
-                                                        //     .replace("T", " ")
-                                                        // const test = ("2023-07-17T11:41")                                                        
                                                         setFormData({
                                                             ...formData,
                                                             dueDate: e.target.value
                                                         });
-                                                        console.log(e.target.value)
                                                     }}
                                                 />
                                             </Form.Group>

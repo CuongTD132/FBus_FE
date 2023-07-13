@@ -25,9 +25,8 @@ import { getMultiDriversAPI } from "../../services/driver";
 import { getMultiAccounts } from "../../services/account";
 import { getMultiStationsAPI } from "../../services/station";
 import { getMultiRoutesAPI } from "../../services/routes";
-// import { getMultiCoordinationsAPI } from "../../services/coordinations";
 import { useDispatch } from "react-redux";
-import { setCurrentSearchBus, updateBus, setCurrentSearchAccount, updateAccount, setCurrentSearchDriver, updateDriver, updateStation, setCurrentSearchStation, updateRoute, setCurrentSearchRoute, updateCoordination, setCurrentSearchCoordination } from "../../redux/reducer";
+import { setCurrentSearchBus, updateBus, setCurrentSearchAccount, updateAccount, setCurrentSearchDriver, updateDriver, updateStation, setCurrentSearchStation, updateRoute, setCurrentSearchRoute } from "../../redux/reducer";
 
 const AdminNavbar = (props) => {
   const navigate = useNavigate();
@@ -120,23 +119,8 @@ const AdminNavbar = (props) => {
         dispatch(updateRoute([]))
       }
     })
-
-    // getMultiCoordinationsAPI({
-    //   driverId: searchString,
-    //   busId: searchString,
-    //   routeId: searchString,
-    // }).then((res) => {
-    //   // console.log(res.data)
-    //   if (res.data.data != null) {
-    //     dispatch(updateCoordination(res.data.data))
-    //     dispatch(setCurrentSearchCoordination(searchString))
-    //   } else {
-    //     dispatch(updateCoordination([]))
-    //   }
-    // })
   }
-
-
+ 
   // END FUNCTIONS
 
   return (

@@ -50,6 +50,7 @@ const Routes = () => {
     distance: "",
     stationIds: "",
   });
+
   const [detailData, setDetailData] = useState(({}))
   const stationIds = detailData.stations?.map(station => station.stationId).join(', ') || "";
 
@@ -82,10 +83,15 @@ const Routes = () => {
   }, [navigate])
   // Fetch detail information and pass to detail form
   const fetchRouteDetails = (id) => {
-    getSingleRoute(id)
-      .then((res) => {
-        setDetailData(res.data)
-      })
+    return new Promise((resolve, reject) => {
+      getSingleRoute(id)
+        .then((res) => {
+          resolve(res.data);
+        })
+        .catch((error) => {
+          reject(error);
+        });
+    });
   };
 
   // Fetch list of Route and pass to table
@@ -130,7 +136,7 @@ const Routes = () => {
   const handleUpdateClose = () => {
     setShowUpdate(false);
   }
-  const handleUpdateShow = (route) => {
+  const handleUpdateShow = async (route) => {
     if (isTokenExpired()) {
       toast("You need to log in again to continue!", {
         autoClose: 1000,
@@ -139,8 +145,22 @@ const Routes = () => {
         },
       });
     } else {
-      fetchRouteDetails(route.id); // fetch old data
-      setShowUpdate(true); // show update modal
+      try {
+        const routeDetails = await fetchRouteDetails(route.id);
+        setDetailData(routeDetails);
+        setFormData({
+          id: route.id,
+          beginning: routeDetails.beginning,
+          destination: routeDetails.destination,
+          distance: routeDetails.distance,
+          stationIds: routeDetails.stations
+            ? routeDetails.stations.map((station) => station.stationId)
+            : [],
+        });
+        setShowUpdate(true);
+      } catch (error) {
+        console.error("Error fetching route details:", error);
+      }
     }
   };
   const updateRouteData = () => {
@@ -506,56 +526,56 @@ const Routes = () => {
                 </Modal>
                 {/* Update model */}
                 <Modal show={showUpdate} onHide={handleUpdateClose}>
-                  <Modal.Header >
+                  <Modal.Header>
                     <Modal.Title>Update route</Modal.Title>
                   </Modal.Header>
                   <Modal.Body>
                     <Form>
                       <Form.Group className="mb-3" controlId="beginning">
-                        <Form.Label>Beginning </Form.Label>
+                        <Form.Label>Beginning</Form.Label>
                         <Form.Control
                           type="text"
                           name="beginning"
-                          placeholder="Beginning "
+                          placeholder="Beginning"
                           autoFocus
                           required
-                          value={detailData.beginning}
+                          value={formData.beginning}
                           onChange={(e) => {
                             setFormData({
                               ...formData,
-                              beginning: e.target.value
-                            })
+                              beginning: e.target.value,
+                            });
                           }}
                         />
                       </Form.Group>
                       <Form.Group className="mb-3" controlId="destination">
-                        <Form.Label>Destination </Form.Label>
+                        <Form.Label>Destination</Form.Label>
                         <Form.Control
                           type="text"
                           name="destination"
-                          placeholder="Destination "
-                          value={detailData.destination}
+                          placeholder="Destination"
+                          value={formData.destination}
                           onChange={(e) => {
                             setFormData({
                               ...formData,
-                              destination: e.target.value
-                            })
+                              destination: e.target.value,
+                            });
                           }}
                         />
                       </Form.Group>
                       <Form.Group className="mb-3" controlId="distance">
-                        <Form.Label>Distance </Form.Label>
+                        <Form.Label>Distance</Form.Label>
                         <Form.Control
                           type="number"
                           name="distance"
-                          placeholder="Distance "
+                          placeholder="Distance"
                           required
-                          value={detailData.distance}
+                          value={formData.distance}
                           onChange={(e) => {
                             setFormData({
                               ...formData,
-                              distance: e.target.value
-                            })
+                              distance: e.target.value,
+                            });
                           }}
                         />
                       </Form.Group>
@@ -565,12 +585,12 @@ const Routes = () => {
                           type="text"
                           name="stationIds"
                           placeholder="Stations have not been added yet"
-                          value={stationIds}
+                          value={Array.isArray(formData.stationIds) ? formData.stationIds.join(",") : ""}
                           onChange={(e) => {
                             const inputArray = e.target.value.split(",").map(Number);
                             setFormData({
                               ...formData,
-                              stationIds: inputArray
+                              stationIds: inputArray,
                             });
                           }}
                         />
@@ -586,6 +606,7 @@ const Routes = () => {
                     </Button>
                   </Modal.Footer>
                 </Modal>
+
 
                 {/* Table list */}
                 <div className="list">

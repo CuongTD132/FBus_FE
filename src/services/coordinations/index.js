@@ -25,52 +25,50 @@ export const getMultiCoordinationsAPI = async (data) => {
 }
 
 
-export const addCoordinationAPI = async (coordination) => {
-    const user = JSON.parse(localStorage.getItem('user'));
-    const formData = new FormData();
-    formData.append('driverId', coordination.driverId);
-    formData.append('busId', coordination.busId);
-    formData.append('routeId ', coordination.routeId );
-    formData.append('note', coordination.note);
-    formData.append('dateLine', coordination.dateLine);
-    formData.append('dueDate', coordination.dueDate);
-    if (user && user.accessToken) {
-        return await axios.post(`${URL}/${END_POINTS.addCoordination}`,
-            formData,
-            {
-                headers: {
-                    Authorization: `Bearer ${user.accessToken}`,
-                    "Content-Type": "multipart/form-data",
-                },
-            }
-        )
-    }
-}
+// export const addCoordinationAPI = async (coord) => {
+//     const user = JSON.parse(localStorage.getItem('user'));
+//     const formData = new FormData();
+//     formData.append('driverId', coord.driverId);
+//     formData.append('busId', coord.busId);
+//     formData.append('routeId ', coord.routeId );
+//     formData.append('note', coord.note);
+//     formData.append('dateLine', coord.dateLine);
+//     formData.append('dueDate', coord.dueDate);
+//     if (user && user.accessToken) {
+//         return await axios.post(`${URL}/${END_POINTS.addCoordination}`,
+//             formData,
+//             {
+//                 headers: {
+//                     Authorization: `Bearer ${user.accessToken}`,
+//                     "Content-Type": "multipart/form-data", // Set the content type
+//                 },
+//             });
+//     }
+// };
 
-export const updateCoordinationAPI = async (coordination, id) => {
-    const user = JSON.parse(localStorage.getItem('user'));
-    const formData = new FormData();
-    formData.append('driverId', coordination.driverId);
-    formData.append('busId', coordination.busId);
-    formData.append('routeId ', coordination.routeId );
-    formData.append('note', coordination.note);
-    formData.append('dateLine', coordination.dateLine);
-    formData.append('dueDate', coordination.dueDate);
-    if (user && user.accessToken) {
-        return await axios.put(`${URL}/${END_POINTS.updateCoordination}/${id}`,
-            formData,
-            {
-                headers: {
-                    Authorization: `Bearer ${user.accessToken}`,
-                    "Content-Type": "multipart/form-data",
-                },
-            }
-        )
-    }
-}
+// export const updateCoordinationAPI = async (coord, id) => {
+//     const user = JSON.parse(localStorage.getItem('user'));
+//     const formData = new FormData();
+//     formData.append('driverId', coord.driverId);
+//     formData.append('busId', coord.busId);
+//     formData.append('routeId ', coord.routeId );
+//     formData.append('note', coord.note);
+//     formData.append('dateLine', coord.dateLine);
+//     formData.append('dueDate', coord.dueDate);
+//     if (user && user.accessToken) {
+//         return await axios.put(`${URL}/${END_POINTS.updateCoordination}/${id}`,
+//             formData,
+//             {
+//                 headers: {
+//                     Authorization: `Bearer ${user.accessToken}`,
+//                     "Content-Type": "multipart/form-data",
+//                 },
+//             }
+//         );
+//     }
+// };
 
 export const getAllCoordinations = async () => {
-
     const user = JSON.parse(localStorage.getItem('user'));
     if (user && user.accessToken) {
         return await axios.get(`${URL}/${END_POINTS.getMultiCoordinations}`, {

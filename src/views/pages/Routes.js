@@ -50,6 +50,8 @@ const Routes = () => {
     distance: "",
     stationIds: "",
   });
+  const [detailData, setDetailData] = useState(({}))
+  const stationIds = detailData.stations?.map(station => station.stationId).join(', ') || "";
 
   // Check accessToken
   useEffect(() => {
@@ -82,7 +84,7 @@ const Routes = () => {
   const fetchRouteDetails = (id) => {
     getSingleRoute(id)
       .then((res) => {
-        setFormData(res.data)
+        setDetailData(res.data)
       })
   };
 
@@ -426,9 +428,9 @@ const Routes = () => {
                           type="text"
                           name="stationIds"
                           placeholder="StationIds"
-                          value={formData.stationIds || ""}
+                          value={formData.stationIds ? formData.stationIds.join(",") : ""}
                           onChange={(e) => {
-                            const inputArray = e.target.value.split(",");
+                            const inputArray = e.target.value.split(",").map(Number);
                             setFormData({
                               ...formData,
                               stationIds: inputArray
@@ -462,7 +464,7 @@ const Routes = () => {
                           name="beginning"
                           autoFocus
                           readOnly
-                          value={formData.beginning}
+                          value={detailData.beginning}
                         />
                       </Form.Group>
                       <Form.Group className="mb-3" controlId="destination">
@@ -472,7 +474,7 @@ const Routes = () => {
                           name="destination"
                           placeholder="Destination "
                           readOnly
-                          value={formData.destination}
+                          value={detailData.destination}
                         />
                       </Form.Group>
                       <Form.Group className="mb-3" controlId="distance">
@@ -481,7 +483,7 @@ const Routes = () => {
                           type="text"
                           name="distance"
                           readOnly
-                          value={formData.distance + " km"} 
+                          value={detailData.distance + " m"}
                         />
                       </Form.Group>
                       <Form.Group className="mb-3" controlId="stationIds">
@@ -491,7 +493,7 @@ const Routes = () => {
                           name="stationIds"
                           placeholder="Stations have not been added yet"
                           readOnly
-                          value={formData.stationIds || ""}
+                          value={stationIds}
                         />
                       </Form.Group>
                     </Form>
@@ -517,7 +519,7 @@ const Routes = () => {
                           placeholder="Beginning "
                           autoFocus
                           required
-                          value={formData.beginning}
+                          value={detailData.beginning}
                           onChange={(e) => {
                             setFormData({
                               ...formData,
@@ -532,7 +534,7 @@ const Routes = () => {
                           type="text"
                           name="destination"
                           placeholder="Destination "
-                          value={formData.destination}
+                          value={detailData.destination}
                           onChange={(e) => {
                             setFormData({
                               ...formData,
@@ -548,7 +550,7 @@ const Routes = () => {
                           name="distance"
                           placeholder="Distance "
                           required
-                          value={formData.distance }
+                          value={detailData.distance}
                           onChange={(e) => {
                             setFormData({
                               ...formData,
@@ -563,9 +565,9 @@ const Routes = () => {
                           type="text"
                           name="stationIds"
                           placeholder="Stations have not been added yet"
-                          value={formData.stationIds || ""}
+                          value={stationIds}
                           onChange={(e) => {
-                            const inputArray = e.target.value.split(",");
+                            const inputArray = e.target.value.split(",").map(Number);
                             setFormData({
                               ...formData,
                               stationIds: inputArray
@@ -609,20 +611,20 @@ const Routes = () => {
                             <span className="link-style" onClick={(e) => {
                               e.preventDefault()
                               handleShowDetails(route.id)
-                            }}>{route.beginning }</span>
+                            }}>{route.beginning}</span>
 
                           </td>
                           <td>
                             <span className="link-style" onClick={(e) => {
                               e.preventDefault()
                               handleShowDetails(route.id)
-                            }}>{route.destination }</span>
+                            }}>{route.destination}</span>
                           </td>
                           <td>
                             <span className="link-style" onClick={(e) => {
                               e.preventDefault()
                               handleShowDetails(route.id)
-                            }}>{route.distance + " km"}</span>
+                            }}>{route.distance + " m"}</span>
                           </td>
                           <td>
                             <span className={`status ${route.status === 'ACTIVE' ? 'active' : route.status === 'INACTIVE' ? 'inactive' : ''}`}>

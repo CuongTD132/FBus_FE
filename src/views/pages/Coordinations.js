@@ -24,6 +24,7 @@ import {
     getSingleCoordination,
     getAllCoordinations,
     deleteCoordinationAPI,
+    toggleStatusAPI
 
 } from "../../services/coordinations";
 import { toast, ToastContainer } from 'react-toastify';
@@ -37,6 +38,7 @@ const Coords = () => {
     const [showAdd, setShowAdd] = useState(false);
     const [showUpdate, setShowUpdate] = useState(false);
     const [showDetails, setShowDetails] = useState(false);
+    const [showToggleStatus, setShowToggleStatus] = useState(false);
     const [showDelete, setShowDelete] = useState(false);
     const [formData, setFormData] = useState({
         driverId: "",
@@ -170,6 +172,41 @@ const Coords = () => {
     }
     // END UPDATE FUNCTIONS
 
+    // TOGGLE STATUS FUNCTION
+    const [oldStatus, setOldStatus] = useState("");
+    const [toggleCoordinationId, setToggleCoordinationId] = useState(null);
+    const handleToggleStatus = (coordination) => {
+        setOldStatus(coordination.status)
+        setToggleCoordinationId(coordination.id)
+        setShowToggleStatus(true);
+    }
+    const toggleStatus = () => {
+        let status = "INACTIVE";
+        if (oldStatus === "INACTIVE") {
+            status = "ACTIVE"
+        }
+        toggleStatusAPI(toggleCoordinationId, status)
+            .then((res) => {
+                toast.success("Successull to enable/disable status!", {
+                    autoClose: 1000,
+                });
+                setShowToggleStatus(false);
+            })
+            .catch((e) => {
+                if (e.response && e.response.status === 401) {
+                    toast.error("You need to log in again to continue!", {
+                        autoClose: 1000,
+                    });
+                    navigate("/auth/login");
+                } else {
+                    toast.error("Failed to enable/disable status!", {
+                        autoClose: 1000,
+                    });
+                    setShowToggleStatus(false);
+                }
+            });
+    }
+    // END TOGGLE STATUS
 
 
     // DELETE FUNCTIONS
@@ -307,6 +344,22 @@ const Coords = () => {
                                 <h3 className="mb-0">Manager Coordinations</h3>
                             </CardHeader>
                             <CardBody>
+
+                                <Modal show={showToggleStatus} onHide={() => setShowToggleStatus(false)} animation={true}>
+                                    <Modal.Header >
+                                        <Modal.Title>Enable/Disable coordination</Modal.Title>
+                                    </Modal.Header>
+                                    <Modal.Body>Are you sure to enable/disable this coordination?</Modal.Body>
+                                    <Modal.Footer>
+                                        <Button variant="secondary" onClick={() => setShowToggleStatus(false)}>
+                                            Close
+                                        </Button>
+                                        <Button variant="primary" onClick={toggleStatus}>
+                                            Enable/Disable
+                                        </Button>
+                                    </Modal.Footer>
+                                </Modal>
+
                                 <Modal show={showDelete} onHide={() => setShowDelete(false)} animation={true}>
                                     <Modal.Header >
                                         <Modal.Title>Delete coordination</Modal.Title>
@@ -337,7 +390,7 @@ const Coords = () => {
                                                     placeholder="DriverID"
                                                     autoFocus
                                                     required
-                                                    value={formData.driverId}
+                                                    // value={formData.driverId}
                                                     onChange={(e) => {
                                                         setFormData({
                                                             ...formData,
@@ -354,7 +407,7 @@ const Coords = () => {
                                                     placeholder="BusID"
                                                     autoFocus
                                                     required
-                                                    value={formData.busId}
+                                                    // value={formData.busId}
                                                     onChange={(e) => {
                                                         setFormData({
                                                             ...formData,
@@ -371,7 +424,7 @@ const Coords = () => {
                                                     placeholder="RouteID"
                                                     autoFocus
                                                     required
-                                                    value={formData.routeId}
+                                                    // value={formData.routeId}
                                                     onChange={(e) => {
                                                         setFormData({
                                                             ...formData,
@@ -386,7 +439,7 @@ const Coords = () => {
                                                     type="text"
                                                     name="note"
                                                     placeholder="Note"
-                                                    value={formData.note || ""}
+                                                    // value={formData.note || ""}
                                                     onChange={(e) => {
                                                         setFormData({
                                                             ...formData,
@@ -401,12 +454,17 @@ const Coords = () => {
                                                     type="datetime-local"
                                                     name="dateLine"
                                                     required
-                                                    value={formData.dateLine}
+                                                    // value={formData.dateLine}
                                                     onChange={(e) => {
+                                                        // const inputDate = e.target.value;
+                                                        // const formattedDate = inputDate.replace("T", " ");
+                                                        // const test = ("2023-07-16T11:41")
                                                         setFormData({
                                                             ...formData,
                                                             dateLine: e.target.value
                                                         });
+                                                        console.log(e.target.value)
+
                                                     }}
                                                 />
                                             </Form.Group>
@@ -418,10 +476,15 @@ const Coords = () => {
                                                     required
                                                     value={formData.dueDate}
                                                     onChange={(e) => {
+                                                        // const inputDate = e.target.value;
+                                                        // const formattedDate = inputDate
+                                                        //     .replace("T", " ")
+                                                        // const test = ("2023-07-17T11:41")                                                        
                                                         setFormData({
                                                             ...formData,
                                                             dueDate: e.target.value
                                                         });
+                                                        console.log(e.target.value)
                                                     }}
                                                 />
                                             </Form.Group>
@@ -741,6 +804,14 @@ const Coords = () => {
                                                                     onClick={() => handleUpdateShow(coordination)}
                                                                 >
                                                                     Update
+                                                                </DropdownItem>
+                                                                <DropdownItem
+                                                                    className="disable-enable-dropdown-item"
+                                                                    onClick={() => {
+                                                                        handleToggleStatus(coordination)
+                                                                    }}
+                                                                >
+                                                                    Enable/Disable
                                                                 </DropdownItem>
                                                                 <DropdownItem
                                                                     className="delete-dropdown-item"

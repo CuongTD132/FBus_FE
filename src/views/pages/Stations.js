@@ -408,9 +408,8 @@ const Stations = () => {
           `https://nominatim.openstreetmap.org/reverse?format=json&lat=${markerPosition.lat}&lon=${markerPosition.lng}&zoom=18&addressdetails=1`
         );
         if (response.status === 200) {
-          const { address } = response.data;
           const display_name = response.data.display_name;
-          setAddress(address);
+          setAddress(response.data);
           setDisplay_name(display_name)
 
         }
@@ -475,7 +474,7 @@ const Stations = () => {
                                   <p>{address.house_number}</p>
                                   <p>{address.road}</p>
                                   <p>{address.suburb}</p>
-                                  <p>{address.city}</p>
+                                  <p>{address.city}</p>                                  
                                   <p>{address.state}</p>
                                 </>
                               )} */}

@@ -13,17 +13,19 @@ const END_POINTS = {
 export const addRouteAPI = async (route) => {
     const user = JSON.parse(localStorage.getItem('user'));
     const formData = new FormData();
-    formData.set("beginning", route.email);
-    formData.set("destination", route.code);
-    formData.set("distance", route.fullName);
-    formData.set("stationIds", route.stationIds);
+    formData.set("beginning", route.beginning);
+    formData.set("destination", route.destination);
+    formData.set("distance", route.distance);
+    route.stationIds.forEach((stationId) => {
+        formData.append("stationIds[]", stationId);
+    });
     if (user && user.accessToken) {
         return await axios.post(`${URL}/${END_POINTS.addRoute}`,
             formData,
             {
                 headers: {
                     Authorization: `Bearer ${JSON.parse(localStorage.getItem("user")).accessToken}`,
-                    "Content-Type": "application/json",
+                    "Content-Type": "multipart/form-data",
                 },
             });
     }
@@ -32,17 +34,19 @@ export const addRouteAPI = async (route) => {
 export const updateRouteAPI = async (route, id) => {
     const user = JSON.parse(localStorage.getItem('user'));
     const formData = new FormData();
-    formData.set("beginning", route.email);
-    formData.set("destination", route.code);
-    formData.set("distance", route.fullName);
-    formData.set("stationIds", route.stationIds);
+    formData.set("beginning", route.beginning);
+    formData.set("destination", route.destination);
+    formData.set("distance", route.distance);
+    route.stationIds.forEach((stationId) => {
+        formData.append("stationIds[]", stationId);
+    });
     if (user && user.accessToken) {
         return await axios.post(`${URL}/${END_POINTS.updateRoute}`, formData, {
-                headers: {
-                    Authorization: `Bearer ${JSON.parse(localStorage.getItem("user")).accessToken}`,
-                    "Content-Type": "application/json",
-                },
-            });
+            headers: {
+                Authorization: `Bearer ${JSON.parse(localStorage.getItem("user")).accessToken}`,
+                "Content-Type": "multipart/form-data",
+            },
+        });
     }
 };
 

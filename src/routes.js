@@ -9,13 +9,13 @@ import Routes from "./views/pages/Routes";
 import Stations from "./views/pages/Stations";
 import Coords from "./views/pages/Coordinations";
 var routes = [
-  {
-    path: "/index",
-    name: "Dashboard",
-    icon: "ni ni-tv-2 text-primary",
-    component: <Index />,
-    layout: "/admin",
-  },
+  // {
+  //   path: "/index",
+  //   name: "Dashboard",
+  //   icon: "ni ni-tv-2 text-primary",
+  //   component: <Index />,
+  //   layout: "/admin",
+  // },
 
   {
     path: "/buses",

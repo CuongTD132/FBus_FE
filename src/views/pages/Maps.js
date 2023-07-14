@@ -114,7 +114,7 @@ const Maps = () => {
           <div className="col">
             <Card className="shadow border-0">
             <iframe
-                  src="https://f-bus-map.vercel.app/"
+                  src="https://f-bus-map-v2.vercel.app/"
                   title="Maps"
                   style={{ width: '100%', height: '700px', borderRadius: "5px", border: 'none' }}
                 />

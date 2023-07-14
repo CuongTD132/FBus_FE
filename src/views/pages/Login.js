@@ -12,7 +12,7 @@ const Login = () => {
     const user = JSON.parse(localStorage.getItem('user'));
     if (user && !isTokenExpired()) {
       if (user.role === 'Admin') {
-        navigate("/admin/buses");      
+        navigate("/admin/map");      
       }
     }else if (isTokenExpired()){
         localStorage.removeItem('user');
@@ -26,7 +26,7 @@ const Login = () => {
           const userData = res.data;
           localStorage.setItem('user', JSON.stringify(res.data))
           if (userData.role === 'Admin') {
-            navigate("/admin/buses");
+            navigate("/admin/map");
             toast.success(`Welcome ${userData.name} to Admin Page`, {
               autoClose: 1000,
             });

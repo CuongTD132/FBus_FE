@@ -16,12 +16,11 @@ var routes = [
   //   component: <Index />,
   //   layout: "/admin",
   // },
-
   {
-    path: "/buses",
-    name: "Buses",
-    icon: "ni ni-bus-front-12 text-blue",
-    component: <Buses />,
+    path: "/map",
+    name: "Maps",
+    icon: "ni ni-pin-3 text-orange",
+    component: <Maps />,
     layout: "/admin",
   },
   {
@@ -31,6 +30,14 @@ var routes = [
     component: <Accounts />,
     layout: "/admin",
   },
+  {
+    path: "/buses",
+    name: "Buses",
+    icon: "ni ni-bus-front-12 text-blue",
+    component: <Buses />,
+    layout: "/admin",
+  },
+  
   {
     path: "/drivers",
     name: "Drivers",
@@ -46,13 +53,6 @@ var routes = [
   //   layout: "/admin",
   // },
   {
-    path: "/routes",
-    name: "Routes",
-    icon: "ni ni-map-big text-yellow",
-    component: <Routes />,
-    layout: "/admin",
-  },
-  {
     path: "/stations",
     name: "Stations",
     icon: "ni ni-square-pin text-purple",
@@ -60,19 +60,21 @@ var routes = [
     layout: "/admin",
   },
   {
+    path: "/routes",
+    name: "Routes",
+    icon: "ni ni-map-big text-yellow",
+    component: <Routes />,
+    layout: "/admin",
+  },
+  
+  {
     path: "/coords",
     name: "Coordinations",
     icon: "ni ni-archive-2 text-info",
     component: <Coords />,
     layout: "/admin",
   },
-  {
-    path: "/maps",
-    name: "Maps",
-    icon: "ni ni-pin-3 text-orange",
-    component: <Maps />,
-    layout: "/admin",
-  },
+
   {
     path: "/login",
     component: <Login />,

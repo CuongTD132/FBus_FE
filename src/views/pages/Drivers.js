@@ -35,6 +35,7 @@ import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { updateDriver } from "../../redux/reducer";
 import { isTokenExpired } from "../../services/checkToken";
+import caution from '../../assets/img/caution.png'
 
 const Drivers = () => {
   const dispatch = useDispatch();
@@ -45,6 +46,9 @@ const Drivers = () => {
   const [showDetails, setShowDetails] = useState(false);
   const [showToggleStatus, setShowToggleStatus] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [showBackdrop, setShowBackdrop] = useState(false);
+  const [isUpdated, setIsUpdated] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
     code: "",
@@ -81,8 +85,8 @@ const Drivers = () => {
   }, [navigate])
 
   // Fetch detail information and pass to detail form
-  const fetchDriverDetails = (id) => {
-    getSingleDriver(id)
+  const fetchDriverDetails = async (id) => {
+    await getSingleDriver(id)
       .then((res) => {
         setFormData(res.data)
       })
@@ -112,7 +116,7 @@ const Drivers = () => {
   };
 
   // Call show detail form
-  const handleShowDetails = (id) => {
+  const handleShowDetails = async (id) => {
     if (isTokenExpired()) {
       toast.info("You need to log in to continue!", {
         position: "top-center",
@@ -128,7 +132,7 @@ const Drivers = () => {
         },
       });
     } else {
-      fetchDriverDetails(id);
+      await fetchDriverDetails(id);
       setShowDetails(true); // Show the modal
     }
   }
@@ -137,7 +141,7 @@ const Drivers = () => {
   const handleUpdateClose = () => {
     setShowUpdate(false);
   }
-  const handleUpdateShow = (driver) => {
+  const handleUpdateShow = async (driver) => {
     if (isTokenExpired()) {
       toast.info("You need to log in to continue!", {
         position: "top-center",
@@ -153,11 +157,25 @@ const Drivers = () => {
         },
       });
     } else {
-      fetchDriverDetails(driver.id); // fetch old data       
+      await fetchDriverDetails(driver.id); // fetch old data       
       setShowUpdate(true); // show update modal
+      setIsUpdated(false);
     }
   };
   const updateDriverData = () => {
+    const user = JSON.parse(localStorage.getItem('user'))
+    if (user == null || !user || isTokenExpired()) {
+      setShowBackdrop(true)
+      return;
+    }
+    // Check if form data has been changed
+    if (!isUpdated) {
+      toast.info("Nothing has been changed!", {
+        autoClose: 1000,
+      });
+      setShowUpdate(true);
+      return;
+    }
     if (formData.personalEmail === null) {
       formData.personalEmail = "";
     }
@@ -173,18 +191,13 @@ const Drivers = () => {
         fetchDrivers();
       })
       .catch((e) => {
-        if (e.response && e.response.status === 401) {
-          toast("You need to log in again to continue!", {
-            autoClose: 1000,
-          });
-          navigate("/auth/login");
-        } else {
-          toast.error("Failed to update the driver!", {
-            autoClose: 1000,
-          });
-          setShowUpdate(true);
-
+        if (e.response.data.errors) {
+          setErrors(e.response.data.errors);
         }
+        toast.error("Failed to update the driver!", {
+          autoClose: 1000,
+        });
+        setShowUpdate(true);
       })
   }
   // END UPDATE FUNCTIONS
@@ -293,21 +306,18 @@ const Drivers = () => {
         }
       })
       .catch((e) => {
-        if (e.response && e.response.status === 401) {
-          toast("You need to log in again to continue!", {
-            autoClose: 1000,
-          });
-          navigate("/auth/login");
-        } else {
-          toast.error("Failed to add this driver!", {
-            autoClose: 1000,
-          });
-          setShowAdd(true);
+        if (e.response.data.errors) {
+          setErrors(e.response.data.errors);
         }
+        toast.error("Failed to add this driver!", {
+          autoClose: 1000,
+        });
+        setShowAdd(true);
       });
   };
   const handleAddClose = () => {
     setShowAdd(false);
+    setErrors({});
   }
   const handleAddOpen = () => {
     if (isTokenExpired()) {
@@ -330,6 +340,7 @@ const Drivers = () => {
         dateOfBirth: "",
         avatarFile: "",
       });
+      setErrors({});
       setShowAdd(true);
     }
   };
@@ -362,6 +373,16 @@ const Drivers = () => {
   };
   // END PAGING
 
+  // EXPIRED
+  const handleLogoutClose = () => {
+    navigate("/auth/login");
+    localStorage.removeItem('user');
+    toast.success("Logout successful", {
+      autoClose: 1000,
+    });
+    setShowBackdrop(false);
+  }
+
   // REDUX
   const drivers = useSelector((state) => state.drivers.value);
   const currentSearchDriver = useSelector((state) => state.drivers.currentSearchDriver);
@@ -383,6 +404,22 @@ const Drivers = () => {
               </CardHeader>
               <CardBody>
 
+                <Modal
+                  show={showBackdrop}
+                  onHide={() => setShowBackdrop(false)}
+                  animation={true}
+                  dialogClassName="modal-logout"
+                  backdrop="static"
+                >
+                  <Modal.Body className="modal-logout-body">
+                    <h2>YOUR LOGIN TIMEOUT HAS EXPIRED,<br />PLEASE LOGIN AGAIN TO CONTINUE!</h2>
+                    <img className="img" src={caution} alt="" />
+
+                    <Button className="button" color="primary" onClick={handleLogoutClose}>
+                      OK
+                    </Button>
+                  </Modal.Body>
+                </Modal>
 
                 <Modal show={showToggleStatus} onHide={() => setShowToggleStatus(false)} animation={true}>
                   <Modal.Header >
@@ -427,7 +464,6 @@ const Drivers = () => {
                           type="text"
                           name="email"
                           placeholder="Email"
-                          value={formData.email}
                           onChange={(e) => {
                             setFormData({
                               ...formData,
@@ -438,51 +474,69 @@ const Drivers = () => {
                       </Form.Group>
                       <Form.Group className="mb-3" controlId="code">
                         <Form.Label>Code</Form.Label>
+                        {errors && errors.Code && (
+                          <span style={{ color: "red", float: "right" }}>*{errors.Code[0]}</span>
+                        )}
                         <Form.Control
                           type="text"
                           name="code"
                           placeholder="Code"
                           autoFocus
                           required
-                          value={formData.code}
                           onChange={(e) => {
                             setFormData({
                               ...formData,
                               code: e.target.value
-                            })
+                            });
+                            setErrors({
+                              ...errors,
+                              Code: null
+                            });
                           }}
                         />
                       </Form.Group>
                       <Form.Group className="mb-3" controlId="fullName">
                         <Form.Label>Full Name</Form.Label>
+                        {errors && errors.FullName && (
+                          <span style={{ color: "red", float: "right" }}>*{errors.FullName[0]}</span>
+                        )}
                         <Form.Control
                           type="text"
                           name="fullName"
                           placeholder="Full Name"
                           autoFocus
                           required
-                          value={formData.fullName}
                           onChange={(e) => {
                             setFormData({
                               ...formData,
                               fullName: e.target.value
                             })
+                            setErrors({
+                              ...errors,
+                              FullName: null
+                            });
                           }}
                         />
                       </Form.Group>
                       <Form.Group className="mb-3" controlId="gender">
                         <Form.Label>Gender</Form.Label>
+                        {errors && errors.Gender && (
+                          <span style={{ color: "red", float: "right" }}>*{errors.Gender[0]}</span>
+                        )}
                         <Form.Control
                           as="select"
                           name="gender"
                           placeholder="Gender"
                           autoFocus
                           required
-                          value={formData.gender}
                           onChange={(e) => {
                             setFormData({
                               ...formData,
                               gender: e.target.value
+                            });
+                            setErrors({
+                              ...errors,
+                              Gender: null
                             });
                           }}
                         >
@@ -493,52 +547,70 @@ const Drivers = () => {
                       </Form.Group>
                       <Form.Group className="mb-3" controlId="idCardNumber">
                         <Form.Label>Id Card Number</Form.Label>
+                        {errors && errors.IdCardNumber && (
+                          <span style={{ color: "red", float: "right" }}>*{errors.IdCardNumber[0]}</span>
+                        )}
                         <Form.Control
                           type="text"
                           name="idCardNumber"
                           placeholder="Id Card Number"
                           autoFocus
                           required
-                          value={formData.idCardNumber}
                           onChange={(e) => {
                             setFormData({
                               ...formData,
                               idCardNumber: e.target.value
-                            })
+                            });
+                            setErrors({
+                              ...errors,
+                              IdCardNumber: null
+                            });
                           }}
                         />
                       </Form.Group>
                       <Form.Group className="mb-3" controlId="address">
                         <Form.Label>Address</Form.Label>
+                        {errors && errors.Address && (
+                          <span style={{ color: "red", float: "right" }}>*{errors.Address[0]}</span>
+                        )}
                         <Form.Control
                           type="text"
                           name="address"
                           placeholder="Address"
                           autoFocus
                           required
-                          value={formData.address}
                           onChange={(e) => {
                             setFormData({
                               ...formData,
                               address: e.target.value
-                            })
+                            });
+                            setErrors({
+                              ...errors,
+                              Address: null
+                            });
                           }}
                         />
                       </Form.Group>
                       <Form.Group className="mb-3" controlId="phoneNumber">
                         <Form.Label>Phone Number</Form.Label>
+                        {errors && errors.PhoneNumber && (
+                          <span style={{ color: "red", float: "right" }}>*{errors.PhoneNumber[0]}</span>
+                        )}
                         <Form.Control
                           type="text"
                           name="phoneNumber"
                           placeholder="Input with your country code. For example +84 xxxxxxxxx "
                           autoFocus
                           required
-                          value={formData.phoneNumber}
                           onChange={(e) => {
                             setFormData({
                               ...formData,
                               phoneNumber: e.target.value
-                            })
+                            });
+                            setErrors({
+                              ...errors,
+                              PhoneNumber: null
+                            });
                           }}
                         />
                       </Form.Group>
@@ -548,7 +620,6 @@ const Drivers = () => {
                           type="text"
                           name="personalEmail"
                           placeholder="Personal Email"
-                          value={formData.personalEmail || ""}
                           onChange={(e) => {
                             setFormData({
                               ...formData,
@@ -559,11 +630,13 @@ const Drivers = () => {
                       </Form.Group>
                       <Form.Group className="mb-3" controlId="dateOfBirth">
                         <Form.Label>Date of Birth (MM-DD-YYYY)</Form.Label>
+                        {errors && errors.DateOfBirth && (
+                          <span style={{ color: "red", float: "right" }}>*{errors.DateOfBirth[0]}</span>
+                        )}
                         <Form.Control
                           type="date"
                           name="dateOfBirth"
                           required
-                          value={formData.dateOfBirth}
                           onChange={(e) => {
                             const inputDate = e.target.value;
                             const formattedDate = inputDate
@@ -574,19 +647,24 @@ const Drivers = () => {
                             setFormData({
                               ...formData,
                               dateOfBirth: formattedDate
-                            })
+                            });
+                            setErrors({
+                              ...errors,
+                              DateOfBirth: null
+                            });
                           }}
                         />
                       </Form.Group>
                       <Form.Group className="mb-3" controlId="avatarFile">
-                        <Form.Label>Avatar File</Form.Label>
+                        <Form.Label>Avatar File</Form.Label>                        
                         <Form.Control
                           type="file"
                           name="avatarFile"
+                          accept=".jpeg, .png, .svg, .jpg"
                           onChange={(e) => {
                             setFormData({
                               ...formData,
-                              avatarFile: e.target.files[0] // Store the selected file in the form data
+                              avatarFile: e.target.files[0]
                             });
                           }}
                         />
@@ -735,11 +813,15 @@ const Drivers = () => {
                               ...formData,
                               email: e.target.value
                             })
+                            setIsUpdated(true);
                           }}
                         />
                       </Form.Group>
                       <Form.Group className="mb-3" controlId="code">
                         <Form.Label>Code</Form.Label>
+                        {errors && errors.Code && (
+                          <span style={{ color: "red", float: "right" }}>*{errors.Code[0]}</span>
+                        )}
                         <Form.Control
                           type="text"
                           name="code"
@@ -752,11 +834,19 @@ const Drivers = () => {
                               ...formData,
                               code: e.target.value
                             })
+                            setIsUpdated(true);
+                            setErrors({
+                              ...errors,
+                              Code: null
+                            });
                           }}
                         />
                       </Form.Group>
                       <Form.Group className="mb-3" controlId="fullName">
                         <Form.Label>Full Name</Form.Label>
+                        {errors && errors.FullName && (
+                          <span style={{ color: "red", float: "right" }}>*{errors.FullName[0]}</span>
+                        )}
                         <Form.Control
                           type="text"
                           name="fullName"
@@ -769,11 +859,19 @@ const Drivers = () => {
                               ...formData,
                               fullName: e.target.value
                             })
+                            setIsUpdated(true);
+                            setErrors({
+                              ...errors,
+                              FullName: null
+                            });
                           }}
                         />
                       </Form.Group>
                       <Form.Group className="mb-3" controlId="gender">
                         <Form.Label>Gender</Form.Label>
+                        {errors && errors.Gender && (
+                          <span style={{ color: "red", float: "right" }}>*{errors.Gender[0]}</span>
+                        )}
                         <Form.Control
                           as="select"
                           name="gender"
@@ -785,6 +883,11 @@ const Drivers = () => {
                             setFormData({
                               ...formData,
                               gender: e.target.value
+                            });
+                            setIsUpdated(true);
+                            setErrors({
+                              ...errors,
+                              Gender: null
                             });
                           }}
                         >
@@ -803,6 +906,9 @@ const Drivers = () => {
                       </Form.Group>
                       <Form.Group className="mb-3" controlId="idCardNumber">
                         <Form.Label>Id Card Number</Form.Label>
+                        {errors && errors.IdCardNumber && (
+                          <span style={{ color: "red", float: "right" }}>*{errors.IdCardNumber[0]}</span>
+                        )}
                         <Form.Control
                           type="text"
                           name="idCardNumber"
@@ -815,11 +921,19 @@ const Drivers = () => {
                               ...formData,
                               idCardNumber: e.target.value
                             })
+                            setIsUpdated(true);
+                            setErrors({
+                              ...errors,
+                              IdCardNumber: null
+                            });
                           }}
                         />
                       </Form.Group>
                       <Form.Group className="mb-3" controlId="address">
                         <Form.Label>Address</Form.Label>
+                        {errors && errors.Address && (
+                          <span style={{ color: "red", float: "right" }}>*{errors.Address[0]}</span>
+                        )}
                         <Form.Control
                           type="text"
                           name="address"
@@ -832,11 +946,19 @@ const Drivers = () => {
                               ...formData,
                               address: e.target.value
                             })
+                            setIsUpdated(true);
+                            setErrors({
+                              ...errors,
+                              Address: null
+                            });
                           }}
                         />
                       </Form.Group>
                       <Form.Group className="mb-3" controlId="phoneNumber">
                         <Form.Label>Phone Number</Form.Label>
+                        {errors && errors.PhoneNumber && (
+                          <span style={{ color: "red", float: "right" }}>*{errors.PhoneNumber[0]}</span>
+                        )}
                         <Form.Control
                           type="text"
                           name="phoneNumber"
@@ -849,6 +971,11 @@ const Drivers = () => {
                               ...formData,
                               phoneNumber: e.target.value
                             })
+                            setIsUpdated(true);
+                            setErrors({
+                              ...errors,
+                              PhoneNumber: null
+                            });
                           }}
                         />
                       </Form.Group>
@@ -864,13 +991,15 @@ const Drivers = () => {
                               ...formData,
                               personalEmail: e.target.value
                             })
+                            setIsUpdated(true);
                           }}
                         />
                       </Form.Group>
                       <Form.Group className="mb-3" controlId="dateOfBirth">
-                        <Form.Label>
-                          Date of Birth (MM-DD-YYYY)
-                        </Form.Label>
+                        <Form.Label>Date of Birth (MM-DD-YYYY)</Form.Label>
+                        {errors && errors.DateOfBirth && (
+                          <span style={{ color: "red", float: "right" }}>*{errors.DateOfBirth[0]}</span>
+                        )}
                         <Form.Control
                           type="date"
                           name="dateOfBirth"
@@ -887,6 +1016,11 @@ const Drivers = () => {
                               ...formData,
                               dateOfBirth: formattedDate
                             })
+                            setIsUpdated(true);
+                            setErrors({
+                              ...errors,
+                              DateOfBirth: null
+                            });
                           }}
                         />
                       </Form.Group>
@@ -900,6 +1034,7 @@ const Drivers = () => {
                               ...formData,
                               avatarFile: e.target.files[0] // Store the selected file in the form data
                             });
+                            setIsUpdated(true);
                           }}
                         />
                       </Form.Group>

@@ -38,7 +38,6 @@ import caution from '../../assets/img/caution.png'
 const Buses = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-
   const [busList, setBusList] = useState([]);
   const [showAdd, setShowAdd] = useState(false);
   const [showUpdate, setShowUpdate] = useState(false);
@@ -47,8 +46,8 @@ const Buses = () => {
   const [showToggleStatus, setShowToggleStatus] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
   const [errors, setErrors] = useState({});
-  const [originalData, setOriginalData] = useState({});
   const [showBackdrop, setShowBackdrop] = useState(false);
+  const [isUpdated, setIsUpdated] = useState(false);
   const [formData, setFormData] = useState({
     code: "",
     licensePlate: "",
@@ -64,21 +63,19 @@ const Buses = () => {
     const user = JSON.parse(localStorage.getItem("user"));
     if (user == null || !user || isTokenExpired()) {
       return;
-    } else {
-      getAllBuses(user.accessToken)
-        .then((res) => {
-          if (res && res.data && res.data.data) {
-            setBusList(res.data.data);
-          } else {
-            alert("Error: Invalid response data");
-            return;
-          }
-        })
-        .catch((error) => {
-          alert("Error: " + error.message);
-        });
     }
-
+    getAllBuses(user.accessToken)
+      .then((res) => {
+        if (res && res.data && res.data.data) {
+          setBusList(res.data.data);
+        } else {
+          alert("Error: Invalid response data");
+          return;
+        }
+      })
+      .catch((error) => {
+        alert("Error: " + error.message);
+      });
   }, [navigate])
 
   // Fetch detail information and pass to detail form
@@ -86,7 +83,6 @@ const Buses = () => {
     await getSingleBus(id)
       .then((res) => {
         setFormData(res.data)
-        setOriginalData(res.data); // Store the original data
       })
   };
 
@@ -130,18 +126,9 @@ const Buses = () => {
   // QRCODE FUNCTIONS
   const [qrHash, setQrHash] = useState(null);
   const handleQrCode = (bus) => {
-    if (isTokenExpired()) {
-      toast("You need to log in again to continue!", {
-        autoClose: 1000,
-        onClose: () => {
-          navigate("/auth/login");
-        },
-      });
-    } else {
-      const myObject = `${bus.code}-${bus.licensePlate}`;
-      setQrHash(JSON.stringify(myObject));
-      setShowQrCode(true);
-    }
+    const myObject = `${bus.code}-${bus.licensePlate}`;
+    setQrHash(JSON.stringify(myObject));
+    setShowQrCode(true);
   }
 
   const downloadQR = () => {
@@ -163,7 +150,7 @@ const Buses = () => {
   const handleUpdateClose = () => {
     setShowUpdate(false);
   }
-  
+
   const handleUpdateShow = async (bus) => {
     const user = JSON.parse(localStorage.getItem('user'))
     if (user == null || !user || isTokenExpired()) {
@@ -172,28 +159,21 @@ const Buses = () => {
     }
     await fetchBusDetails(bus.id); // fetch old data
     setShowUpdate(true); // show update modal
+    setIsUpdated(false);
   };
 
   const updateBusData = () => {
     const user = JSON.parse(localStorage.getItem('user'))
-    if (user == null || !user ||isTokenExpired()) {
+    if (user == null || !user || isTokenExpired()) {
       setShowBackdrop(true)
       return;
     }
     // Check if form data has been changed
-    if (
-      formData.code === originalData.code &&
-      formData.licensePlate === originalData.licensePlate &&
-      formData.brand === originalData.brand &&
-      formData.model === originalData.model &&
-      formData.color === originalData.color &&
-      formData.seat === originalData.seat &&
-      formData.dateOfRegistration === originalData.dateOfRegistration
-    ) {
+    if (!isUpdated) {
       toast.info("Nothing has been changed!", {
         autoClose: 1000,
       });
-      setShowUpdate(true);
+      setShowUpdate(false);
       return;
     }
     updateBusAPI(formData, formData.id)
@@ -239,7 +219,7 @@ const Buses = () => {
   }
   const toggleStatus = () => {
     const user = JSON.parse(localStorage.getItem('user'))
-    if (user == null || !user ||isTokenExpired()) {
+    if (user == null || !user || isTokenExpired()) {
       setShowBackdrop(true)
       return;
     }
@@ -267,12 +247,12 @@ const Buses = () => {
   // DELETE FUNCTIONS
   const [deleteBusId, setDeleteBusId] = useState();
   const handleDeleteBus = (id) => {
-      setDeleteBusId(id)
-      setShowDelete(true)
+    setDeleteBusId(id)
+    setShowDelete(true)
   };
   const deleteBus = () => {
     const user = JSON.parse(localStorage.getItem('user'))
-    if (user == null || !user ||isTokenExpired()) {
+    if (user == null || !user || isTokenExpired()) {
       setShowBackdrop(true)
       return;
     }
@@ -327,17 +307,17 @@ const Buses = () => {
     setErrors({});
   }
   const handleAddOpen = () => {
-      setFormData({
-        code: "",
-        licensePlate: "",
-        brand: "",
-        model: "",
-        color: "",
-        seat: "",
-        dateOfRegistration: "",
-      });
-      setErrors({});
-      setShowAdd(true);
+    setFormData({
+      code: "",
+      licensePlate: "",
+      brand: "",
+      model: "",
+      color: "",
+      seat: "",
+      dateOfRegistration: "",
+    });
+    setErrors({});
+    setShowAdd(true);
   };
   // END ADD
 
@@ -406,7 +386,7 @@ const Buses = () => {
                   backdrop="static"
                 >
                   <Modal.Body className="modal-logout-body">
-                    <h2>YOUR LOGIN TIMEOUT HAS EXPIRED,<br/>PLEASE LOGIN AGAIN TO CONTINUE!</h2>
+                    <h2>YOUR LOGIN TIMEOUT HAS EXPIRED,<br />PLEASE LOGIN AGAIN TO CONTINUE!</h2>
                     <img className="img" src={caution} alt="" />
 
                     <Button className="button" color="primary" onClick={handleLogoutClose}>
@@ -634,18 +614,9 @@ const Buses = () => {
 
                 {/* Detail model */}
                 <Modal show={showDetails}
-                  onHide={() => {
-                    setShowDetails(false);
-                    setFormData({
-                      code: "",
-                      licensePlate: "",
-                      brand: "",
-                      model: "",
-                      color: "",
-                      seat: "",
-                      dateOfRegistration: "",
-                    });
-                  }}>
+                  onHide={() =>
+                    setShowDetails(false)
+                  }>
                   <Modal.Header >
                     <Modal.Title>Bus detail</Modal.Title>
                   </Modal.Header>
@@ -722,7 +693,7 @@ const Buses = () => {
                         <Form.Control
                           type="text"
                           name="dateOfRegistration"
-                          placeholder="Date of Registration"
+                          placeholder="No date of registration available"
                           autoFocus
                           readOnly
                           value={new Date(formData.dateOfRegistration.slice(0, 10)).toLocaleDateString("en-US")}
@@ -763,6 +734,7 @@ const Buses = () => {
                               ...formData,
                               code: e.target.value
                             });
+                            setIsUpdated(true);
                             setErrors({
                               ...errors,
                               Code: null
@@ -787,6 +759,7 @@ const Buses = () => {
                               ...formData,
                               licensePlate: e.target.value,
                             });
+                            setIsUpdated(true);
                             setErrors({
                               ...errors,
                               LicensePlate: null,
@@ -811,6 +784,7 @@ const Buses = () => {
                               ...formData,
                               brand: e.target.value
                             });
+                            setIsUpdated(true);
                             setErrors({
                               ...errors,
                               Brand: null
@@ -835,6 +809,7 @@ const Buses = () => {
                               ...formData,
                               model: e.target.value
                             });
+                            setIsUpdated(true);
                             setErrors({
                               ...errors,
                               Model: null
@@ -859,6 +834,7 @@ const Buses = () => {
                               ...formData,
                               color: e.target.value
                             });
+                            setIsUpdated(true);
                             setErrors({
                               ...errors,
                               Color: null
@@ -883,6 +859,7 @@ const Buses = () => {
                               ...formData,
                               seat: e.target.value
                             });
+                            setIsUpdated(true);
                             setErrors({
                               ...errors,
                               Seat: null
@@ -905,6 +882,7 @@ const Buses = () => {
                         <Form.Control
                           type="date"
                           name="dateOfRegistration"
+                          placeholder="No date of registration available"
                           autoFocus
                           required
                           value={formData.dateOfRegistration ? formData.dateOfRegistration.slice(0, 10) : ''}
@@ -919,6 +897,7 @@ const Buses = () => {
                               ...formData,
                               dateOfRegistration: formattedDate
                             })
+                            setIsUpdated(true);
                           }}
                         />
                       </Form.Group>

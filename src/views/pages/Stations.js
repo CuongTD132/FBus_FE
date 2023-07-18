@@ -69,12 +69,6 @@ const Stations = () => {
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem("user"));
     if (user == null || !user || isTokenExpired()) {
-      toast("You need to log in to continue!", {
-        autoClose: 1000,
-        onClose: () => {
-          navigate("/auth/login");
-        },
-      });
       return;
     } else {
       getAllStations(user.accessToken)
@@ -435,16 +429,14 @@ const Stations = () => {
                 <h3 className="mb-0">Manager Stations</h3>
               </CardHeader>
               <CardBody>
-                <Modal show={showMap} backdrop="static" onHide={() => setShowMap(false)} size="lg" animation={true}>
-                  {/* <Modal.Header > */}
-                  {/* </Modal.Header> */}
-                  <Modal.Body >
+                <Modal dialogClassName="modal-map"  show={showMap}  backdrop="static" onHide={() => setShowMap(false)}  animation={true}>
+                  <Modal.Body className="modal-map-body">
                     <MapContainer
                       center={markerPosition}
                       zoom={15}
                       scrollWheelZoom={true}
                       zoomControl={true}
-                      style={{ height: "700px", borderRadius: "5px" }}
+                      style={{ height: "calc(80vh)", borderRadius: "5px" }}
                     >
                       <TileLayer
                         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -486,12 +478,11 @@ const Stations = () => {
                         )}
                       </Marker>
                     </MapContainer>
-                  </Modal.Body>
-                  <Modal.Footer>
-                    <Button variant="secondary" onClick={() => { setShowMap(false); setMarkerDraggable(false); }}>
+
+                    <Button className="button" variant="primary" onClick={() => { setShowMap(false); setMarkerDraggable(false); }}>
                       Close
                     </Button>
-                  </Modal.Footer>
+                  </Modal.Body>
                 </Modal>
 
                 <Modal show={showToggleStatus} onHide={() => setShowToggleStatus(false)} animation={true}>

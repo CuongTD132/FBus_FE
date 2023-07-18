@@ -31,12 +31,6 @@ const Accounts = () => {
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem("user"));
     if (user == null || !user || isTokenExpired()) {
-      toast("You need to log in to continue!", {
-        autoClose: 1000,
-        onClose: () => {
-          navigate("/auth/login");
-        },
-      });
       return;
     } else {
       getAllAccounts(user.accessToken)

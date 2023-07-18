@@ -56,19 +56,6 @@ const Coords = () => {
     useEffect(() => {
         const user = JSON.parse(localStorage.getItem("user"));
         if (user == null || !user || isTokenExpired()) {
-            toast.info("You need to log in to continue!", {
-                position: "top-center",
-                autoClose: 1500,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: false,
-                draggable: true,
-                progress: undefined,
-                theme: "light",
-                onClose: () => {
-                    navigate("/auth/login");
-                },
-            });
             return;
         } else {
             getAllCoordinations(user.accessToken)

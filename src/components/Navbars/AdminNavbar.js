@@ -1,8 +1,10 @@
 
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { Button, Modal } from 'react-bootstrap';
+import caution from '../../assets/img/caution.png'
 import {
   DropdownMenu,
   DropdownItem,
@@ -19,6 +21,7 @@ import {
   Container,
   Media,
 } from "reactstrap";
+import "../../style/Manager.css"
 import { useEffect, useState } from "react";
 import { getMultiBusesAPI } from "../../services/bus";
 import { getMultiDriversAPI } from "../../services/driver";
@@ -27,20 +30,40 @@ import { getMultiStationsAPI } from "../../services/station";
 import { getMultiRoutesAPI } from "../../services/routes";
 import { useDispatch } from "react-redux";
 import { setCurrentSearchBus, updateBus, setCurrentSearchAccount, updateAccount, setCurrentSearchDriver, updateDriver, updateStation, setCurrentSearchStation, updateRoute, setCurrentSearchRoute } from "../../redux/reducer";
+import { isTokenExpired } from "../../services/checkToken";
 
 const AdminNavbar = (props) => {
+  const location = useLocation();
   const navigate = useNavigate();
+  const [showBackdrop, setShowBackdrop] = useState(false);
   const [user, setUser] = useState({
     picture: '',
     name: ''
   });
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem('user'))
-    if (user == null) {
+    if (user == null || !user ) {
       navigate('/auth/login')
+      return;
     }
+     else if (isTokenExpired()) {
+      setShowBackdrop(true)
+      return;
+    }
+
     setUser(user)
   }, [navigate])
+
+  // EXPIRED
+  const handleLogoutClose = () => {
+    navigate("/auth/login");
+    localStorage.removeItem('user');
+    toast.success("Logout successful", {
+      autoClose: 1000,
+    });
+    setShowBackdrop(false);
+  }
+  // LOGOUT
   const handleLogout = () => {
     localStorage.removeItem('user');
     toast.success("Logout successful", {
@@ -55,7 +78,11 @@ const AdminNavbar = (props) => {
 
   const handleSearch = (searchString = "") => {
     localStorage.setItem('currentSearch', searchString);
-
+    const user = JSON.parse(localStorage.getItem('user'))
+    if (user == null || !user ||isTokenExpired()) {
+      setShowBackdrop(true)
+      return;
+    }
     getMultiBusesAPI({
       licensePlate: searchString,
       code: searchString
@@ -120,25 +147,42 @@ const AdminNavbar = (props) => {
       }
     })
   }
- 
+
   // END FUNCTIONS
 
   return (
     <>
       <Navbar className="navbar-top navbar-dark" expand="md" id="navbar-main">
         <Container fluid>
+          <Modal
+            show={showBackdrop}
+            onHide={() => setShowBackdrop(false)}
+            animation={true}
+            dialogClassName="modal-logout"
+            backdrop="static"
+          >
+            <Modal.Body className="modal-logout-body">
+              <h2> PLEASE LOG IN AGAIN TO CONTINUE!!!</h2>
+              <img className="img" src={caution} alt="" />
 
+              <Button className="button" color="primary" onClick={handleLogoutClose}>
+                OK
+              </Button>
+            </Modal.Body>
+          </Modal>
           <Form className="navbar-search navbar-search-dark form-inline mr-3 d-none d-md-flex ml-lg-auto">
-            <FormGroup className="mb-0">
-              <InputGroup className="input-group-alternative">
-                <InputGroupAddon addonType="prepend">
-                  <InputGroupText>
-                    <i className="fas fa-search" />
-                  </InputGroupText>
-                </InputGroupAddon>
-                <Input placeholder="Search" type="text" onChange={(e) => handleSearch(e.target.value)} />
-              </InputGroup>
-            </FormGroup>
+            {(location.pathname !== "/admin/map" && location.pathname !== "/admin/coords") && (
+              <FormGroup className="mb-0">
+                <InputGroup className="input-group-alternative">
+                  <InputGroupAddon addonType="prepend">
+                    <InputGroupText>
+                      <i className="fas fa-search" />
+                    </InputGroupText>
+                  </InputGroupAddon>
+                  <Input placeholder="Search" type="text" onChange={(e) => handleSearch(e.target.value)} />
+                </InputGroup>
+              </FormGroup>
+            )}
           </Form>
           <Nav className="align-items-center d-none d-md-flex" navbar>
             <UncontrolledDropdown nav>

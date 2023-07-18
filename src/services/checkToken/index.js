@@ -1,5 +1,4 @@
 import jwt_decode from "jwt-decode";
-import 'react-toastify/dist/ReactToastify.css';
 export function isTokenExpired() {
   const user = JSON.parse(localStorage.getItem('user'))
   if (user){

@@ -51,19 +51,19 @@ const Routes = () => {
     stationIds: "",
   });
 
-  const [detailData, setDetailData] = useState(({}))
+  const [detailData, setDetailData] = useState({
+    id: "",
+    beginning: "",
+    destination: "",
+    distance: "",
+    stations: [],
+  });
   const stationIds = detailData.stations?.map(station => station.stationId).join(', ') || "";
 
   // Check accessToken
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem("user"));
     if (user == null || !user || isTokenExpired()) {
-      toast("You need to log in to continue!", {
-        autoClose: 1000,
-        onClose: () => {
-          navigate("/auth/login");
-        },
-      });
       return;
     } else {
       getAllRoutes(user.accessToken)
@@ -86,6 +86,7 @@ const Routes = () => {
     return new Promise((resolve, reject) => {
       getSingleRoute(id)
         .then((res) => {
+          setDetailData(res.data); // Update detailData with the fetched data
           resolve(res.data);
         })
         .catch((error) => {
@@ -587,7 +588,7 @@ const Routes = () => {
                           placeholder="Stations have not been added yet"
                           value={Array.isArray(formData.stationIds) ? formData.stationIds.join(",") : ""}
                           onChange={(e) => {
-                            const inputArray = e.target.value.split(",").map(Number);
+                            const inputArray = e.target.value.split(",");
                             setFormData({
                               ...formData,
                               stationIds: inputArray,

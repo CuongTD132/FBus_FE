@@ -33,6 +33,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { updateBus } from "../../redux/reducer";
 import QRCode from 'qrcode.react';
 import { isTokenExpired } from "../../services/checkToken";
+import caution from '../../assets/img/caution.png'
 
 const Buses = () => {
   const dispatch = useDispatch();
@@ -45,6 +46,8 @@ const Buses = () => {
   const [showDetails, setShowDetails] = useState(false);
   const [showToggleStatus, setShowToggleStatus] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [originalData, setOriginalData] = useState({});
   const [showBackdrop, setShowBackdrop] = useState(false);
   const [formData, setFormData] = useState({
     code: "",
@@ -60,8 +63,6 @@ const Buses = () => {
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem("user"));
     if (user == null || !user || isTokenExpired()) {
-      setShowBackdrop(true)
-      
       return;
     } else {
       getAllBuses(user.accessToken)
@@ -81,10 +82,11 @@ const Buses = () => {
   }, [navigate])
 
   // Fetch detail information and pass to detail form
-  const fetchBusDetails = (id) => {
-    getSingleBus(id)
+  const fetchBusDetails = async (id) => {
+    await getSingleBus(id)
       .then((res) => {
         setFormData(res.data)
+        setOriginalData(res.data); // Store the original data
       })
   };
 
@@ -115,19 +117,14 @@ const Buses = () => {
   };
 
   // Call show detail form
-  const handleShowDetails = (id) => {
-    if (isTokenExpired()) {
-      toast("You need to log in again to continue!", {
-        autoClose: 1000,
-        onClose: () => {
-          navigate("/auth/login");
-        },
-      });
-    } else {
-      fetchBusDetails(id);
-      setShowDetails(true);
+  const handleShowDetails = async (id) => {
+    const user = JSON.parse(localStorage.getItem('user'))
+    if (user == null || !user || isTokenExpired()) {
+      setShowBackdrop(true)
+      return;
     }
-
+    await fetchBusDetails(id);
+    setShowDetails(true);
   }
 
   // QRCODE FUNCTIONS
@@ -153,7 +150,7 @@ const Buses = () => {
       .toDataURL("image/png")
       .replace("image/png", "image/octet-stream");
     let downloadLink = document.createElement("a");
-    
+
     downloadLink.href = pngUrl;
     downloadLink.download = `${JSON.parse(qrHash).split('-')[0]}.png`;
     document.body.appendChild(downloadLink);
@@ -161,34 +158,44 @@ const Buses = () => {
     document.body.removeChild(downloadLink);
     setShowQrCode(false);
   };
-  
-
-  // LOGOUT
-  const handleLogoutClose = () => {
-    navigate("/auth/login");
-    setShowBackdrop(false);
-    
-  }
 
   // --UPDATE FUNCTIONS
   const handleUpdateClose = () => {
     setShowUpdate(false);
   }
-  const handleUpdateShow = (bus) => {
-    if (isTokenExpired()) {
-      toast("You need to log in again to continue!", {
-        autoClose: 1000,
-        onClose: () => {
-          navigate("/auth/login");
-        },
-      });
-    } else {
-      fetchBusDetails(bus.id); // fetch old data
-      setShowUpdate(true); // show update modal
+  
+  const handleUpdateShow = async (bus) => {
+    const user = JSON.parse(localStorage.getItem('user'))
+    if (user == null || !user || isTokenExpired()) {
+      setShowBackdrop(true)
+      return;
     }
-
+    await fetchBusDetails(bus.id); // fetch old data
+    setShowUpdate(true); // show update modal
   };
+
   const updateBusData = () => {
+    const user = JSON.parse(localStorage.getItem('user'))
+    if (user == null || !user ||isTokenExpired()) {
+      setShowBackdrop(true)
+      return;
+    }
+    // Check if form data has been changed
+    if (
+      formData.code === originalData.code &&
+      formData.licensePlate === originalData.licensePlate &&
+      formData.brand === originalData.brand &&
+      formData.model === originalData.model &&
+      formData.color === originalData.color &&
+      formData.seat === originalData.seat &&
+      formData.dateOfRegistration === originalData.dateOfRegistration
+    ) {
+      toast.info("Nothing has been changed!", {
+        autoClose: 1000,
+      });
+      setShowUpdate(true);
+      return;
+    }
     updateBusAPI(formData, formData.id)
       .then((res) => {
         // console.log(res);
@@ -201,10 +208,10 @@ const Buses = () => {
         fetchBuses();
       })
       .catch((e) => {
+        if (e.response.data.errors) {
+          setErrors(e.response.data.errors);
+        }
         toast.error("Failed to update the bus!", {
-          autoClose: 1000,
-        });
-        toast.error(e.response, {
           autoClose: 1000,
         });
         setShowUpdate(true);
@@ -231,6 +238,11 @@ const Buses = () => {
 
   }
   const toggleStatus = () => {
+    const user = JSON.parse(localStorage.getItem('user'))
+    if (user == null || !user ||isTokenExpired()) {
+      setShowBackdrop(true)
+      return;
+    }
     let status = "INACTIVE";
     if (oldStatus === "INACTIVE") {
       status = "ACTIVE"
@@ -255,20 +267,15 @@ const Buses = () => {
   // DELETE FUNCTIONS
   const [deleteBusId, setDeleteBusId] = useState();
   const handleDeleteBus = (id) => {
-    if (isTokenExpired()) {
-      toast.error("You need to log in again to continue!", {
-        autoClose: 1000,
-        onClose: () => {
-          navigate("/auth/login");
-        },
-      });
-    } else {
       setDeleteBusId(id)
       setShowDelete(true)
-    }
-
   };
   const deleteBus = () => {
+    const user = JSON.parse(localStorage.getItem('user'))
+    if (user == null || !user ||isTokenExpired()) {
+      setShowBackdrop(true)
+      return;
+    }
     deleteBusAPI(deleteBusId)
       .then((res) => {
         if (res.status === 200) {
@@ -289,6 +296,11 @@ const Buses = () => {
 
   // ADD
   const handleAddBus = () => {
+    const user = JSON.parse(localStorage.getItem('user'))
+    if (user == null || !user || isTokenExpired()) {
+      setShowBackdrop(true)
+      return;
+    }
     addBusAPI(formData)
       .then((res) => {
         // console.log(res);
@@ -301,30 +313,20 @@ const Buses = () => {
         }
       })
       .catch((e) => {
+        if (e.response.data.errors) {
+          setErrors(e.response.data.errors);
+        }
         toast.error("Failed to add this bus!", {
           autoClose: 1000,
-        });
-        //toast error from API
-        Object.keys(e.response.data.errors).forEach((key) => {
-          toast.error("Error: " + e.response.data.errors[key], {
-            autoClose: 3000,
-          });
         });
         setShowAdd(true);
       });
   };
   const handleAddClose = () => {
     setShowAdd(false);
+    setErrors({});
   }
   const handleAddOpen = () => {
-    if (isTokenExpired()) {
-      toast.error("You need to log in again to continue!", {
-        autoClose: 1000,
-        onClose: () => {
-          navigate("/auth/login");
-        },
-      });
-    } else {
       setFormData({
         code: "",
         licensePlate: "",
@@ -334,12 +336,20 @@ const Buses = () => {
         seat: "",
         dateOfRegistration: "",
       });
+      setErrors({});
       setShowAdd(true);
-    }
-
   };
   // END ADD
 
+  // EXPIRED
+  const handleLogoutClose = () => {
+    navigate("/auth/login");
+    localStorage.removeItem('user');
+    toast.success("Logout successful", {
+      autoClose: 1000,
+    });
+    setShowBackdrop(false);
+  }
   // PAGING
   const itemsPerPage = 5;
   const [currentBusList, setCurrentBusList] = useState([]);
@@ -392,18 +402,19 @@ const Buses = () => {
                   show={showBackdrop}
                   onHide={() => setShowBackdrop(false)}
                   animation={true}
-                  backdrop="static"                  
+                  dialogClassName="modal-logout"
+                  backdrop="static"
                 >
-                  <Modal.Header >
-                    <Modal.Title>SORRY MATE</Modal.Title>
-                  </Modal.Header>
-                  <Modal.Body>YOU NEED TO LOG IN AGAIN TO CONTINUE</Modal.Body>
-                  <Modal.Footer>
-                    <Button color="primary" onClick={handleLogoutClose}>
+                  <Modal.Body className="modal-logout-body">
+                    <h2>YOUR LOGIN TIMEOUT HAS EXPIRED,<br/>PLEASE LOGIN AGAIN TO CONTINUE!</h2>
+                    <img className="img" src={caution} alt="" />
+
+                    <Button className="button" color="primary" onClick={handleLogoutClose}>
                       OK
                     </Button>
-                  </Modal.Footer>
+                  </Modal.Body>
                 </Modal>
+
 
                 <Modal className="modal" show={showToggleStatus} onHide={() => setShowToggleStatus(false)} animation={true}>
                   <Modal.Header >
@@ -444,103 +455,139 @@ const Buses = () => {
                     <Form>
                       <Form.Group className="mb-3" controlId="code">
                         <Form.Label>Code</Form.Label>
+                        {errors && errors.Code && (
+                          <span style={{ color: "red", float: "right" }}>*{errors.Code[0]}</span>
+                        )}
                         <Form.Control
                           type="text"
                           name="code"
                           placeholder="Code"
                           autoFocus
                           required
-                          value={formData.code}
                           onChange={(e) => {
                             setFormData({
                               ...formData,
                               code: e.target.value
-                            })
+                            });
+                            setErrors({
+                              ...errors,
+                              Code: null
+                            });
                           }}
                         />
                       </Form.Group>
                       <Form.Group className="mb-3" controlId="licensePlate">
                         <Form.Label>License Plate</Form.Label>
+                        {errors && errors.LicensePlate && (
+                          <span style={{ color: "red", float: "right" }}>*{errors.LicensePlate[0]}</span>
+                        )}
                         <Form.Control
                           type="text"
                           name="licensePlate"
                           placeholder="licensePlate"
                           autoFocus
                           required
-                          value={formData.licensePlate}
                           onChange={(e) => {
                             setFormData({
                               ...formData,
-                              licensePlate: e.target.value
-                            })
+                              licensePlate: e.target.value,
+                            });
+                            setErrors({
+                              ...errors,
+                              LicensePlate: null,
+                            });
                           }}
                         />
                       </Form.Group>
                       <Form.Group className="mb-3" controlId="brand">
                         <Form.Label>Brand</Form.Label>
+                        {errors && errors.Brand && (
+                          <span style={{ color: "red", float: "right" }}>*{errors.Brand[0]}</span>
+                        )}
                         <Form.Control
                           type="text"
                           name="brand"
                           placeholder="Brand"
                           autoFocus
                           required
-                          value={formData.brand}
                           onChange={(e) => {
                             setFormData({
                               ...formData,
                               brand: e.target.value
-                            })
+                            });
+                            setErrors({
+                              ...errors,
+                              Brand: null
+                            });
                           }}
                         />
                       </Form.Group>
                       <Form.Group className="mb-3" controlId="model">
                         <Form.Label>Model</Form.Label>
+                        {errors && errors.Model && (
+                          <span style={{ color: "red", float: "right" }}>*{errors.Model[0]}</span>
+                        )}
                         <Form.Control
                           type="text"
                           name="model"
                           placeholder="Model"
                           autoFocus
                           required
-                          value={formData.model}
                           onChange={(e) => {
                             setFormData({
                               ...formData,
                               model: e.target.value
-                            })
+                            });
+                            setErrors({
+                              ...errors,
+                              Model: null
+                            });
                           }}
                         />
                       </Form.Group>
                       <Form.Group className="mb-3" controlId="color">
                         <Form.Label>Color</Form.Label>
+                        {errors && errors.Color && (
+                          <span style={{ color: "red", float: "right" }}>*{errors.Color[0]}</span>
+                        )}
                         <Form.Control
                           type="text"
                           name="color"
                           placeholder="Color"
                           autoFocus
                           required
-                          value={formData.color}
                           onChange={(e) => {
                             setFormData({
                               ...formData,
                               color: e.target.value
-                            })
+                            });
+                            setErrors({
+                              ...errors,
+                              Color: null
+                            });
                           }}
                         />
                       </Form.Group>
                       <Form.Group className="mb-3" controlId="seat">
                         <Form.Label>Seat</Form.Label>
+                        {errors && errors.Seat && (
+                          <span style={{ color: "red", float: "right" }}>*{errors.Seat[0]}</span>
+                        )}
                         <Form.Control
                           as="select"
                           name="seat"
                           placeholder="Seat"
                           autoFocus
                           required
-                          value={formData.seat}
                           onChange={(e) => {
                             setFormData({
                               ...formData,
                               seat: e.target.value
-                            })
+                            });
+                            setErrors({
+                              ...errors,
+                              Seat: null
+                            });
                           }}
                         >
                           <option value="">Select seat</option>
@@ -559,7 +606,6 @@ const Buses = () => {
                           name="dateOfRegistration"
                           placeholder="YYYY-MM-DD"
                           required
-                          value={formData.dateOfRegistration}
                           onChange={(e) => {
                             const inputDate = e.target.value;
                             const formattedDate = inputDate
@@ -570,7 +616,7 @@ const Buses = () => {
                             setFormData({
                               ...formData,
                               dateOfRegistration: formattedDate
-                            })
+                            });
                           }}
                         />
                       </Form.Group>
@@ -587,7 +633,19 @@ const Buses = () => {
                 </Modal>
 
                 {/* Detail model */}
-                <Modal show={showDetails} onHide={() => setShowDetails(false)}>
+                <Modal show={showDetails}
+                  onHide={() => {
+                    setShowDetails(false);
+                    setFormData({
+                      code: "",
+                      licensePlate: "",
+                      brand: "",
+                      model: "",
+                      color: "",
+                      seat: "",
+                      dateOfRegistration: "",
+                    });
+                  }}>
                   <Modal.Header >
                     <Modal.Title>Bus detail</Modal.Title>
                   </Modal.Header>
@@ -690,10 +748,13 @@ const Buses = () => {
                     <Form>
                       <Form.Group className="mb-3" controlId="code">
                         <Form.Label>Code</Form.Label>
+                        {errors && errors.Code && (
+                          <span style={{ color: "red", float: "right" }}>*{errors.Code[0]}</span>
+                        )}
                         <Form.Control
                           type="text"
                           name="code"
-                          placeholder="code"
+                          placeholder="Code"
                           autoFocus
                           required
                           value={formData.code}
@@ -701,12 +762,19 @@ const Buses = () => {
                             setFormData({
                               ...formData,
                               code: e.target.value
-                            })
+                            });
+                            setErrors({
+                              ...errors,
+                              Code: null
+                            });
                           }}
                         />
                       </Form.Group>
                       <Form.Group className="mb-3" controlId="licensePlate">
                         <Form.Label>License Plate</Form.Label>
+                        {errors && errors.LicensePlate && (
+                          <span style={{ color: "red", float: "right" }}>*{errors.LicensePlate[0]}</span>
+                        )}
                         <Form.Control
                           type="text"
                           name="licensePlate"
@@ -717,17 +785,24 @@ const Buses = () => {
                           onChange={(e) => {
                             setFormData({
                               ...formData,
-                              licensePlate: e.target.value
-                            })
+                              licensePlate: e.target.value,
+                            });
+                            setErrors({
+                              ...errors,
+                              LicensePlate: null,
+                            });
                           }}
                         />
                       </Form.Group>
                       <Form.Group className="mb-3" controlId="brand">
                         <Form.Label>Brand</Form.Label>
+                        {errors && errors.Brand && (
+                          <span style={{ color: "red", float: "right" }}>*{errors.Brand[0]}</span>
+                        )}
                         <Form.Control
                           type="text"
                           name="brand"
-                          placeholder="brand"
+                          placeholder="Brand"
                           autoFocus
                           required
                           value={formData.brand}
@@ -735,16 +810,23 @@ const Buses = () => {
                             setFormData({
                               ...formData,
                               brand: e.target.value
-                            })
+                            });
+                            setErrors({
+                              ...errors,
+                              Brand: null
+                            });
                           }}
                         />
                       </Form.Group>
                       <Form.Group className="mb-3" controlId="model">
                         <Form.Label>Model</Form.Label>
+                        {errors && errors.Model && (
+                          <span style={{ color: "red", float: "right" }}>*{errors.Model[0]}</span>
+                        )}
                         <Form.Control
                           type="text"
                           name="model"
-                          placeholder="model"
+                          placeholder="Model"
                           autoFocus
                           required
                           value={formData.model}
@@ -752,16 +834,23 @@ const Buses = () => {
                             setFormData({
                               ...formData,
                               model: e.target.value
-                            })
+                            });
+                            setErrors({
+                              ...errors,
+                              Model: null
+                            });
                           }}
                         />
                       </Form.Group>
                       <Form.Group className="mb-3" controlId="color">
                         <Form.Label>Color</Form.Label>
+                        {errors && errors.Color && (
+                          <span style={{ color: "red", float: "right" }}>*{errors.Color[0]}</span>
+                        )}
                         <Form.Control
                           type="text"
                           name="color"
-                          placeholder="color"
+                          placeholder="Color"
                           autoFocus
                           required
                           value={formData.color}
@@ -769,12 +858,19 @@ const Buses = () => {
                             setFormData({
                               ...formData,
                               color: e.target.value
-                            })
+                            });
+                            setErrors({
+                              ...errors,
+                              Color: null
+                            });
                           }}
                         />
                       </Form.Group>
                       <Form.Group className="mb-3" controlId="seat">
                         <Form.Label>Seat</Form.Label>
+                        {errors && errors.Seat && (
+                          <span style={{ color: "red", float: "right" }}>*{errors.Seat[0]}</span>
+                        )}
                         <Form.Control
                           as="select"
                           name="seat"
@@ -786,7 +882,11 @@ const Buses = () => {
                             setFormData({
                               ...formData,
                               seat: e.target.value
-                            })
+                            });
+                            setErrors({
+                              ...errors,
+                              Seat: null
+                            });
                           }}
                         >
                           {/* <option value="">Select seat</option> */}
@@ -843,12 +943,12 @@ const Buses = () => {
                   </Modal.Header>
                   <Modal.Body className="text-center">
                     <Form>
-                      <Form.Group>                        
-                          <QRCode className="qr-code-container" size={300} id="qr-gen" includeMargin={true} value={qrHash} />                      
+                      <Form.Group>
+                        <QRCode className="qr-code-container" size={300} id="qr-gen" includeMargin={true} value={qrHash} />
                       </Form.Group>
                     </Form>
                   </Modal.Body>
-                  <Modal.Footer>                    
+                  <Modal.Footer>
                     <Button variant="secondary" onClick={() => setShowQrCode(false)}>
                       Close
                     </Button>

@@ -127,7 +127,8 @@
 
 .modal-map button {
     float: right;
-    margin-top : 1rem;
+    margin-top: 1rem;
+    margin-left: 10px;
 }
 
 .modal-logout img {
@@ -140,9 +141,62 @@
     display: block;
     margin-top: 1rem;
 }
+
 .modal-map-body {
     padding: 1rem !important;
 }
+
 .modal-logout-body {
     padding: 1rem !important;
 }
+
+.custom-icon {
+    border: none;
+    background-color: transparent;
+    text-align: center;
+    color: #333;
+    /* Adjust the color of the station name */
+    width: 100px;
+    /* Adjust the width of the marker */
+}
+
+.custom-icon div {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.custom-icon h1 {
+    font-size: 14px;
+    margin: 0;
+    white-space: nowrap;
+    /* Make the station name stay on a single line */
+}
+
+.custom-icon .highlighted h1 {
+    color: #FF5733;
+}
+
+.custom-icon-img {
+    width: 40px;
+    height: 40px;
+    margin-bottom: 5px;
+    /* Add some spacing between the image and the station name */
+    border-radius: 10px;
+}
+
+.custom-popup-button {
+    display: block;
+    margin: auto;
+    background-color: #5e72e4;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  
+  .custom-popup-button:hover {
+    background-color: #0d6efd;
+  }

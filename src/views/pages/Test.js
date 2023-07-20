@@ -145,7 +145,6 @@ const Stations = () => {
   // --UPDATE FUNCTIONS
   const handleUpdateClose = () => {
     setShowUpdate(false);
-    setErrors({});
     setNewMarkerPosition(null);
   }
 
@@ -158,7 +157,8 @@ const Stations = () => {
     await fetchStationDetails(station.id); // fetch old data
     setShowUpdate(true); // show update modal
     setIsUpdated(false);
-    setErrors({});
+
+
   };
 
   const updateStationData = () => {
@@ -171,7 +171,7 @@ const Stations = () => {
       toast.info("Nothing has been changed!", {
         autoClose: 1000,
       });
-      setShowUpdate(true);
+      setShowUpdate(false);
       return;
     }
     updateStationAPI(formData, formData.id)
@@ -309,7 +309,6 @@ const Stations = () => {
   const handleAddClose = () => {
     setShowAdd(false);
     setNewMarkerPosition(null);
-    setErrors({});
     setFormData({
       name: "",
       code: "",
@@ -337,7 +336,6 @@ const Stations = () => {
       latitude: "",
     });
     setShowAdd(true);
-    setErrors({});
   };
   // END ADD
 
@@ -1117,9 +1115,6 @@ const Stations = () => {
                     <Form>
                       <Form.Group className="mb-3" controlId="code">
                         <Form.Label>Code</Form.Label>
-                        {errors && errors.Code && (
-                          <span style={{ color: "red", float: "right" }}>*{errors.Code[0]}</span>
-                        )}
                         <Form.Control
                           type="text"
                           name="code"
@@ -1131,21 +1126,12 @@ const Stations = () => {
                             setFormData({
                               ...formData,
                               code: e.target.value
-                            });
-                            setErrors({
-                              ...errors,
-                              Code: null
-                            });
-                            setIsUpdated(true);
-
+                            })
                           }}
                         />
                       </Form.Group>
                       <Form.Group className="mb-3" controlId="name">
                         <Form.Label>Name</Form.Label>
-                        {errors && errors.Name && (
-                          <span style={{ color: "red", float: "right" }}>*{errors.Name[0]}</span>
-                        )}
                         <Form.Control
                           type="text"
                           name="name"
@@ -1155,21 +1141,12 @@ const Stations = () => {
                             setFormData({
                               ...formData,
                               name: e.target.value
-                            });
-                            setErrors({
-                              ...errors,
-                              Name: null
-                            });
-                            setIsUpdated(true);
-
+                            })
                           }}
                         />
                       </Form.Group>
                       <Form.Group className="mb-3" controlId="addressNumber">
                         <Form.Label>Address Number</Form.Label>
-                        {errors && errors.AddressNumber && (
-                          <span style={{ color: "red", float: "right" }}>*{errors.AddressNumber[0]}</span>
-                        )}
                         <Form.Control
                           type="text"
                           name="addressNumber"
@@ -1181,20 +1158,12 @@ const Stations = () => {
                             setFormData({
                               ...formData,
                               addressNumber: e.target.value
-                            });
-                            setErrors({
-                              ...errors,
-                              AddressNumber: null
-                            });
-                            setIsUpdated(true);
+                            })
                           }}
                         />
                       </Form.Group>
                       <Form.Group className="mb-3" controlId="street">
                         <Form.Label>Street</Form.Label>
-                        {errors && errors.Street && (
-                          <span style={{ color: "red", float: "right" }}>*{errors.Street[0]}</span>
-                        )}
                         <Form.Control
                           type="text"
                           name="street"
@@ -1207,19 +1176,11 @@ const Stations = () => {
                               ...formData,
                               street: e.target.value
                             });
-                            setErrors({
-                              ...errors,
-                              Street: null
-                            });
-                            setIsUpdated(true);
                           }}
                         />
                       </Form.Group>
                       <Form.Group className="mb-3" controlId="ward">
                         <Form.Label>Ward</Form.Label>
-                        {errors && errors.Ward && (
-                          <span style={{ color: "red", float: "right" }}>*{errors.Ward[0]}</span>
-                        )}
                         <Form.Control
                           type="text"
                           name="ward"
@@ -1231,21 +1192,12 @@ const Stations = () => {
                             setFormData({
                               ...formData,
                               ward: e.target.value
-                            });
-                            setErrors({
-                              ...errors,
-                              Ward: null
-                            });
-                            setIsUpdated(true);
-
+                            })
                           }}
                         />
                       </Form.Group>
                       <Form.Group className="mb-3" controlId="district">
                         <Form.Label>District</Form.Label>
-                        {errors && errors.District && (
-                          <span style={{ color: "red", float: "right" }}>*{errors.District[0]}</span>
-                        )}
                         <Form.Control
                           type="text"
                           name="district"
@@ -1257,21 +1209,12 @@ const Stations = () => {
                             setFormData({
                               ...formData,
                               district: e.target.value
-                            });
-                            setErrors({
-                              ...errors,
-                              District: null
-                            });
-                            setIsUpdated(true);
-
+                            })
                           }}
                         />
                       </Form.Group>
                       <Form.Group className="mb-3" controlId="city">
                         <Form.Label>City</Form.Label>
-                        {errors && errors.City && (
-                          <span style={{ color: "red", float: "right" }}>*{errors.City[0]}</span>
-                        )}
                         <Form.Control
                           type="text"
                           name="city"
@@ -1283,12 +1226,7 @@ const Stations = () => {
                             setFormData({
                               ...formData,
                               city: e.target.value
-                            });
-                            setErrors({
-                              ...errors,
-                              City: null
-                            });
-                            setIsUpdated(true);
+                            })
                           }}
                         />
                       </Form.Group>
@@ -1299,9 +1237,6 @@ const Stations = () => {
                       </Form.Group>
                       <Form.Group className="mb-3" controlId="latitude">
                         <Form.Label>Latitude</Form.Label>
-                        {errors && errors.Latitude && (
-                          <span style={{ color: "red", float: "right" }}>*{errors.Latitude[0]}</span>
-                        )}
                         <Form.Control
                           type="text"
                           name="latitude"
@@ -1312,21 +1247,13 @@ const Stations = () => {
                             setFormData({
                               ...formData,
                               latitude: e.target.value
-                            });
-                            setErrors({
-                              ...errors,
-                              Latitude: null
-                            });
-                            setIsUpdated(true);
+                            })
                           }}
                         />
                       </Form.Group>
 
                       <Form.Group className="mb-3" controlId="longitude">
                         <Form.Label>Longitude</Form.Label>
-                        {errors && errors.Longitude && (
-                          <span style={{ color: "red", float: "right" }}>*{errors.Longitude[0]}</span>
-                        )}
                         <Form.Control
                           type="text"
                           name="longitude"
@@ -1337,12 +1264,7 @@ const Stations = () => {
                             setFormData({
                               ...formData,
                               longitude: e.target.value
-                            });
-                            setErrors({
-                              ...errors,
-                              Longitude: null
-                            });
-                            setIsUpdated(true);
+                            })
                           }}
                         />
                       </Form.Group>

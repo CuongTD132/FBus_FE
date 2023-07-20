@@ -77,9 +77,8 @@ const AdminNavbar = (props) => {
   const dispatch = useDispatch();
 
   const handleSearch = (searchString = "") => {
-    localStorage.setItem('currentSearch', searchString);
     const user = JSON.parse(localStorage.getItem('user'))
-    if (user == null || !user ||isTokenExpired()) {
+    if (user == null || !user || isTokenExpired()) {
       setShowBackdrop(true)
       return;
     }
@@ -162,7 +161,7 @@ const AdminNavbar = (props) => {
             backdrop="static"
           >
             <Modal.Body className="modal-logout-body">
-              <h2> PLEASE LOG IN AGAIN TO CONTINUE!!!</h2>
+            <h2>YOUR LOGIN TIMEOUT HAS EXPIRED,<br />PLEASE LOGIN AGAIN TO CONTINUE!</h2>
               <img className="img" src={caution} alt="" />
 
               <Button className="button" color="primary" onClick={handleLogoutClose}>

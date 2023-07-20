@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { Table } from 'react-bootstrap';
+import { Button, Modal, Table } from 'react-bootstrap';
 import "../../style/Manager.css"
+import caution from '../../assets/img/caution.png'
 import {
   Card,
   CardHeader,
@@ -24,32 +25,39 @@ import { isTokenExpired } from "../../services/checkToken";
 
 const Accounts = () => {
   const navigate = useNavigate();
-
+  const [showBackdrop, setShowBackdrop] = useState(false);
   const [accountList, setAccountList] = useState([]);
 
   // Check accessToken
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem("user"));
     if (user == null || !user || isTokenExpired()) {
+      setShowBackdrop(true);
       return;
-    } else {
-      getAllAccounts(user.accessToken)
-        .then((res) => {
-          if (res && res.data && res.data.data) {
-            setAccountList(res.data.data);
-          } else {
-            toast.error("Error: Invalid response data");
-            return;
-          }
-        })
-        .catch((e) => {
-          toast.error("Error: " + e.message);
-        });
     }
-
+    getAllAccounts(user.accessToken)
+      .then((res) => {
+        if (res && res.data && res.data.data) {
+          setAccountList(res.data.data);
+        } else {
+          toast.error("Error: Invalid response data");
+          return;
+        }
+      })
+      .catch((e) => {
+        toast.error("Error: " + e.message);
+      });
   }, [navigate])
 
-  
+  // EXPIRED
+  const handleLogoutClose = () => {
+    navigate("/auth/login");
+    localStorage.removeItem('user');
+    toast.success("Logout successful", {
+      autoClose: 1000,
+    });
+    setShowBackdrop(false);
+  }
 
   // PAGING
   const itemsPerPage = 5;
@@ -97,6 +105,24 @@ const Accounts = () => {
                 <h3 className="mb-0">Manager Accounts</h3>
               </CardHeader>
               <CardBody>
+
+                <Modal
+                  show={showBackdrop}
+                  onHide={() => setShowBackdrop(false)}
+                  animation={true}
+                  dialogClassName="modal-logout"
+                  backdrop="static"
+                >
+                  <Modal.Body className="modal-logout-body">
+                    <h2>YOUR LOGIN TIMEOUT HAS EXPIRED,<br />PLEASE LOGIN AGAIN TO CONTINUE!</h2>
+                    <img className="img" src={caution} alt="" />
+
+                    <Button className="button" color="primary" onClick={handleLogoutClose}>
+                      OK
+                    </Button>
+                  </Modal.Body>
+                </Modal>
+                
                 {/* Table list */}
                 <div className="list">
                   <Table striped bordered hover>
@@ -122,7 +148,7 @@ const Accounts = () => {
                             <span className="normal-style">{account.email ? account.email : "none"}</span>
                           </td>
                           <td>
-                          <span className={`role ${account.role === 'Admin' ? 'admin' : account.role === 'Driver' ? 'driver' : ''}`}>
+                            <span className={`role ${account.role === 'Admin' ? 'admin' : account.role === 'Driver' ? 'driver' : ''}`}>
                               {account.role}
                             </span>
                           </td>

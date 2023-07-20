@@ -87,9 +87,9 @@ const Buses = () => {
   };
 
   // Fetch list of bus and pass to table
-  const fetchBuses = () => {
+  const fetchBuses = async () => {
     if (currentSearchBus !== "") {
-      getMultiBusesAPI({
+      await getMultiBusesAPI({
         licensePlate: currentSearchBus,
         code: currentSearchBus
       }).then((res) => {
@@ -101,7 +101,7 @@ const Buses = () => {
         }
       })
     } else {
-      getAllBuses()
+      await getAllBuses()
         .then((res) => {
           setBusList(res.data.data);
           dispatch(updateBus(res.data.data));
@@ -149,6 +149,7 @@ const Buses = () => {
   // --UPDATE FUNCTIONS
   const handleUpdateClose = () => {
     setShowUpdate(false);
+    setErrors({});
   }
 
   const handleUpdateShow = async (bus) => {
@@ -160,6 +161,7 @@ const Buses = () => {
     await fetchBusDetails(bus.id); // fetch old data
     setShowUpdate(true); // show update modal
     setIsUpdated(false);
+    setErrors({});
   };
 
   const updateBusData = () => {
@@ -203,20 +205,11 @@ const Buses = () => {
   const [oldStatus, setOldStatus] = useState("");
   const [toggleBusId, setToggleBusId] = useState(null);
   const handleToggleStatus = (bus) => {
-    if (isTokenExpired()) {
-      toast.error("You need to log in again to continue!", {
-        autoClose: 1000,
-        onClose: () => {
-          navigate("/auth/login");
-        },
-      });
-    } else {
       setOldStatus(bus.status)
       setToggleBusId(bus.id)
       setShowToggleStatus(true);
-    }
-
   }
+  
   const toggleStatus = () => {
     const user = JSON.parse(localStorage.getItem('user'))
     if (user == null || !user || isTokenExpired()) {

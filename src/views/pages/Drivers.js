@@ -66,22 +66,21 @@ const Drivers = () => {
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem("user"));
     if (user == null || !user || isTokenExpired()) {
+      setShowBackdrop(true)
       return;
-    } else {
-      getAllDrivers(user.accessToken)
-        .then((res) => {
-          if (res && res.data && res.data.data) {
-            setDriverList(res.data.data);
-          } else {
-            alert("Error: Invalid response data");
-            return;
-          }
-        })
-        .catch((error) => {
-          alert("Error: " + error.message);
-        });
     }
-
+    getAllDrivers(user.accessToken)
+      .then((res) => {
+        if (res && res.data && res.data.data) {
+          setDriverList(res.data.data);
+        } else {
+          alert("Error: Invalid response data");
+          return;
+        }
+      })
+      .catch((error) => {
+        alert("Error: " + error.message);
+      });
   }, [navigate])
 
   // Fetch detail information and pass to detail form
@@ -117,51 +116,34 @@ const Drivers = () => {
 
   // Call show detail form
   const handleShowDetails = async (id) => {
-    if (isTokenExpired()) {
-      toast.info("You need to log in to continue!", {
-        position: "top-center",
-        autoClose: 1500,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: false,
-        draggable: true,
-        progress: undefined,
-        theme: "light",
-        onClose: () => {
-          navigate("/auth/login");
-        },
-      });
-    } else {
-      await fetchDriverDetails(id);
-      setShowDetails(true); // Show the modal
+    const user = JSON.parse(localStorage.getItem('user'))
+    if (user == null || !user || isTokenExpired()) {
+      setShowBackdrop(true)
+      return;
     }
+    await fetchDriverDetails(id);
+    setShowDetails(true); // Show the modal
+
   }
 
   // --UPDATE FUNCTIONS
   const handleUpdateClose = () => {
     setShowUpdate(false);
+    setErrors({});
   }
+
   const handleUpdateShow = async (driver) => {
-    if (isTokenExpired()) {
-      toast.info("You need to log in to continue!", {
-        position: "top-center",
-        autoClose: 1500,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: false,
-        draggable: true,
-        progress: undefined,
-        theme: "light",
-        onClose: () => {
-          navigate("/auth/login");
-        },
-      });
-    } else {
-      await fetchDriverDetails(driver.id); // fetch old data       
-      setShowUpdate(true); // show update modal
-      setIsUpdated(false);
+    const user = JSON.parse(localStorage.getItem('user'))
+    if (user == null || !user || isTokenExpired()) {
+      setShowBackdrop(true)
+      return;
     }
+    await fetchDriverDetails(driver.id); // fetch old data       
+    setShowUpdate(true); // show update modal
+    setIsUpdated(false);
+    setErrors({});
   };
+
   const updateDriverData = () => {
     const user = JSON.parse(localStorage.getItem('user'))
     if (user == null || !user || isTokenExpired()) {
@@ -206,21 +188,17 @@ const Drivers = () => {
   const [oldStatus, setOldStatus] = useState("");
   const [toggleDriverId, setToggleDriverId] = useState(null);
   const handleToggleStatus = (driver) => {
-    if (isTokenExpired()) {
-      toast("You need to log in again to continue!", {
-        autoClose: 1000,
-        onClose: () => {
-          navigate("/auth/login");
-        },
-      });
-    } else {
-      setOldStatus(driver.status)
-      setToggleDriverId(driver.id)
-      setShowToggleStatus(true);
-    }
-
+    setOldStatus(driver.status)
+    setToggleDriverId(driver.id)
+    setShowToggleStatus(true);
   }
+
   const toggleStatus = () => {
+    const user = JSON.parse(localStorage.getItem('user'))
+    if (user == null || !user || isTokenExpired()) {
+      setShowBackdrop(true)
+      return;
+    }
     let status = "INACTIVE";
     if (oldStatus === "INACTIVE") {
       status = "ACTIVE"
@@ -253,19 +231,16 @@ const Drivers = () => {
   // DELETE FUNCTIONS
   const [deleteDriverId, setDeleteDriverId] = useState();
   const handleDeleteDriver = (id) => {
-    if (isTokenExpired()) {
-      toast("You need to log in again to continue!", {
-        autoClose: 1000,
-        onClose: () => {
-          navigate("/auth/login");
-        },
-      });
-    } else {
-      setDeleteDriverId(id)
-      setShowDelete(true)
-    }
+    setDeleteDriverId(id)
+    setShowDelete(true)
   };
+
   const deleteDriver = () => {
+    const user = JSON.parse(localStorage.getItem('user'))
+    if (user == null || !user || isTokenExpired()) {
+      setShowBackdrop(true)
+      return;
+    }
     deleteDriverAPI(deleteDriverId)
       .then((res) => {
         if (res.status === 200) {
@@ -294,6 +269,11 @@ const Drivers = () => {
 
   // ADD
   const handleAddDriver = () => {
+    const user = JSON.parse(localStorage.getItem('user'))
+    if (user == null || !user || isTokenExpired()) {
+      setShowBackdrop(true)
+      return;
+    }
     addDriverAPI(formData)
       .then((res) => {
         // console.log(res);
@@ -320,29 +300,20 @@ const Drivers = () => {
     setErrors({});
   }
   const handleAddOpen = () => {
-    if (isTokenExpired()) {
-      toast("You need to log in again to continue!", {
-        autoClose: 1000,
-        onClose: () => {
-          navigate("/auth/login");
-        },
-      });
-    } else {
-      setFormData({
-        email: "",
-        code: "",
-        fullName: "",
-        gender: "",
-        idCardNumber: "",
-        address: "",
-        phoneNumber: "",
-        personalEmail: "",
-        dateOfBirth: "",
-        avatarFile: "",
-      });
-      setErrors({});
-      setShowAdd(true);
-    }
+    setFormData({
+      email: "",
+      code: "",
+      fullName: "",
+      gender: "",
+      idCardNumber: "",
+      address: "",
+      phoneNumber: "",
+      personalEmail: "",
+      dateOfBirth: "",
+      avatarFile: "",
+    });
+    setErrors({});
+    setShowAdd(true);
   };
   // END ADD
 
@@ -656,7 +627,7 @@ const Drivers = () => {
                         />
                       </Form.Group>
                       <Form.Group className="mb-3" controlId="avatarFile">
-                        <Form.Label>Avatar File</Form.Label>                        
+                        <Form.Label>Avatar File</Form.Label>
                         <Form.Control
                           type="file"
                           name="avatarFile"

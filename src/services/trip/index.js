@@ -1,19 +1,19 @@
 import axios from "axios";
 const URL = process.env.REACT_APP_SERVER;
 const END_POINTS = {
-    getMultiCoordinations: 'api/Coordinations',
-    addCoordination: 'api/Coordinations',
-    updateCoordination: 'api/Coordinations',
-    getSingleCoordination: 'api/Coordinations',
-    patchCoordination: 'api/Coordinations',
-    deleteCoordination: 'api/Coordinations'
+    getMultiTrips: 'api/Trips',
+    addTrip: 'api/Trips',
+    updateTrip: 'api/Trips',
+    getSingleTrip: 'api/Trips',
+    patchTrip: 'api/Trips',
+    deleteTrip: 'api/Trips'
 }
 
 
-export const getMultiCoordinationsAPI = async (data) => {
+export const getMultiTripsAPI = async (data) => {
     const user = JSON.parse(localStorage.getItem('user'));
     if (user && user.accessToken) {
-        return await axios.get(`${URL}/${END_POINTS.getMultiCoordinations}`, {
+        return await axios.get(`${URL}/${END_POINTS.getMultiTrips}`, {
             params: {
                 ...data
             },
@@ -25,7 +25,7 @@ export const getMultiCoordinationsAPI = async (data) => {
 }
 
 
-// export const addCoordinationAPI = async (coord) => {
+// export const addTripAPI = async (coord) => {
 //     const user = JSON.parse(localStorage.getItem('user'));
 //     const formData = new FormData();
 //     formData.append('driverId', coord.driverId);
@@ -35,7 +35,7 @@ export const getMultiCoordinationsAPI = async (data) => {
 //     formData.append('dateLine', coord.dateLine);
 //     formData.append('dueDate', coord.dueDate);
 //     if (user && user.accessToken) {
-//         return await axios.post(`${URL}/${END_POINTS.addCoordination}`,
+//         return await axios.post(`${URL}/${END_POINTS.addTrip}`,
 //             formData,
 //             {
 //                 headers: {
@@ -46,7 +46,7 @@ export const getMultiCoordinationsAPI = async (data) => {
 //     }
 // };
 
-// export const updateCoordinationAPI = async (coord, id) => {
+// export const updateTripAPI = async (coord, id) => {
 //     const user = JSON.parse(localStorage.getItem('user'));
 //     const formData = new FormData();
 //     formData.append('driverId', coord.driverId);
@@ -56,7 +56,7 @@ export const getMultiCoordinationsAPI = async (data) => {
 //     formData.append('dateLine', coord.dateLine);
 //     formData.append('dueDate', coord.dueDate);
 //     if (user && user.accessToken) {
-//         return await axios.put(`${URL}/${END_POINTS.updateCoordination}/${id}`,
+//         return await axios.put(`${URL}/${END_POINTS.updateTrip}/${id}`,
 //             formData,
 //             {
 //                 headers: {
@@ -68,10 +68,10 @@ export const getMultiCoordinationsAPI = async (data) => {
 //     }
 // };
 
-export const getAllCoordinations = async () => {
+export const getAllTrips = async () => {
     const user = JSON.parse(localStorage.getItem('user'));
     if (user && user.accessToken) {
-        return await axios.get(`${URL}/${END_POINTS.getMultiCoordinations}`, {
+        return await axios.get(`${URL}/${END_POINTS.getMultiTrips}`, {
             headers: {
                 Authorization: `Bearer ${user.accessToken}`,
             },
@@ -79,10 +79,10 @@ export const getAllCoordinations = async () => {
     }
 }
 
-export const getSingleCoordination = async (id) => {
+export const getSingleTrip = async (id) => {
     const user = JSON.parse(localStorage.getItem('user'));
     if (user && user.accessToken) {
-        return await axios.get(`${URL}/${END_POINTS.getSingleCoordination}/${id}`,
+        return await axios.get(`${URL}/${END_POINTS.getSingleTrip}/${id}`,
             {
                 headers: {
                     Authorization: `Bearer ${user.accessToken}`,
@@ -94,7 +94,7 @@ export const getSingleCoordination = async (id) => {
 export const toggleStatusAPI = async (coordinationId, status) => {
     const user = JSON.parse(localStorage.getItem('user'));
     if (user && user.accessToken) {
-        return await axios.patch(`${URL}/${END_POINTS.patchCoordination}/${coordinationId}`,
+        return await axios.patch(`${URL}/${END_POINTS.patchTrip}/${coordinationId}`,
             status,
             {
                 headers: {
@@ -105,10 +105,10 @@ export const toggleStatusAPI = async (coordinationId, status) => {
     }
 }
 
-export const deleteCoordinationAPI = async (coordinationId) => {
+export const deleteTripAPI = async (coordinationId) => {
     const user = JSON.parse(localStorage.getItem('user'));
     if (user && user.accessToken) {
-        return await axios.delete(`${URL}/${END_POINTS.deleteCoordination}/${coordinationId}`,
+        return await axios.delete(`${URL}/${END_POINTS.deleteTrip}/${coordinationId}`,
             {
                 headers: {
                     Authorization: `Bearer ${user.accessToken}`,

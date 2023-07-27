@@ -17,11 +17,12 @@ const MapWrapper = () => {
   }, [navigate]);
   return (
     <>
-      <iframe
+      {/* <iframe
         src="https://f-bus-map-v2.vercel.app/"
         title="Maps"
         style={{ width: '100%', height: '800px', borderRadius: "5px", border: 'none' }}
-      />
+      /> */}
+      <h1>Hello</h1>
     </>
   );
 };

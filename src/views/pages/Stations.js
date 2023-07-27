@@ -59,10 +59,10 @@ const Stations = () => {
   const [showToggleStatus, setShowToggleStatus] = useState(false);
   const [showMap, setShowMap] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const markerRef = useRef(null);
-  const [display_name, setDisplay_name] = useState(null);
-  const [markerPosition, setMarkerPosition] = useState({ lat: 10.840903, lng: 106.809889 });
-  const [markerDraggable, setMarkerDraggable] = useState(false);
+  // const [display_name, setDisplay_name] = useState(null);
+  const [markerPosition, setMarkerPosition] = useState({ lat: 10.84215, lng: 106.80963 });
   const [showBackdrop, setShowBackdrop] = useState(false);
   const [isUpdated, setIsUpdated] = useState(false);
   const [errors, setErrors] = useState({});
@@ -121,6 +121,7 @@ const Stations = () => {
           dispatch(updateStation(res.data.data))
         } else {
           dispatch(updateStation([]))
+          setStationList([]);
         }
       })
     } else {
@@ -224,18 +225,11 @@ const Stations = () => {
         setShowToggleStatus(false);
         fetchStations()
       })
-      .catch((e) => {
-        if (e.response && e.response.status === 401) {
-          toast.error("You need to log in again to continue!", {
-            autoClose: 1000,
-          });
-          navigate("/auth/login");
-        } else {
-          toast.error("Failed to enable/disable status!", {
-            autoClose: 1000,
-          });
-          setShowToggleStatus(false);
-        }
+      .catch(() => {
+        toast.error("Failed to enable/disable status!", {
+          autoClose: 1000,
+        });
+        setShowToggleStatus(false);
       });
   }
   // END TOGGLE STATUS
@@ -263,17 +257,10 @@ const Stations = () => {
         setShowDelete(false);
         fetchStations();
       })
-      .catch((e) => {
-        if (e.response && e.response.status === 401) {
-          toast.error("You need to log in again to continue!", {
-            autoClose: 1000,
-          });
-          navigate("/auth/login");
-        } else {
-          toast.error("Failed to delete the station!", {
-            autoClose: 1000,
-          });
-        }
+      .catch(() => {
+        toast.error("Failed to delete the station!", {
+          autoClose: 1000,
+        });
       });
   }
   // END DELETE FUNCTIONS
@@ -310,18 +297,6 @@ const Stations = () => {
     setShowAdd(false);
     setNewMarkerPosition(null);
     setErrors({});
-    setFormData({
-      name: "",
-      code: "",
-      addressNumber: "",
-      street: "",
-      ward: "",
-      district: "",
-      city: "",
-      image: "",
-      longitude: "",
-      latitude: "",
-    })
   }
   const handleAddOpen = () => {
     setFormData({
@@ -336,6 +311,7 @@ const Stations = () => {
       longitude: "",
       latitude: "",
     });
+    setMarkerPosition({ lat: 10.84215, lng: 106.80963 });
     setShowAdd(true);
     setErrors({});
   };
@@ -387,39 +363,37 @@ const Stations = () => {
   // END REDUX
 
   //MAPPING
-  const handleShowNewMap = () => {
-    if (isTokenExpired()) {
-      toast("You need to log in again to continue!", {
-        autoClose: 1000,
-        onClose: () => {
-          navigate("/auth/login");
-        },
-      });
+
+  const handleShowMap = () => {
+    const user = JSON.parse(localStorage.getItem('user'))
+    if (user == null || !user || isTokenExpired()) {
+      setShowBackdrop(true)
+      return;
     } else {
-      setMarkerPosition({ lat: 10.840903, lng: 106.809889 });
       setShowMap(true);
     }
   }
 
-  useEffect(() => {
-    const fetchAddress = async () => {
-      try {
-        const response = await axios.get(
-          `https://nominatim.openstreetmap.org/reverse?format=json&lat=${markerPosition.lat}&lon=${markerPosition.lng}&zoom=18&addressdetails=1`
-        );
-        if (response.status === 200) {
-          const display_name = response.data.display_name;
-          // setAddress(response.data);
-          setDisplay_name(display_name)
-
-        }
-      } catch (error) {
-        console.log("Error:", error);
+  const fetchAddress = async (lat, lng) => {
+    try {
+      const response = await axios.get(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`
+      );
+      if (response.status === 200) {
+        // setDisplay_name(response.data.display_name);
+        setFormData((prevFormData) => ({
+          ...prevFormData,
+          city: response.data.address.city,
+          street: response.data.address.road,
+          ward: response.data.address.suburb,
+          district: response.data.address.state,
+        }));
+        console.log(response.data);
       }
-    };
-
-    fetchAddress();
-  }, [markerPosition]);
+    } catch (error) {
+      console.log("Error:", error);
+    }
+  };
 
   const createCustomIcon = (name, image) =>
     L.divIcon({
@@ -427,30 +401,45 @@ const Stations = () => {
       iconAnchor: [15, 30],
       html: `
       <div class="${highlightedMarker === name ? 'highlighted' : ''}">
-        <h1>${name}</h1>        
-        <img src="${image || defaultStation}" alt="${name}" class="custom-icon-img">        
+        <h1 style="background-color: #aad3df; border-radius: 8px; padding: 3px; border: 1px solid rgba(0, 0, 0, 0.2);">${name}</h1>        
+        <img src="${defaultStation}" alt="${name}" class="custom-icon-img">        
       </div>
     `,
     });
 
+  const [mapCenter, setMapCenter] = useState({ lat: 10.840903, lng: 106.809889 });
 
-
-
-  // Calculate the center point of all markers in the current displayed stations
-  const calculateCenter = () => {
-    if (stationList.length === 0) {
-      return [10.840903, 106.809889]; // Default center if no markers
+  // Function to calculate the center and zoom level of the map to fit all markers
+  const calculateCenterAndZoom = (markers) => {
+    if (markers.length === 0) {
+      setMapCenter({ lat: 10.840903, lng: 106.809889 }); // Default center if no markers
+      return;
     }
 
-    const latSum = stationList.reduce((sum, station) => sum + station.latitude, 0);
-    const lngSum = stationList.reduce((sum, station) => sum + station.longitude, 0);
-    const centerLat = latSum / stationList.length;
-    const centerLng = lngSum / stationList.length;
+    let minLat = markers[0].latitude;
+    let maxLat = markers[0].latitude;
+    let minLng = markers[0].longitude;
+    let maxLng = markers[0].longitude;
 
-    return [centerLat, centerLng];
+    markers.forEach((marker) => {
+      minLat = Math.min(minLat, marker.latitude);
+      maxLat = Math.max(maxLat, marker.latitude);
+      minLng = Math.min(minLng, marker.longitude);
+      maxLng = Math.max(maxLng, marker.longitude);
+    });
+
+    const centerLat = (maxLat + minLat) / 2;
+    const centerLng = (maxLng + minLng) / 2;
+
+    setMapCenter({ lat: centerLat, lng: centerLng });
   };
 
-  const [map, setMap] = useState(null);
+  // Use useEffect to calculate the center and zoom level whenever the stationList changes
+  useEffect(() => {
+    calculateCenterAndZoom(stationList);
+  }, [stationList]);
+
+  // const [map, setMap] = useState(null);
   const [loading, setLoading] = useState(true);
 
   // Add an async function to fetch data
@@ -480,18 +469,16 @@ const Stations = () => {
     fetchData();
   }, []);
 
-  // Use useEffect to update the map's center and bounds whenever the stationList changes
-  useEffect(() => {
-    if (map && stationList.length > 0) {
-      const markersBounds = L.latLngBounds(stationList.map((station) => [station.latitude, station.longitude]));
-      map.fitBounds(markersBounds);
-    }
-  }, [map, stationList]);
 
   const mapRef = useRef(null);
   const handleMapCenterAndZoom = (latitude, longitude) => {
+    const user = JSON.parse(localStorage.getItem('user'))
+    if (user == null || !user || isTokenExpired()) {
+      setShowBackdrop(true)
+      return;
+    }
     if (mapRef.current) {
-      mapRef.current.setView([latitude, longitude], 14);
+      mapRef.current.setView([latitude, longitude], 13);
       const container = mapRef.current.getContainer();
       const containerRect = container.getBoundingClientRect();
       const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
@@ -504,8 +491,12 @@ const Stations = () => {
   };
 
   const [highlightedMarker, setHighlightedMarker] = useState(null);
-
   const handleMarkerClick = (name) => {
+    const user = JSON.parse(localStorage.getItem('user'))
+    if (user == null || !user || isTokenExpired()) {
+      setShowBackdrop(true)
+      return;
+    }
     setHighlightedMarker(name);
     setTimeout(() => {
       setHighlightedMarker(null);
@@ -533,8 +524,13 @@ const Stations = () => {
       fetch(`${NOMINATIM_BASE_URL}${queryString}`, requestOptions)
         .then((response) => response.json())
         .then((result) => {
-          console.log(result)
-          setListPlace(result);
+          if (result && result.length > 0) {
+            setListPlace(result);
+          } else {
+            toast.warn("Can not find this location", {
+              autoClose: 1000,
+            });
+          }
         })
         .catch((err) => console.log("err: ", err));
     }
@@ -550,21 +546,16 @@ const Stations = () => {
       lat: parseFloat(item.lat),
       lng: parseFloat(item.lon),
     });
-    setMarkerPosition({
-      lat: parseFloat(item.lat),
-      lng: parseFloat(item.lon),
-    });
-    // Close the search results list
     setListPlace([]);
+    fetchAddress(parseFloat(item.lat), parseFloat(item.lon));
   };
 
   useEffect(() => {
     if (searchedLocation) {
-      setFormData((prevFormData) => ({
-        ...prevFormData,
-        latitude: searchedLocation.lat,
-        longitude: searchedLocation.lng,
-      }));
+      setNewMarkerPosition({
+        lat: parseFloat(searchedLocation.lat),
+        lng: parseFloat(searchedLocation.lng),
+      });
     }
   }, [searchedLocation]);
 
@@ -589,7 +580,10 @@ const Stations = () => {
   const handleMarkerMove = (e) => {
     const { lat, lng } = e.target.getLatLng();
     setNewMarkerPosition({ lat, lng }); // Store the new position in a separate state
+    fetchAddress(lat, lng);
   };
+
+
 
   // Function to confirm the new location and update the marker position
   const handleConfirmLocation = () => {
@@ -601,6 +595,7 @@ const Stations = () => {
         longitude: newMarkerPosition.lng,
       }));
     }
+    setShowConfirm(false)
     setShowMap(false); // Close the map modal
   };
 
@@ -623,59 +618,13 @@ const Stations = () => {
         <Row >
           <div className="col">
             <Card className=" card-container shadow">
-              <CardBody>
-                {loading ? (
-                  <div>Loading...</div>
-                ) : (
-                  <MapContainer
-                    ref={mapRef}
-                    center={calculateCenter()}
-                    zoom={14}
-                    scrollWheelZoom={true}
-                    zoomControl={true}
-                    style={{ height: "calc(100vh)", borderRadius: "5px" }}
-                    whenCreated={(mapInstance) => {
-                      // Set the map instance in the state when it is created
-                      setMap(mapInstance);
-                    }}
-                  >
-                    <TileLayer
-                      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                      attribution='Map data © <a href="https://openstreetmap.org">OpenStreetMap</a> contributors'
-                    />
-
-                    {/* Render only ACTIVE stations as markers */}
-                    {activeStations.map((station) => (
-                      <Marker
-                        key={station.id}
-                        position={[station.latitude, station.longitude]}
-                        icon={createCustomIcon(station.name, station.image)}
-                        ref={markerRef}
-                      >
-                        <Popup>
-                          <div className="station-popup">
-                            <h3>Click to see detail</h3>
-                            <button className="custom-popup-button" onClick={() => handleShowDetails(station.id)}>OPEN</button>
-                          </div>
-                        </Popup>
-                      </Marker>
-                    ))}
-                  </MapContainer>
-                )}
-              </CardBody>
-            </Card>
-          </div>
-        </Row>
-
-        <Row className="mt-5">
-          <div className="col">
-            <Card className=" card-container shadow">
               <CardHeader className="bg-transparent">
                 <h3 className="mb-0">Manager Stations</h3>
               </CardHeader>
               <CardBody>
                 <Modal dialogClassName="modal-map" show={showMap} backdrop="static" onHide={() => setShowMap(false)} animation={true}>
                   <Modal.Header>
+                    <h3 className="mb-0">Map For Station</h3>
                     <Form className="navbar-search navbar-search-dark form-inline mr-3 d-none d-md-flex ml-lg-auto ">
                       <FormGroup className="mb-0">
                         <InputGroup className="input-group-alternative bg-default shadow">
@@ -695,6 +644,7 @@ const Stations = () => {
                           key={item?.place_id}
                           tag="a"
                           action
+                          style={{ cursor: "pointer" }}
                           onClick={() => handleSelectLocation(item)}
                         >
                           {item?.display_name}
@@ -716,7 +666,7 @@ const Stations = () => {
                       />
                       <Marker
                         position={[newMarkerPosition?.lat || markerPosition.lat, newMarkerPosition?.lng || markerPosition.lng]}
-                        draggable={true} // Set draggable to true to enable marker movement
+                        draggable={true}
                         eventHandlers={{
                           dragend: handleMarkerMove, // Call handleMarkerMove function when the marker is dragged
                         }}
@@ -726,13 +676,24 @@ const Stations = () => {
                       </Marker>
                       <ResetCenterView selectPosition={newMarkerPosition || markerPosition} />
                     </MapContainer>
-                    <Button className="button" variant="primary" onClick={handleConfirmLocation}>
-                      Confirm
-                    </Button>
-                    <Button className="button" variant="secondary" onClick={() => setShowMap(false)}>
-                      Close
+                    <Button className="button" variant="primary" onClick={() => setShowConfirm(true)}>
+                      Continue
                     </Button>
                   </Modal.Body>
+                </Modal>
+
+                <Modal show={showConfirm} onHide={() => setShowConfirm(false)} animation={true}>
+                  <Modal.Body>
+                    <h2>Are you sure you want to choose this location?</h2>
+                  </Modal.Body>
+                  <Modal.Footer>
+                    <Button variant="secondary" onClick={() => setShowConfirm(false)}>
+                      Cancel
+                    </Button>
+                    <Button variant="primary" onClick={handleConfirmLocation}>
+                      Confirm
+                    </Button>
+                  </Modal.Footer>
                 </Modal>
 
                 <Modal
@@ -783,235 +744,216 @@ const Stations = () => {
                 </Modal>
 
                 {/* Add model */}
-                <Modal show={showAdd} onHide={handleAddClose}>
+                <Modal size="lg" show={showAdd} onHide={handleAddClose}>
                   <Modal.Header >
-                    <Modal.Title>Add station</Modal.Title>
+                    <Modal.Title>Add Station</Modal.Title>
                   </Modal.Header>
                   <Modal.Body>
                     <Form>
-                      <Form.Group className="mb-3" controlId="code">
-                        <Form.Label>Code</Form.Label>
-                        {errors && errors.Code && (
-                          <span style={{ color: "red", float: "right" }}>*{errors.Code[0]}</span>
-                        )}
-                        <Form.Control
-                          type="text"
-                          name="code"
-                          placeholder="Code"
-                          autoFocus
-                          required
-                          onChange={(e) => {
-                            setFormData({
-                              ...formData,
-                              code: e.target.value
-                            });
-                            setErrors({
-                              ...errors,
-                              Code: null
-                            });
-                          }}
-                        />
-                      </Form.Group>
-                      <Form.Group className="mb-3" controlId="name">
-                        <Form.Label>Name</Form.Label>
-                        {errors && errors.Name && (
-                          <span style={{ color: "red", float: "right" }}>*{errors.Name[0]}</span>
-                        )}
-                        <Form.Control
-                          type="text"
-                          name="name"
-                          placeholder="Name"
-                          onChange={(e) => {
-                            setFormData({
-                              ...formData,
-                              name: e.target.value
-                            });
-                            setErrors({
-                              ...errors,
-                              Name: null
-                            });
-                          }}
-                        />
-                      </Form.Group>
-                      <Form.Group className="mb-3" controlId="addressNumber">
-                        <Form.Label>Address Number</Form.Label>
-                        {errors && errors.AddressNumber && (
-                          <span style={{ color: "red", float: "right" }}>*{errors.AddressNumber[0]}</span>
-                        )}
-                        <Form.Control
-                          type="text"
-                          name="addressNumber"
-                          placeholder="Address Number"
-                          autoFocus
-                          required
-                          onChange={(e) => {
-                            setFormData({
-                              ...formData,
-                              addressNumber: e.target.value
-                            });
-                            setErrors({
-                              ...errors,
-                              AddressNumber: null
-                            });
-                          }}
-                        />
-                      </Form.Group>
-                      <Form.Group className="mb-3" controlId="street">
-                        <Form.Label>Street</Form.Label>
-                        {errors && errors.Street && (
-                          <span style={{ color: "red", float: "right" }}>*{errors.Street[0]}</span>
-                        )}
-                        <Form.Control
-                          type="text"
-                          name="street"
-                          placeholder="Street"
-                          autoFocus
-                          required
-                          onChange={(e) => {
-                            setFormData({
-                              ...formData,
-                              street: e.target.value
-                            });
-                            setErrors({
-                              ...errors,
-                              Street: null
-                            });
-                          }}
-                        />
-                      </Form.Group>
-                      <Form.Group className="mb-3" controlId="ward">
-                        <Form.Label>Ward</Form.Label>
-                        {errors && errors.Ward && (
-                          <span style={{ color: "red", float: "right" }}>*{errors.Ward[0]}</span>
-                        )}
-                        <Form.Control
-                          type="text"
-                          name="ward"
-                          placeholder="Ward"
-                          autoFocus
-                          required
-                          onChange={(e) => {
-                            setFormData({
-                              ...formData,
-                              ward: e.target.value
-                            });
-                            setErrors({
-                              ...errors,
-                              Ward: null
-                            });
-                          }}
-                        />
-                      </Form.Group>
-                      <Form.Group className="mb-3" controlId="district">
-                        <Form.Label>District</Form.Label>
-                        {errors && errors.District && (
-                          <span style={{ color: "red", float: "right" }}>*{errors.District[0]}</span>
-                        )}
-                        <Form.Control
-                          type="text"
-                          name="district"
-                          placeholder="District"
-                          autoFocus
-                          required
-                          onChange={(e) => {
-                            setFormData({
-                              ...formData,
-                              district: e.target.value
-                            });
-                            setErrors({
-                              ...errors,
-                              District: null
-                            });
-                          }}
-                        />
-                      </Form.Group>
-                      <Form.Group className="mb-3" controlId="city">
-                        <Form.Label>City</Form.Label>
-                        {errors && errors.City && (
-                          <span style={{ color: "red", float: "right" }}>*{errors.City[0]}</span>
-                        )}
-                        <Form.Control
-                          type="text"
-                          name="city"
-                          placeholder="City"
-                          autoFocus
-                          required
-                          onChange={(e) => {
-                            setFormData({
-                              ...formData,
-                              city: e.target.value
-                            });
-                            setErrors({
-                              ...errors,
-                              City: null
-                            });
-                          }}
-                        />
-                      </Form.Group>
                       <Form.Group className="mb-3" >
-                        <Button variant="primary" size="sm" onClick={() => { handleShowNewMap(); setMarkerDraggable(true); }}>
+                        <Button variant="primary" size="sm" onClick={() => handleShowMap()}>
                           Add Location
                         </Button>
                       </Form.Group>
-                      <Form.Group className="mb-3" controlId="latitude">
-                        <Form.Label>Latitude</Form.Label>
-                        {errors && errors.Latitude && (
-                          <span style={{ color: "red", float: "right" }}>*{errors.Latitude[0]}</span>
-                        )}
-                        <Form.Control
-                          type="number"
-                          name="latitude"
-                          placeholder="Latitude"
-                          value={formData.latitude}
-                          readOnly
-                          onChange={(e) => {
-                            setFormData({
-                              ...formData,
-                              latitude: e.target.value
-                            });
-                            setErrors({
-                              ...errors,
-                              Latitude: null
-                            });
-                          }}
-                        />
-                      </Form.Group>
-                      <Form.Group className="mb-3" controlId="longitude">
-                        <Form.Label>Longitude</Form.Label>
-                        {errors && errors.Longitude && (
-                          <span style={{ color: "red", float: "right" }}>*{errors.Longitude[0]}</span>
-                        )}
-                        <Form.Control
-                          type="number"
-                          name="longitude"
-                          placeholder="Longitude"
-                          value={formData.longitude}
-                          readOnly
-                          onChange={(e) => {
-                            setFormData({
-                              ...formData,
-                              longitude: e.target.value
-                            });
-                            setErrors({
-                              ...errors,
-                              Longitude: null
-                            });
-                          }}
-                        />
-                      </Form.Group>
-                      <Form.Group className="mb-3" controlId="image">
-                        <Form.Label>Image</Form.Label>
-                        <Form.Control
-                          type="file"
-                          name="image"
-                          onChange={(e) => {
-                            setFormData({
-                              ...formData,
-                              image: e.target.files[0] // Store the selected file in the form data
-                            });
-                          }}
-                        />
-                      </Form.Group>
+                      <Row>
+                        <Col>
+                          <Form.Group className="mb-3" controlId="latitude">
+                            <Form.Label>Latitude</Form.Label>
+                            {errors && errors.Latitude && (
+                              <span style={{ color: "red", float: "right" }}>*{errors.Latitude[0]}</span>
+                            )}
+                            <Form.Control
+                              type="number"
+                              name="latitude"
+                              placeholder="Latitude"
+                              value={formData.latitude}
+                              readOnly
+                            />
+                          </Form.Group>
+                        </Col>
+                        <Col>
+                          <Form.Group className="mb-3" controlId="longitude">
+                            <Form.Label>Longitude</Form.Label>
+                            {errors && errors.Longitude && (
+                              <span style={{ color: "red", float: "right" }}>*{errors.Longitude[0]}</span>
+                            )}
+                            <Form.Control
+                              type="number"
+                              name="longitude"
+                              placeholder="Longitude"
+                              value={formData.longitude}
+                              readOnly
+                            />
+                          </Form.Group>
+                        </Col>
+                      </Row>
+                      <Row>
+                        <Col>
+                          <Form.Group className="mb-3" controlId="ward">
+                            <Form.Label>Ward</Form.Label>
+                            {errors && errors.Ward && (
+                              <span style={{ color: "red", float: "right" }}>*{errors.Ward[0]}</span>
+                            )}
+                            <Form.Control
+                              type="text"
+                              name="ward"
+                              placeholder="Ward"
+                              readOnly
+                              value={formData.ward}
+                            />
+                          </Form.Group>
+                        </Col>
+                        <Col>
+                          <Form.Group className="mb-3" controlId="street">
+                            <Form.Label>Street</Form.Label>
+                            {errors && errors.Street && (
+                              <span style={{ color: "red", float: "right" }}>*{errors.Street[0]}</span>
+                            )}
+                            <Form.Control
+                              type="text"
+                              name="street"
+                              placeholder="Street"
+                              readOnly
+                              value={formData.street}
+                            />
+                          </Form.Group>
+                        </Col>
+                      </Row>
+                      <Row>
+                        <Col>
+                          <Form.Group className="mb-3" controlId="city">
+                            <Form.Label>City</Form.Label>
+                            {errors && errors.City && (
+                              <span style={{ color: "red", float: "right" }}>*{errors.City[0]}</span>
+                            )}
+                            <Form.Control
+                              type="text"
+                              name="city"
+                              placeholder="City"
+                              readOnly
+                              value={formData.city}
+                            />
+                          </Form.Group>
+                        </Col>
+                        <Col>
+                          <Form.Group className="mb-3" controlId="image">
+                            <Form.Label>Image</Form.Label>
+                            <Form.Control
+                              type="file"
+                              name="image"
+                              onChange={(e) => {
+                                setFormData({
+                                  ...formData,
+                                  image: e.target.files[0] // Store the selected file in the form data
+                                });
+                              }}
+                            />
+                          </Form.Group>
+                        </Col>
+                      </Row>
+                      <Row>
+                        <Col>
+                          <Form.Group className="mb-3" controlId="code">
+                            <Form.Label>Code</Form.Label>
+                            {errors && errors.Code && (
+                              <span style={{ color: "red", float: "right" }}>*{errors.Code[0]}</span>
+                            )}
+                            <Form.Control
+                              type="text"
+                              name="code"
+                              placeholder="Code"
+                              autoFocus
+                              required
+                              onChange={(e) => {
+                                setFormData({
+                                  ...formData,
+                                  code: e.target.value
+                                });
+                                setErrors({
+                                  ...errors,
+                                  Code: null
+                                });
+                              }}
+                            />
+                          </Form.Group>
+                        </Col>
+                        <Col>
+                          <Form.Group className="mb-3" controlId="name">
+                            <Form.Label>Name</Form.Label>
+                            {errors && errors.Name && (
+                              <span style={{ color: "red", float: "right" }}>*{errors.Name[0]}</span>
+                            )}
+                            <Form.Control
+                              type="text"
+                              name="name"
+                              placeholder="Name"
+                              onChange={(e) => {
+                                setFormData({
+                                  ...formData,
+                                  name: e.target.value
+                                });
+                                setErrors({
+                                  ...errors,
+                                  Name: null
+                                });
+                              }}
+                            />
+                          </Form.Group>
+                        </Col>
+                      </Row>
+                      <Row>
+                        <Col xs={7}>
+                          <Form.Group className="mb-3" controlId="addressNumber">
+                            <Form.Label>Address Number</Form.Label>
+                            {errors && errors.AddressNumber && (
+                              <span style={{ color: "red", float: "right" }}>*{errors.AddressNumber[0]}</span>
+                            )}
+                            <Form.Control
+                              type="text"
+                              name="addressNumber"
+                              placeholder="Address Number"
+                              autoFocus
+                              required
+                              onChange={(e) => {
+                                setFormData({
+                                  ...formData,
+                                  addressNumber: e.target.value
+                                });
+                                setErrors({
+                                  ...errors,
+                                  AddressNumber: null
+                                });
+                              }}
+                            />
+                          </Form.Group>
+                        </Col>
+                        <Col xs={5}>
+                          <Form.Group className="mb-3" controlId="district">
+                            <Form.Label>District</Form.Label>
+                            {errors && errors.District && (
+                              <span style={{ color: "red", float: "right" }}>*{errors.District[0]}</span>
+                            )}
+                            <Form.Control
+                              type="text"
+                              name="district"
+                              placeholder="District"
+                              autoFocus
+                              required
+                              value={formData.district}
+                              onChange={(e) => {
+                                setFormData({
+                                  ...formData,
+                                  district: e.target.value
+                                });
+                                setErrors({
+                                  ...errors,
+                                  District: null
+                                });
+                              }}
+                            />
+                          </Form.Group>
+                        </Col>
+                      </Row>
                     </Form>
                   </Modal.Body>
                   <Modal.Footer>
@@ -1032,6 +974,12 @@ const Stations = () => {
                   <Modal.Body>
                     <Container>
                       <Form>
+                        <Form.Group className="mb-3 d-flex justify-content-center align-items-center" >
+                          {formData.image ? (
+                            <img className="station-img" src={formData.image} alt="" />
+                          ) : null
+                          }
+                        </Form.Group>
                         <Row>
                           <Col>
                             <Form.Group className="mb-3" controlId="code">
@@ -1108,258 +1056,235 @@ const Stations = () => {
 
 
                 {/* Update model */}
-                <Modal show={showUpdate} onHide={handleUpdateClose}>
+                <Modal size="lg" show={showUpdate} onHide={handleUpdateClose}>
                   <Modal.Header >
                     <Modal.Title>Update station</Modal.Title>
 
                   </Modal.Header>
                   <Modal.Body>
                     <Form>
-                      <Form.Group className="mb-3" controlId="code">
-                        <Form.Label>Code</Form.Label>
-                        {errors && errors.Code && (
-                          <span style={{ color: "red", float: "right" }}>*{errors.Code[0]}</span>
-                        )}
-                        <Form.Control
-                          type="text"
-                          name="code"
-                          placeholder="Code"
-                          autoFocus
-                          required
-                          value={formData.code}
-                          onChange={(e) => {
-                            setFormData({
-                              ...formData,
-                              code: e.target.value
-                            });
-                            setErrors({
-                              ...errors,
-                              Code: null
-                            });
-                            setIsUpdated(true);
-
-                          }}
-                        />
-                      </Form.Group>
-                      <Form.Group className="mb-3" controlId="name">
-                        <Form.Label>Name</Form.Label>
-                        {errors && errors.Name && (
-                          <span style={{ color: "red", float: "right" }}>*{errors.Name[0]}</span>
-                        )}
-                        <Form.Control
-                          type="text"
-                          name="name"
-                          placeholder="Name"
-                          value={formData.name}
-                          onChange={(e) => {
-                            setFormData({
-                              ...formData,
-                              name: e.target.value
-                            });
-                            setErrors({
-                              ...errors,
-                              Name: null
-                            });
-                            setIsUpdated(true);
-
-                          }}
-                        />
-                      </Form.Group>
-                      <Form.Group className="mb-3" controlId="addressNumber">
-                        <Form.Label>Address Number</Form.Label>
-                        {errors && errors.AddressNumber && (
-                          <span style={{ color: "red", float: "right" }}>*{errors.AddressNumber[0]}</span>
-                        )}
-                        <Form.Control
-                          type="text"
-                          name="addressNumber"
-                          placeholder="Address Number"
-                          autoFocus
-                          required
-                          value={formData.addressNumber}
-                          onChange={(e) => {
-                            setFormData({
-                              ...formData,
-                              addressNumber: e.target.value
-                            });
-                            setErrors({
-                              ...errors,
-                              AddressNumber: null
-                            });
-                            setIsUpdated(true);
-                          }}
-                        />
-                      </Form.Group>
-                      <Form.Group className="mb-3" controlId="street">
-                        <Form.Label>Street</Form.Label>
-                        {errors && errors.Street && (
-                          <span style={{ color: "red", float: "right" }}>*{errors.Street[0]}</span>
-                        )}
-                        <Form.Control
-                          type="text"
-                          name="street"
-                          placeholder="Street"
-                          autoFocus
-                          required
-                          value={formData.street}
-                          onChange={(e) => {
-                            setFormData({
-                              ...formData,
-                              street: e.target.value
-                            });
-                            setErrors({
-                              ...errors,
-                              Street: null
-                            });
-                            setIsUpdated(true);
-                          }}
-                        />
-                      </Form.Group>
-                      <Form.Group className="mb-3" controlId="ward">
-                        <Form.Label>Ward</Form.Label>
-                        {errors && errors.Ward && (
-                          <span style={{ color: "red", float: "right" }}>*{errors.Ward[0]}</span>
-                        )}
-                        <Form.Control
-                          type="text"
-                          name="ward"
-                          placeholder="Ward"
-                          autoFocus
-                          required
-                          value={formData.ward}
-                          onChange={(e) => {
-                            setFormData({
-                              ...formData,
-                              ward: e.target.value
-                            });
-                            setErrors({
-                              ...errors,
-                              Ward: null
-                            });
-                            setIsUpdated(true);
-
-                          }}
-                        />
-                      </Form.Group>
-                      <Form.Group className="mb-3" controlId="district">
-                        <Form.Label>District</Form.Label>
-                        {errors && errors.District && (
-                          <span style={{ color: "red", float: "right" }}>*{errors.District[0]}</span>
-                        )}
-                        <Form.Control
-                          type="text"
-                          name="district"
-                          placeholder="District"
-                          autoFocus
-                          required
-                          value={formData.district}
-                          onChange={(e) => {
-                            setFormData({
-                              ...formData,
-                              district: e.target.value
-                            });
-                            setErrors({
-                              ...errors,
-                              District: null
-                            });
-                            setIsUpdated(true);
-
-                          }}
-                        />
-                      </Form.Group>
-                      <Form.Group className="mb-3" controlId="city">
-                        <Form.Label>City</Form.Label>
-                        {errors && errors.City && (
-                          <span style={{ color: "red", float: "right" }}>*{errors.City[0]}</span>
-                        )}
-                        <Form.Control
-                          type="text"
-                          name="city"
-                          placeholder="City"
-                          autoFocus
-                          required
-                          value={formData.city}
-                          onChange={(e) => {
-                            setFormData({
-                              ...formData,
-                              city: e.target.value
-                            });
-                            setErrors({
-                              ...errors,
-                              City: null
-                            });
-                            setIsUpdated(true);
-                          }}
-                        />
-                      </Form.Group>
                       <Form.Group className="mb-3" >
-                        <Button variant="primary" size="sm" onClick={() => { setShowMap(true); setMarkerDraggable(true); }}>
+                        <Button variant="primary" size="sm" onClick={() => {handleShowMap(); setIsUpdated(true)}}>
                           Change Location
                         </Button>
                       </Form.Group>
-                      <Form.Group className="mb-3" controlId="latitude">
-                        <Form.Label>Latitude</Form.Label>
-                        {errors && errors.Latitude && (
-                          <span style={{ color: "red", float: "right" }}>*{errors.Latitude[0]}</span>
-                        )}
-                        <Form.Control
-                          type="text"
-                          name="latitude"
-                          placeholder="Latitude"
-                          readOnly
-                          value={formData.latitude}
-                          onChange={(e) => {
-                            setFormData({
-                              ...formData,
-                              latitude: e.target.value
-                            });
-                            setErrors({
-                              ...errors,
-                              Latitude: null
-                            });
-                            setIsUpdated(true);
-                          }}
-                        />
-                      </Form.Group>
-
-                      <Form.Group className="mb-3" controlId="longitude">
-                        <Form.Label>Longitude</Form.Label>
-                        {errors && errors.Longitude && (
-                          <span style={{ color: "red", float: "right" }}>*{errors.Longitude[0]}</span>
-                        )}
-                        <Form.Control
-                          type="text"
-                          name="longitude"
-                          placeholder="Longitude"
-                          readOnly
-                          value={formData.longitude}
-                          onChange={(e) => {
-                            setFormData({
-                              ...formData,
-                              longitude: e.target.value
-                            });
-                            setErrors({
-                              ...errors,
-                              Longitude: null
-                            });
-                            setIsUpdated(true);
-                          }}
-                        />
-                      </Form.Group>
-                      <Form.Group className="mb-3" controlId="image">
-                        <Form.Label>Image</Form.Label>
-                        <Form.Control
-                          type="file"
-                          name="image"
-                          placeholder="Image"
-                          onChange={(e) => {
-                            setFormData({
-                              ...formData,
-                              image: e.target.files[0] // Store the selected file in the form data
-                            });
-                          }}
-                        />
-                      </Form.Group>
+                      <Row>
+                        <Col>
+                          <Form.Group className="mb-3" controlId="latitude">
+                            <Form.Label>Latitude</Form.Label>
+                            {errors && errors.Latitude && (
+                              <span style={{ color: "red", float: "right" }}>*{errors.Latitude[0]}</span>
+                            )}
+                            <Form.Control
+                              type="number"
+                              name="latitude"
+                              placeholder="Latitude"
+                              value={formData.latitude}
+                              readOnly
+                            />
+                          </Form.Group>
+                        </Col>
+                        <Col>
+                          <Form.Group className="mb-3" controlId="longitude">
+                            <Form.Label>Longitude</Form.Label>
+                            {errors && errors.Longitude && (
+                              <span style={{ color: "red", float: "right" }}>*{errors.Longitude[0]}</span>
+                            )}
+                            <Form.Control
+                              type="number"
+                              name="longitude"
+                              placeholder="Longitude"
+                              value={formData.longitude}
+                              readOnly
+                            />
+                          </Form.Group>
+                        </Col>
+                      </Row>
+                      <Row>
+                        <Col>
+                          <Form.Group className="mb-3" controlId="ward">
+                            <Form.Label>Ward</Form.Label>
+                            {errors && errors.Ward && (
+                              <span style={{ color: "red", float: "right" }}>*{errors.Ward[0]}</span>
+                            )}
+                            <Form.Control
+                              type="text"
+                              name="ward"
+                              placeholder="Ward"
+                              readOnly
+                              value={formData.ward}
+                            />
+                          </Form.Group>
+                        </Col>
+                        <Col>
+                          <Form.Group className="mb-3" controlId="street">
+                            <Form.Label>Street</Form.Label>
+                            {errors && errors.Street && (
+                              <span style={{ color: "red", float: "right" }}>*{errors.Street[0]}</span>
+                            )}
+                            <Form.Control
+                              type="text"
+                              name="street"
+                              placeholder="Street"
+                              readOnly
+                              value={formData.street}
+                            />
+                          </Form.Group>
+                        </Col>
+                      </Row>
+                      <Row>
+                        <Col>
+                          <Form.Group className="mb-3" controlId="city">
+                            <Form.Label>City</Form.Label>
+                            {errors && errors.City && (
+                              <span style={{ color: "red", float: "right" }}>*{errors.City[0]}</span>
+                            )}
+                            <Form.Control
+                              type="text"
+                              name="city"
+                              placeholder="City"
+                              readOnly
+                              value={formData.city}
+                              onChange={(e) => {
+                                setFormData({
+                                  ...formData,
+                                  city: e.target.value
+                                });
+                                setErrors({
+                                  ...errors,
+                                  City: null
+                                });
+                              }}
+                            />
+                          </Form.Group>
+                        </Col>
+                        <Col>
+                          <Form.Group className="mb-3" controlId="image">
+                            <Form.Label>Image</Form.Label>
+                            <Form.Control
+                              type="file"
+                              name="image"
+                              onChange={(e) => {
+                                setFormData({
+                                  ...formData,
+                                  image: e.target.files[0] // Store the selected file in the form data
+                                });
+                                setIsUpdated(true);
+                              }}
+                            />
+                          </Form.Group>
+                        </Col>
+                      </Row>
+                      <Row>
+                        <Col>
+                          <Form.Group className="mb-3" controlId="code">
+                            <Form.Label>Code</Form.Label>
+                            {errors && errors.Code && (
+                              <span style={{ color: "red", float: "right" }}>*{errors.Code[0]}</span>
+                            )}
+                            <Form.Control
+                              type="text"
+                              name="code"
+                              placeholder="Code"
+                              autoFocus
+                              required
+                              value={formData.code}
+                              onChange={(e) => {
+                                setFormData({
+                                  ...formData,
+                                  code: e.target.value
+                                });
+                                setErrors({
+                                  ...errors,
+                                  Code: null
+                                });
+                                setIsUpdated(true);
+                              }}
+                            />
+                          </Form.Group>
+                        </Col>
+                        <Col>
+                          <Form.Group className="mb-3" controlId="name">
+                            <Form.Label>Name</Form.Label>
+                            {errors && errors.Name && (
+                              <span style={{ color: "red", float: "right" }}>*{errors.Name[0]}</span>
+                            )}
+                            <Form.Control
+                              type="text"
+                              name="name"
+                              placeholder="Name"
+                              value={formData.name}
+                              onChange={(e) => {
+                                setFormData({
+                                  ...formData,
+                                  name: e.target.value
+                                });
+                                setErrors({
+                                  ...errors,
+                                  Name: null
+                                });
+                                setIsUpdated(true);
+                              }}
+                            />
+                          </Form.Group>
+                        </Col>
+                      </Row>
+                      <Row>
+                        <Col xs={7}>
+                          <Form.Group className="mb-3" controlId="addressNumber">
+                            <Form.Label>Address Number</Form.Label>
+                            {errors && errors.AddressNumber && (
+                              <span style={{ color: "red", float: "right" }}>*{errors.AddressNumber[0]}</span>
+                            )}
+                            <Form.Control
+                              type="text"
+                              name="addressNumber"
+                              placeholder="Address Number"
+                              autoFocus
+                              required
+                              value={formData.addressNumber}
+                              onChange={(e) => {
+                                setFormData({
+                                  ...formData,
+                                  addressNumber: e.target.value
+                                });
+                                setErrors({
+                                  ...errors,
+                                  AddressNumber: null
+                                });
+                                setIsUpdated(true);
+                              }}
+                            />
+                          </Form.Group>
+                        </Col>
+                        <Col xs={5}>
+                          <Form.Group className="mb-3" controlId="district">
+                            <Form.Label>District</Form.Label>
+                            {errors && errors.District && (
+                              <span style={{ color: "red", float: "right" }}>*{errors.District[0]}</span>
+                            )}
+                            <Form.Control
+                              type="text"
+                              name="district"
+                              placeholder="District"
+                              autoFocus
+                              required
+                              value={formData.district}
+                              onChange={(e) => {
+                                setFormData({
+                                  ...formData,
+                                  district: e.target.value
+                                });
+                                setErrors({
+                                  ...errors,
+                                  District: null
+                                });
+                                setIsUpdated(true);
+                              }}
+                            />
+                          </Form.Group>
+                        </Col>
+                      </Row>
                     </Form>
                   </Modal.Body>
                   <Modal.Footer>
@@ -1508,6 +1433,47 @@ const Stations = () => {
                   </Pagination>
                 </nav>
               </CardFooter>
+            </Card>
+          </div>
+        </Row>
+        <Row className="mt-5">
+          <div className="col">
+            <Card className=" card-container shadow">
+              <CardBody>
+                {loading ? (
+                  <div>Loading...</div>
+                ) : (
+                  <MapContainer
+                    ref={mapRef}
+                    center={mapCenter}
+                    zoom={13}
+                    scrollWheelZoom={false}
+                    zoomControl={true}
+                    style={{ height: "calc(80vh)", borderRadius: "5px" }}
+                  >
+                    <TileLayer
+                      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                      attribution='Map data © <a href="https://openstreetmap.org">OpenStreetMap</a> contributors'
+                    />
+
+                    {activeStations.map((station) => (
+                      <Marker
+                        key={station.id}
+                        position={[station.latitude, station.longitude]}
+                        icon={createCustomIcon(station.name, station.image)}
+                        ref={markerRef}
+                      >
+                        <Popup>
+                          <div className="station-popup">
+                            <h3>Click to see detail</h3>
+                            <button className="custom-popup-button" onClick={() => handleShowDetails(station.id)}>OPEN</button>
+                          </div>
+                        </Popup>
+                      </Marker>
+                    ))}
+                  </MapContainer>
+                )}
+              </CardBody>
             </Card>
           </div>
         </Row>

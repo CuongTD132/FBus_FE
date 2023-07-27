@@ -129,7 +129,6 @@ const Drivers = () => {
   // --UPDATE FUNCTIONS
   const handleUpdateClose = () => {
     setShowUpdate(false);
-    setErrors({});
   }
 
   const handleUpdateShow = async (driver) => {
@@ -212,18 +211,11 @@ const Drivers = () => {
         setShowToggleStatus(false);
         fetchDrivers()
       })
-      .catch((e) => {
-        if (e.response && e.response.status === 401) {
-          toast.error("You need to log in again to continue!", {
-            autoClose: 1000,
-          });
-          navigate("/auth/login");
-        } else {
-          toast.error("Failed to enable/disable status!", {
-            autoClose: 1000,
-          });
-          setShowToggleStatus(false);
-        }
+      .catch(() => {
+        toast.error("Failed to enable/disable status!", {
+          autoClose: 1000,
+        });
+        setShowToggleStatus(false);
       });
   }
   // END TOGGLE STATUS
@@ -244,7 +236,6 @@ const Drivers = () => {
     deleteDriverAPI(deleteDriverId)
       .then((res) => {
         if (res.status === 200) {
-          // console.log(res)
           toast.success("Driver deleted successfully!", {
             autoClose: 1000,
           });
@@ -252,17 +243,10 @@ const Drivers = () => {
         setShowDelete(false);
         fetchDrivers();
       })
-      .catch((e) => {
-        if (e.response && e.response.status === 401) {
-          toast("You need to log in again to continue!", {
-            autoClose: 1000,
-          });
-          navigate("/auth/login");
-        } else {
-          toast.error("Failed to delete the driver!", {
-            autoClose: 1000,
-          });
-        }
+      .catch(() => {
+        toast.error("Failed to delete the driver!", {
+          autoClose: 1000,
+        });
       });
   }
   // END DELETE FUNCTIONS
@@ -297,7 +281,6 @@ const Drivers = () => {
   };
   const handleAddClose = () => {
     setShowAdd(false);
-    setErrors({});
   }
   const handleAddOpen = () => {
     setFormData({

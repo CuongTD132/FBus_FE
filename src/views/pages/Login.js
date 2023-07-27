@@ -31,8 +31,6 @@ const Login = () => {
               autoClose: 1000,
             });
 
-          } else if (isTokenExpired(false)) {
-            navigate("/admin/buses");
           } else if (userData.role === 'Driver') {
             toast.warning("You're not Authorized", {
               autoClose: 1000,

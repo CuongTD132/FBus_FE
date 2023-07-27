@@ -20,27 +20,31 @@ import {
 } from "reactstrap";
 import Header from "../../components/Headers/Header";
 import {
-    // addCoordinationAPI,
-    // updateCoordinationAPI,
-    getSingleCoordination,
-    getAllCoordinations,
-    deleteCoordinationAPI,
+    // addTripAPI,
+    // updateTripAPI,
+    getSingleTrip,
+    getAllTrips,
+    deleteTripAPI,
     toggleStatusAPI
 
-} from "../../services/coordinations";
+} from "../../services/trip";
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useNavigate } from "react-router-dom";
 import { isTokenExpired } from "../../services/checkToken";
+import caution from '../../assets/img/caution.png'
 
-const Coords = () => {
+
+const Trips = () => {
     const navigate = useNavigate();
-    const [coordinationList, setCoordinationList] = useState([]);
+    const [tripList, setTripList] = useState([]);
     const [showAdd, setShowAdd] = useState(false);
     const [showUpdate, setShowUpdate] = useState(false);
-    const [showDetails, setShowDetails] = useState(false);
     const [showToggleStatus, setShowToggleStatus] = useState(false);
     const [showDelete, setShowDelete] = useState(false);
+    const [setErrors] = useState({});
+    const [showBackdrop, setShowBackdrop] = useState(false);
+    const [isUpdated, setIsUpdated] = useState(false);
     const [formData, setFormData] = useState({
         driverId: "",
         busId: "",
@@ -58,10 +62,10 @@ const Coords = () => {
         if (user == null || !user || isTokenExpired()) {
             return;
         } else {
-            getAllCoordinations(user.accessToken)
+            getAllTrips(user.accessToken)
                 .then((res) => {
                     if (res && res.data && res.data.data) {
-                        setCoordinationList(res.data.data);
+                        setTripList(res.data.data);
                     } else {
                         alert("Error: Invalid response data");
                         return;
@@ -75,40 +79,28 @@ const Coords = () => {
     }, [navigate])
 
     // Fetch detail information and pass to detail form
-    const fetchCoordinationDetails = (id) => {
-        getSingleCoordination(id)
+    const fetchTripDetails = (id) => {
+        getSingleTrip(id)
             .then((res) => {
                 setFormData(res.data)
             })
     };
 
-
-    const handleShowDetails = (id) => {
-        if (isTokenExpired()) {
-            toast.info("You need to log in to continue!", {
-                position: "top-center",
-                autoClose: 1500,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: false,
-                draggable: true,
-                progress: undefined,
-                theme: "light",
-                onClose: () => {
-                    navigate("/auth/login");
-                },
+    // Fetch list of driver and pass to table
+    const fetchTrips = () => {
+        getAllTrips()
+            .then((res) => setTripList(res.data.data))
+            .catch((error) => {
+                console.log(error);
             });
-        } else {
-            fetchCoordinationDetails(id);
-            setShowDetails(true); // Show the modal
-        }
-    }
+    };
+
 
     // --UPDATE FUNCTIONS
     const handleUpdateClose = () => {
         setShowUpdate(false);
     }
-    const handleUpdateShow = (coordination) => {
+    const handleUpdateShow = (trip) => {
         if (isTokenExpired()) {
             toast.info("You need to log in to continue!", {
                 position: "top-center",
@@ -124,18 +116,26 @@ const Coords = () => {
                 },
             });
         } else {
-            fetchCoordinationDetails(coordination.id); // fetch old data       
+            fetchTripDetails(trip.id); // fetch old data       
             setShowUpdate(true); // show update modal
         }
     };
-    const updateCoordinationData = async () => {
+    const updateTripData = async () => {
         if (formData.note === null) {
             formData.note = "";
+        }
+        // Check if form data has been changed
+        if (!isUpdated) {
+            toast.info("Nothing has been changed!", {
+                autoClose: 1000,
+            });
+            setShowUpdate(true);
+            return;
         }
         try {
             const user = JSON.parse(localStorage.getItem('user'));
             const res = await axios.put(
-                `https://fbus-final.azurewebsites.net/api/coordinations/${formData.id}`,
+                `https://fbus-last.azurewebsites.net/api/Trips/${formData.id}`,
                 formData,
                 {
                     headers: {
@@ -144,43 +144,40 @@ const Coords = () => {
                     }
                 }
             );
-    
+
             if (res.status === 200) {
-                toast.success("Coordination updated successfully!", {
+                toast.success("Trip updated successfully!", {
                     autoClose: 1000,
                 });
             }
             setShowUpdate(false);
+            fetchTrips();
             try {
-                const response = await getAllCoordinations();
-                setCoordinationList(response.data.data);
+                const response = await getAllTrips();
+                setTripList(response.data.data);
             } catch (error) {
                 console.log(error);
             }
         } catch (e) {
-            if (e.response && e.response.status === 401) {
-                toast("You need to log in again to continue!", {
-                    autoClose: 1000,
-                });
-                navigate("/auth/login");
-            } else {
-                toast.error("Failed to update the coordination!", {
-                    autoClose: 1000,
-                });
-                setShowUpdate(true);
+            if (e.response.data.errors) {
+                setErrors(e.response.data.errors);
             }
+            toast.error("Failed to update the trip!", {
+                autoClose: 1000,
+            });
+            setShowUpdate(true);
         }
     };
-    
+
 
     // END UPDATE FUNCTIONS
 
     // TOGGLE STATUS FUNCTION
     const [oldStatus, setOldStatus] = useState("");
-    const [toggleCoordinationId, setToggleCoordinationId] = useState(null);
-    const handleToggleStatus = (coordination) => {
-        setOldStatus(coordination.status)
-        setToggleCoordinationId(coordination.id)
+    const [toggleTripId, setToggleTripId] = useState(null);
+    const handleToggleStatus = (trip) => {
+        setOldStatus(trip.status)
+        setToggleTripId(trip.id)
         setShowToggleStatus(true);
     }
     const toggleStatus = () => {
@@ -188,15 +185,16 @@ const Coords = () => {
         if (oldStatus === "INACTIVE") {
             status = "ACTIVE"
         }
-        toggleStatusAPI(toggleCoordinationId, status)
+        toggleStatusAPI(toggleTripId, status)
             .then((res) => {
                 toast.success("Successull to enable/disable status!", {
                     autoClose: 1000,
                 });
                 setShowToggleStatus(false);
-                getAllCoordinations()
+                fetchTrips();
+                getAllTrips()
                     .then((res) => {
-                        setCoordinationList(res.data.data);
+                        setTripList(res.data.data);
                     })
                     .catch((error) => {
                         console.log(error);
@@ -220,8 +218,8 @@ const Coords = () => {
 
 
     // DELETE FUNCTIONS
-    const [deleteCoordinationId, setDeleteCoordinationId] = useState();
-    const handleDeleteCoordination = (id) => {
+    const [deleteTripId, setDeleteTripId] = useState();
+    const handleDeleteTrip = (id) => {
         if (isTokenExpired()) {
             toast("You need to log in again to continue!", {
                 autoClose: 1000,
@@ -230,51 +228,38 @@ const Coords = () => {
                 },
             });
         } else {
-            setDeleteCoordinationId(id)
+            setDeleteTripId(id)
             setShowDelete(true)
         }
     };
-    const deleteCoordination = () => {
-        deleteCoordinationAPI(deleteCoordinationId)
+    const deleteTrip = () => {
+        deleteTripAPI(deleteTripId)
             .then((res) => {
                 if (res.status === 200) {
                     // console.log(res)
-                    toast.success("Coordination deleted successfully!", {
+                    toast.success("Trip deleted successfully!", {
                         autoClose: 1000,
                     });
                 }
                 setShowDelete(false);
-                getAllCoordinations()
-                    .then((res) => {
-                        setCoordinationList(res.data.data);
-                    })
-                    .catch((error) => {
-                        console.log(error);
-                    });
+                fetchTrips();
             })
-            .catch((e) => {
-                if (e.response && e.response.status === 401) {
-                    toast("You need to log in again to continue!", {
-                        autoClose: 1000,
-                    });
-                    navigate("/auth/login");
-                } else {
-                    toast.error("Failed to delete the coordination!", {
-                        autoClose: 1000,
-                    });
-                }
+            .catch(() => {
+                toast.error("Failed to delete the trip!", {
+                    autoClose: 1000,
+                });
             });
     }
     // END DELETE FUNCTIONS
 
     // ADD
-    const handleAddCoordination = async () => {
+    const handleAddTrip = async () => {
         const user = JSON.parse(localStorage.getItem('user'));
 
         if (user?.accessToken) {
             try {
                 const res = await axios.post(
-                    "https://fbus-final.azurewebsites.net/api/coordinations",
+                    "https://fbus-last.azurewebsites.net/api/Trips",
                     formData,
                     {
                         headers: {
@@ -285,10 +270,11 @@ const Coords = () => {
                 );
 
                 if (res.status === 200) {
-                    toast.success("Coordination has been added successfully!", {
+                    toast.success("Trip has been added successfully!", {
                         autoClose: 1000,
                     });
                     setShowAdd(false);
+                    fetchTrips();
                 }
             } catch (e) {
                 if (e.response && e.response.status === 401) {
@@ -297,7 +283,7 @@ const Coords = () => {
                     });
                     navigate("/auth/login");
                 } else {
-                    toast.error("Failed to add this coordination!", {
+                    toast.error("Failed to add this trip!", {
                         autoClose: 1000,
                     });
                     setShowAdd(true);
@@ -333,32 +319,40 @@ const Coords = () => {
 
     // PAGING
     const itemsPerPage = 5;
-    const [currentCoordinationList, setCurrentCoordinationList] = useState([]);
+    const [currentTripList, setCurrentTripList] = useState([]);
     const [totalPages, setTotalPages] = useState(0);
     const [startIndex, setStartIndex] = useState(0);
     const [endIndex, setEndIndex] = useState(0);
     const [currentPage, setCurrentPage] = useState(1);
 
     useEffect(() => {
-        setTotalPages(Math.ceil(coordinationList.length / itemsPerPage));
+        setTotalPages(Math.ceil(tripList.length / itemsPerPage));
         setStartIndex((currentPage - 1) * itemsPerPage);
-    }, [coordinationList, currentPage]);
+    }, [tripList, currentPage]);
 
     useEffect(() => {
         setEndIndex(startIndex + itemsPerPage);
-        setCurrentCoordinationList(coordinationList.slice(startIndex, endIndex));
-    }, [coordinationList, startIndex, endIndex]);
+        setCurrentTripList(tripList.slice(startIndex, endIndex));
+    }, [tripList, startIndex, endIndex]);
 
     useEffect(() => {
         setCurrentPage(1);
-    }, [coordinationList.length]);
+    }, [tripList.length]);
 
     const handlePageClick = (pageNumber) => {
         setCurrentPage(pageNumber);
     };
     // END PAGING
 
-
+    // EXPIRED
+    const handleLogoutClose = () => {
+        navigate("/auth/login");
+        localStorage.removeItem('user');
+        toast.success("Logout successful", {
+            autoClose: 1000,
+        });
+        setShowBackdrop(false);
+    }
 
     return (
         <>
@@ -369,15 +363,31 @@ const Coords = () => {
                     <div className="col">
                         <Card className=" card-container shadow">
                             <CardHeader className="bg-transparent">
-                                <h3 className="mb-0">Manager Coordinations</h3>
+                                <h3 className="mb-0">Manager Trips</h3>
                             </CardHeader>
                             <CardBody>
 
+                                <Modal
+                                    show={showBackdrop}
+                                    onHide={() => setShowBackdrop(false)}
+                                    animation={true}
+                                    dialogClassName="modal-logout"
+                                    backdrop="static"
+                                >
+                                    <Modal.Body className="modal-logout-body">
+                                        <h2>YOUR LOGIN TIMEOUT HAS EXPIRED,<br />PLEASE LOGIN AGAIN TO CONTINUE!</h2>
+                                        <img className="img" src={caution} alt="" />
+                                        <Button className="button" color="primary" onClick={handleLogoutClose}>
+                                            OK
+                                        </Button>
+                                    </Modal.Body>
+                                </Modal>
+
                                 <Modal show={showToggleStatus} onHide={() => setShowToggleStatus(false)} animation={true}>
                                     <Modal.Header >
-                                        <Modal.Title>Enable/Disable coordination</Modal.Title>
+                                        <Modal.Title>Enable/Disable trip</Modal.Title>
                                     </Modal.Header>
-                                    <Modal.Body>Are you sure to enable/disable this coordination?</Modal.Body>
+                                    <Modal.Body>Are you sure to enable/disable this trip?</Modal.Body>
                                     <Modal.Footer>
                                         <Button variant="secondary" onClick={() => setShowToggleStatus(false)}>
                                             Close
@@ -390,14 +400,14 @@ const Coords = () => {
 
                                 <Modal show={showDelete} onHide={() => setShowDelete(false)} animation={true}>
                                     <Modal.Header >
-                                        <Modal.Title>Delete coordination</Modal.Title>
+                                        <Modal.Title>Delete trip</Modal.Title>
                                     </Modal.Header>
-                                    <Modal.Body>Are you sure to delete this coordination?</Modal.Body>
+                                    <Modal.Body>Are you sure to delete this trip?</Modal.Body>
                                     <Modal.Footer>
                                         <Button variant="secondary" onClick={() => setShowDelete(false)}>
                                             Close
                                         </Button>
-                                        <Button variant="primary" onClick={() => deleteCoordination()}>
+                                        <Button variant="primary" onClick={() => deleteTrip()}>
                                             Delete
                                         </Button>
                                     </Modal.Footer>
@@ -406,7 +416,7 @@ const Coords = () => {
                                 {/* Add model */}
                                 <Modal show={showAdd} onHide={handleAddClose}>
                                     <Modal.Header >
-                                        <Modal.Title>Add coordination</Modal.Title>
+                                        <Modal.Title>Add trip</Modal.Title>
                                     </Modal.Header>
                                     <Modal.Body>
                                         <Form>
@@ -509,92 +519,16 @@ const Coords = () => {
                                         <Button variant="secondary" onClick={handleAddClose}>
                                             Close
                                         </Button>
-                                        <Button variant="primary" onClick={handleAddCoordination}>
+                                        <Button variant="primary" onClick={handleAddTrip}>
                                             Add +
                                         </Button>
                                     </Modal.Footer>
                                 </Modal>
-
-                                {/* Detail model */}
-                                <Modal show={showDetails} onHide={() => setShowDetails(false)}>
-                                    <Modal.Header >
-                                        <Modal.Title>Coordination detail</Modal.Title>
-                                    </Modal.Header>
-                                    <Modal.Body>
-                                        <Form>
-                                            <Form.Group className="mb-3" controlId="driverId">
-                                                <Form.Label>DriverID</Form.Label>
-                                                <Form.Control
-                                                    type="number"
-                                                    name="driverId"
-                                                    placeholder="DriverID"
-                                                    autoFocus
-                                                    readOnly
-                                                    value={formData.driverId}
-                                                />
-                                            </Form.Group>
-                                            <Form.Group className="mb-3" controlId="busId">
-                                                <Form.Label>BusID</Form.Label>
-                                                <Form.Control
-                                                    type="number"
-                                                    name="busId"
-                                                    placeholder="BusID"
-                                                    autoFocus
-                                                    readOnly
-                                                    value={formData.busId}
-                                                />
-                                            </Form.Group>
-                                            <Form.Group className="mb-3" controlId="routeId">
-                                                <Form.Label>RouteID</Form.Label>
-                                                <Form.Control
-                                                    type="number"
-                                                    name="routeId"
-                                                    placeholder="RouteID"
-                                                    autoFocus
-                                                    readOnly
-                                                    value={formData.routeId}
-                                                />
-                                            </Form.Group>
-                                            <Form.Group className="mb-3" controlId="note">
-                                                <Form.Label>Note</Form.Label>
-                                                <Form.Control
-                                                    type="text"
-                                                    name="note"
-                                                    readOnly
-                                                    placeholder="No note available"
-                                                    value={formData.note || ""}
-                                                />
-                                            </Form.Group>
-                                            <Form.Group className="mb-3" controlId="dateLine">
-                                                <Form.Label>Date Line(MM-DD-YYYY HH:mm)</Form.Label>
-                                                <Form.Control
-                                                    type="datetime-local"
-                                                    name="dateLine"
-                                                    readOnly
-                                                    value={formData.dateLine}
-                                                />
-                                            </Form.Group>
-                                            <Form.Group className="mb-3" controlId="dueDate">
-                                                <Form.Label>Due Date(MM-DD-YYYY HH:mm)</Form.Label>
-                                                <Form.Control
-                                                    type="datetime-local"
-                                                    name="dueDate"
-                                                    readOnly
-                                                    value={formData.dueDate}
-                                                />
-                                            </Form.Group>
-                                        </Form>
-                                    </Modal.Body>
-                                    <Modal.Footer>
-                                        <Button variant="secondary" onClick={() => setShowDetails(false)}>
-                                            Close
-                                        </Button>
-                                    </Modal.Footer>
-                                </Modal>
+                                
                                 {/* Update model  */}
                                 <Modal show={showUpdate} onHide={handleUpdateClose}>
                                     <Modal.Header >
-                                        <Modal.Title>Update coordination</Modal.Title>
+                                        <Modal.Title>Update trip</Modal.Title>
                                     </Modal.Header>
                                     <Modal.Body>
                                         <Form>
@@ -612,6 +546,8 @@ const Coords = () => {
                                                             ...formData,
                                                             driverId: e.target.value
                                                         })
+
+                                                        setIsUpdated(true);
                                                     }}
                                                 />
                                             </Form.Group>
@@ -629,6 +565,8 @@ const Coords = () => {
                                                             ...formData,
                                                             busId: e.target.value
                                                         })
+
+                                                        setIsUpdated(true);
                                                     }}
                                                 />
                                             </Form.Group>
@@ -646,6 +584,8 @@ const Coords = () => {
                                                             ...formData,
                                                             routeId: e.target.value
                                                         })
+
+                                                        setIsUpdated(true);
                                                     }}
                                                 />
                                             </Form.Group>
@@ -661,6 +601,8 @@ const Coords = () => {
                                                             ...formData,
                                                             note: e.target.value
                                                         })
+
+                                                        setIsUpdated(true);
                                                     }}
                                                 />
                                             </Form.Group>
@@ -676,6 +618,8 @@ const Coords = () => {
                                                             ...formData,
                                                             dateLine: e.target.value
                                                         });
+
+                                                        setIsUpdated(true);
                                                     }}
                                                 />
                                             </Form.Group>
@@ -691,6 +635,8 @@ const Coords = () => {
                                                             ...formData,
                                                             dueDate: e.target.value
                                                         });
+
+                                                        setIsUpdated(true);
                                                     }}
                                                 />
                                             </Form.Group>
@@ -700,7 +646,7 @@ const Coords = () => {
                                         <Button variant="secondary" onClick={handleUpdateClose}>
                                             Close
                                         </Button>
-                                        <Button variant="primary" onClick={updateCoordinationData}>
+                                        <Button variant="primary" onClick={updateTripData}>
                                             Confirm
                                         </Button>
                                     </Modal.Footer>
@@ -708,17 +654,13 @@ const Coords = () => {
 
                                 {/* Table list */}
                                 <div className="list">
-                                    <Button variant="primary" onClick={handleAddOpen} size="md" className="add_button">Add Coordination +</Button>
+                                    <Button variant="primary" onClick={handleAddOpen} size="md" className="add_button">Add Trip +</Button>
                                     <Table striped bordered hover>
                                         <thead>
                                             <tr>
                                                 <th>Id</th>
-                                                {/* <th>Driver ID </th> */}
-                                                <th>Driver Code</th>
-                                                {/* <th>Bus Id</th> */}
-                                                <th>Bus Code</th>
-                                                {/* <th>License Plate</th> */}
-                                                {/* <th>Route Id</th> */}
+                                                <th>Driver Name</th>
+                                                <th>Bus License Plate</th>
                                                 <th>Beginning</th>
                                                 <th>Destination</th>
                                                 <th>Date Line</th>
@@ -728,79 +670,49 @@ const Coords = () => {
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {currentCoordinationList.map((coordination, index) => (
+                                            {currentTripList.map((trip, index) => (
                                                 <tr key={index}>
                                                     <td>
-                                                        <span>{coordination.id}</span>
+                                                        <span>{trip.id}</span>
                                                     </td>
-                                                    {/* <td>
-                                                        <span className="link-style" onClick={(e) => {
-                                                            e.preventDefault()
-                                                            // handleShowDetails(coordination.id)
-                                                        }}>{coordination.driverId ? coordination.driverId : "none"}</span>
-                                                    </td> */}
                                                     <td>
                                                         <span className="link-style" onClick={(e) => {
                                                             e.preventDefault()
-                                                            handleShowDetails(coordination.id)
-                                                        }}>{coordination.driverCode}</span>
+                                                        }}>{trip.driver.fullName}</span>
 
                                                     </td>
-                                                    {/* <td>
-                                                        <span className="link-style" onClick={(e) => {
-                                                            e.preventDefault()
-                                                            handleShowDetails(coordination.id)
-                                                        }}>{coordination.busId ? coordination.busId : "none"}</span>
-                                                    </td> */}
                                                     <td>
                                                         <span className="link-style" onClick={(e) => {
                                                             e.preventDefault()
-                                                            handleShowDetails(coordination.id)
-                                                        }}>{coordination.busCode}</span>
-                                                    </td>
-                                                    {/* <td>
-                                                        <span className="link-style" onClick={(e) => {
-                                                            e.preventDefault()
-                                                            handleShowDetails(coordination.id)
-                                                        }}>{coordination.licensePlate ? coordination.licensePlate : "none"}</span>
-                                                    </td> */}
-                                                    {/* <td>
-                                                        <span className="link-style" onClick={(e) => {
-                                                            e.preventDefault()
-                                                            handleShowDetails(coordination.id)
-                                                        }}>{coordination.routeId ? coordination.routeId : "none"}</span>
-                                                    </td> */}
-                                                    <td>
-                                                        <span className="link-style" onClick={(e) => {
-                                                            e.preventDefault()
-                                                            handleShowDetails(coordination.id)
-                                                        }}>{coordination.beginning}</span>
+                                                        }}>{trip.bus.licensePlate}</span>
                                                     </td>
                                                     <td>
                                                         <span className="link-style" onClick={(e) => {
                                                             e.preventDefault()
-                                                            handleShowDetails(coordination.id)
-                                                        }}>{coordination.destination}</span>
+                                                        }}>{trip.route.beginning}</span>
+                                                    </td>
+                                                    <td>
+                                                        <span className="link-style" onClick={(e) => {
+                                                            e.preventDefault()
+                                                        }}>{trip.route.destination}</span>
                                                     </td>
                                                     <td>
                                                         <span className="link-style" onClick={(e) => {
                                                             e.preventDefault();
-                                                            handleShowDetails(coordination.id);
                                                         }}>
-                                                            {coordination.dueDate && format(new Date(coordination.dateLine), 'MM-dd-yyyy HH:mm')}
+                                                            {trip.dueDate && format(new Date(trip.dueDate), 'MM-dd-yyyy HH:mm')}
                                                         </span>
                                                     </td>
                                                     <td>
                                                         <span className="link-style" onClick={(e) => {
                                                             e.preventDefault();
-                                                            handleShowDetails(coordination.id);
                                                         }}>
-                                                            {coordination.dueDate && format(new Date(coordination.dueDate), 'MM-dd-yyyy HH:mm')}
+                                                            {trip.dateLine && format(new Date(trip.dateLine), 'MM-dd-yyyy HH:mm')}
                                                         </span>
                                                     </td>
                                                     <td>
-                                                        <span className={`status ${coordination.status === 'ACTIVE' ? 'active' : coordination.status === 'INACTIVE' ? 'inactive' : ''}`}>
-                                                            {coordination.status}
+                                                        <span className={`status ${trip.status === 'ACTIVE' ? 'active' : trip.status === 'INACTIVE' ? 'inactive' : trip.status === 'ONGOING' ? 'ongoing': trip.status === 'FINISHED' ? 'finished': ''}`}>
+                                                            {trip.status}
                                                         </span>
                                                     </td>
                                                     <td className="registration">
@@ -816,21 +728,21 @@ const Coords = () => {
                                                             <DropdownMenu className="dropdown-menu-arrow" right>
                                                                 <DropdownItem
                                                                     className="update-dropdown-item"
-                                                                    onClick={() => handleUpdateShow(coordination)}
+                                                                    onClick={() => handleUpdateShow(trip)}
                                                                 >
                                                                     Update
                                                                 </DropdownItem>
                                                                 <DropdownItem
                                                                     className="disable-enable-dropdown-item"
                                                                     onClick={() => {
-                                                                        handleToggleStatus(coordination)
+                                                                        handleToggleStatus(trip)
                                                                     }}
                                                                 >
                                                                     Enable/Disable
                                                                 </DropdownItem>
                                                                 <DropdownItem
                                                                     className="delete-dropdown-item"
-                                                                    onClick={() => handleDeleteCoordination(coordination.id)}
+                                                                    onClick={() => handleDeleteTrip(trip.id)}
                                                                 >
                                                                     Delete
                                                                 </DropdownItem>
@@ -892,4 +804,4 @@ const Coords = () => {
     );
 };
 
-export default Coords;
+export default Trips;

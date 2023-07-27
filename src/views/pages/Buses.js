@@ -62,6 +62,7 @@ const Buses = () => {
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem("user"));
     if (user == null || !user || isTokenExpired()) {
+      setShowBackdrop(true)
       return;
     }
     getAllBuses(user.accessToken)
@@ -149,7 +150,6 @@ const Buses = () => {
   // --UPDATE FUNCTIONS
   const handleUpdateClose = () => {
     setShowUpdate(false);
-    setErrors({});
   }
 
   const handleUpdateShow = async (bus) => {
@@ -205,11 +205,11 @@ const Buses = () => {
   const [oldStatus, setOldStatus] = useState("");
   const [toggleBusId, setToggleBusId] = useState(null);
   const handleToggleStatus = (bus) => {
-      setOldStatus(bus.status)
-      setToggleBusId(bus.id)
-      setShowToggleStatus(true);
+    setOldStatus(bus.status)
+    setToggleBusId(bus.id)
+    setShowToggleStatus(true);
   }
-  
+
   const toggleStatus = () => {
     const user = JSON.parse(localStorage.getItem('user'))
     if (user == null || !user || isTokenExpired()) {
@@ -221,7 +221,7 @@ const Buses = () => {
       status = "ACTIVE"
     }
     toggleStatusAPI(toggleBusId, status)
-      .then((res) => {
+      .then(() => {
         toast.success("Successull to enable/disable status!", {
           autoClose: 1000,
         });
@@ -297,7 +297,6 @@ const Buses = () => {
   };
   const handleAddClose = () => {
     setShowAdd(false);
-    setErrors({});
   }
   const handleAddOpen = () => {
     setFormData({
@@ -381,7 +380,6 @@ const Buses = () => {
                   <Modal.Body className="modal-logout-body">
                     <h2>YOUR LOGIN TIMEOUT HAS EXPIRED,<br />PLEASE LOGIN AGAIN TO CONTINUE!</h2>
                     <img className="img" src={caution} alt="" />
-
                     <Button className="button" color="primary" onClick={handleLogoutClose}>
                       OK
                     </Button>

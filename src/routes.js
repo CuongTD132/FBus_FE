@@ -7,8 +7,8 @@ import Accounts from "./views/pages/Accounts";
 import Maps from "./views/pages/Maps.js";
 import Routes from "./views/pages/Routes";
 import Stations from "./views/pages/Stations";
-import Coords from "./views/pages/Coordinations";
-import Test from "./views/pages/Test";
+import Trips from "./views/pages/Trips";
+// import Test from "./views/pages/Test";
 var routes = [
   // {
   //   path: "/index",
@@ -47,10 +47,10 @@ var routes = [
     layout: "/admin",
   },
   // {
-  //   path: "/tables",
-  //   name: "Tables",
+  //   path: "/test",
+  //   name: "Test",
   //   icon: "ni ni-bullet-list-67 text-red",
-  //   component: <Tables />,
+  //   component: <Test/>,
   //   layout: "/admin",
   // },
   {
@@ -68,17 +68,10 @@ var routes = [
     layout: "/admin",
   },
   {
-    path: "/coords",
-    name: "Coordinations",
+    path: "/trips",
+    name: "Trips",
     icon: "ni ni-archive-2 text-info",
-    component: <Coords />,
-    layout: "/admin",
-  },
-  {
-    path: "/test",
-    name: "Test",
-    icon: "ni ni-archive-2 text-yellow",
-    component: <Test />,
+    component: <Trips />,
     layout: "/admin",
   },
   {

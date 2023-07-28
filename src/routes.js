@@ -1,5 +1,4 @@
 
-import Index from "./views/Index";
 import Login from "./views/pages/Login";
 import Buses from "./views/pages/Buses";
 import Drivers from "./views/pages/Drivers";
@@ -8,15 +7,8 @@ import Maps from "./views/pages/Maps.js";
 import Routes from "./views/pages/Routes";
 import Stations from "./views/pages/Stations";
 import Trips from "./views/pages/Trips";
-// import Test from "./views/pages/Test";
+import Test from "./views/pages/Test";
 var routes = [
-  // {
-  //   path: "/index",
-  //   name: "Dashboard",
-  //   icon: "ni ni-tv-2 text-primary",
-  //   component: <Index />,
-  //   layout: "/admin",
-  // },
   {
     path: "/map",
     name: "Maps",
@@ -46,13 +38,13 @@ var routes = [
     component: <Drivers />,
     layout: "/admin",
   },
-  // {
-  //   path: "/test",
-  //   name: "Test",
-  //   icon: "ni ni-bullet-list-67 text-red",
-  //   component: <Test/>,
-  //   layout: "/admin",
-  // },
+  {
+    path: "/test",
+    name: "Test",
+    icon: "ni ni-bullet-list-67 text-red",
+    component: <Test/>,
+    layout: "/admin",
+  },
   {
     path: "/stations",
     name: "Stations",

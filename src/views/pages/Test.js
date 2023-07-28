@@ -9,6 +9,7 @@ import {
     CardBody,
     Container,
     Row,
+    Col,
     UncontrolledDropdown,
     DropdownToggle,
     DropdownMenu,
@@ -30,11 +31,6 @@ import {
     toggleStatusAPI
 
 } from "../../services/trip";
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-import { useNavigate } from "react-router-dom";
-import { isTokenExpired } from "../../services/checkToken";
-import caution from '../../assets/img/caution.png'
 import {
     getAllDrivers,
 } from "../../services/driver";
@@ -44,8 +40,13 @@ import {
 import {
     getAllRoutes,
 } from "../../services/routes";
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { useNavigate } from "react-router-dom";
+import { isTokenExpired } from "../../services/checkToken";
+import caution from '../../assets/img/caution.png'
 
-const Trips = () => {
+const Test = () => {
     const navigate = useNavigate();
     const [tripList, setTripList] = useState([]);
     const [showAdd, setShowAdd] = useState(false);
@@ -116,8 +117,8 @@ const Trips = () => {
             setShowBackdrop(true)
             return;
         }
-        await fetchTripDetails(trip.id); // fetch old data       
-        setShowUpdate(true); // show update modal
+        await fetchTripDetails(trip.id); // fetch old data
+        setShowUpdate(true);
     };
     const updateTripData = async () => {
         const user = JSON.parse(localStorage.getItem('user'))
@@ -175,80 +176,6 @@ const Trips = () => {
 
 
     // END UPDATE FUNCTIONS
-
-    // TOGGLE STATUS FUNCTION
-    const [oldStatus, setOldStatus] = useState("");
-    const [toggleTripId, setToggleTripId] = useState(null);
-    const handleToggleStatus = (trip) => {
-        setOldStatus(trip.status)
-        setToggleTripId(trip.id)
-        setShowToggleStatus(true);
-    }
-    const toggleStatus = () => {
-        const user = JSON.parse(localStorage.getItem('user'))
-        if (user == null || !user || isTokenExpired()) {
-            setShowBackdrop(true)
-            return;
-        }
-        let status = "INACTIVE";
-        if (oldStatus === "INACTIVE") {
-            status = "ACTIVE"
-        }
-        toggleStatusAPI(toggleTripId, status)
-            .then((res) => {
-                toast.success("Successull to enable/disable status!", {
-                    autoClose: 1000,
-                });
-                setShowToggleStatus(false);
-                fetchTrips();
-                getAllTrips()
-                    .then((res) => {
-                        setTripList(res.data.data);
-                    })
-                    .catch((error) => {
-                        console.log(error);
-                    });
-            })
-            .catch((e) => {
-                toast.error("Failed to enable/disable status!", {
-                    autoClose: 1000,
-                });
-                setShowToggleStatus(false);
-            });
-    }
-    // END TOGGLE STATUS
-
-
-    // DELETE FUNCTIONS
-    const [deleteTripId, setDeleteTripId] = useState();
-    const handleDeleteTrip = (id) => {
-        setDeleteTripId(id)
-        setShowDelete(true)
-    };
-    const deleteTrip = () => {
-        const user = JSON.parse(localStorage.getItem('user'))
-        if (user == null || !user || isTokenExpired()) {
-            setShowBackdrop(true)
-            return;
-        }
-        deleteTripAPI(deleteTripId)
-            .then((res) => {
-                if (res.status === 200) {
-                    // console.log(res)
-                    toast.success("Trip deleted successfully!", {
-                        autoClose: 1000,
-                    });
-                }
-                setShowDelete(false);
-                fetchTrips();
-            })
-            .catch(() => {
-                toast.error("Failed to delete the trip!", {
-                    autoClose: 1000,
-                });
-            });
-    }
-    // END DELETE FUNCTIONS
 
     // ADD
     const handleAddTrip = async () => {
@@ -320,17 +247,26 @@ const Trips = () => {
         resetErrorVisible()
     }
     const handleAddOpen = () => {
-        setFormData({
-            driverId: "",
-            busId: "",
-            routeId: "",
-            note: "",
-            dateLine: "",
-            dueDate: "",
-        });
-        resetFormData();
-        resetErrorVisible()
-        setShowAdd(true);
+        if (isTokenExpired()) {
+            toast("You need to log in again to continue!", {
+                autoClose: 1000,
+                onClose: () => {
+                    navigate("/auth/login");
+                },
+            });
+        } else {
+            setFormData({
+                driverId: "",
+                busId: "",
+                routeId: "",
+                note: "",
+                dateLine: "",
+                dueDate: "",
+            });
+            resetFormData();
+            resetErrorVisible()
+            setShowAdd(true);
+        }
     };
     // END ADD
 
@@ -601,14 +537,15 @@ const Trips = () => {
         DriverId: false,
         BusId: false,
         RouteId: false,
-    });
-    const resetErrorVisible = () => {
+      });
+      const resetErrorVisible = () => {
         setErrorVisible({
-            DriverId: false,
-            BusId: false,
-            RouteId: false,
+          DriverId: false,
+          BusId: false,
+          RouteId: false,
         });
-    };
+      };
+      
 
     return (
         <>
@@ -622,53 +559,6 @@ const Trips = () => {
                                 <h3 className="mb-0">Manager Trips</h3>
                             </CardHeader>
                             <CardBody>
-
-                                <Modal
-                                    show={showBackdrop}
-                                    onHide={() => setShowBackdrop(false)}
-                                    animation={true}
-                                    dialogClassName="modal-logout"
-                                    backdrop="static"
-                                >
-                                    <Modal.Body className="modal-logout-body">
-                                        <h2>YOUR LOGIN TIMEOUT HAS EXPIRED,<br />PLEASE LOGIN AGAIN TO CONTINUE!</h2>
-                                        <img className="img" src={caution} alt="" />
-                                        <Button className="button" color="primary" onClick={handleLogoutClose}>
-                                            OK
-                                        </Button>
-                                    </Modal.Body>
-                                </Modal>
-
-                                <Modal show={showToggleStatus} onHide={() => setShowToggleStatus(false)} animation={true}>
-                                    <Modal.Header >
-                                        <Modal.Title>Enable/Disable trip</Modal.Title>
-                                    </Modal.Header>
-                                    <Modal.Body>Are you sure to enable/disable this trip?</Modal.Body>
-                                    <Modal.Footer>
-                                        <Button variant="secondary" onClick={() => setShowToggleStatus(false)}>
-                                            Close
-                                        </Button>
-                                        <Button variant="primary" onClick={toggleStatus}>
-                                            Enable/Disable
-                                        </Button>
-                                    </Modal.Footer>
-                                </Modal>
-
-                                <Modal show={showDelete} onHide={() => setShowDelete(false)} animation={true}>
-                                    <Modal.Header >
-                                        <Modal.Title>Delete trip</Modal.Title>
-                                    </Modal.Header>
-                                    <Modal.Body>Are you sure to delete this trip?</Modal.Body>
-                                    <Modal.Footer>
-                                        <Button variant="secondary" onClick={() => setShowDelete(false)}>
-                                            Close
-                                        </Button>
-                                        <Button variant="primary" onClick={() => deleteTrip()}>
-                                            Delete
-                                        </Button>
-                                    </Modal.Footer>
-                                </Modal>
-
                                 {/* Add model */}
                                 <Modal show={showAdd} onHide={handleAddClose}>
                                     <Modal.Header >
@@ -677,6 +567,7 @@ const Trips = () => {
                                     <Modal.Body>
                                         <Form>
                                             <Form.Group className="mb-3" controlId="driverId">
+                                                <Form.Label>Driver</Form.Label>
                                                 {errorVisible && errors.DriverId && (
                                                     <span style={{ color: "red", float: "right" }}>*{errors.DriverId[0]}</span>
                                                 )}
@@ -737,63 +628,7 @@ const Trips = () => {
                                                 />
                                                 {showRouteList && <RouteList routeList={routeList} />}
                                             </Form.Group>
-                                            <Form.Group className="mb-3" controlId="note">
-                                                <Form.Label>Note</Form.Label>
-                                                <Form.Control
-                                                    type="text"
-                                                    name="note"
-                                                    placeholder="Note"
-                                                    value={formData.note || ""}
-                                                    onChange={(e) => {
-                                                        setFormData({
-                                                            ...formData,
-                                                            note: e.target.value
-                                                        })
-                                                    }}
-                                                />
-                                            </Form.Group>
-                                            <Form.Group className="mb-3" controlId="dateLine">
-                                                <Form.Label>Date Line(MM-DD-YYYY HH:mm)</Form.Label>
-                                                {errors && errors.DateLine && (
-                                                    <span style={{ color: "red", float: "right" }}>*{errors.DateLine[0]}</span>
-                                                )}
-                                                <Form.Control
-                                                    type="datetime-local"
-                                                    name="dateLine"
-                                                    required
-                                                    onChange={(e) => {
-                                                        setFormData({
-                                                            ...formData,
-                                                            dateLine: e.target.value
-                                                        });
-                                                        setErrors({
-                                                            ...errors,
-                                                            DateLine: null
-                                                        });
-                                                    }}
-                                                />
-                                            </Form.Group>
-                                            <Form.Group className="mb-3" controlId="dueDate">
-                                                <Form.Label>Due Date(MM-DD-YYYY HH:mm)</Form.Label>
-                                                {errors && errors.DueDate && (
-                                                    <span style={{ color: "red", float: "right" }}>*{errors.DueDate[0]}</span>
-                                                )}
-                                                <Form.Control
-                                                    type="datetime-local"
-                                                    name="dateLine"
-                                                    required
-                                                    onChange={(e) => {
-                                                        setFormData({
-                                                            ...formData,
-                                                            dueDate: e.target.value
-                                                        });
-                                                        setErrors({
-                                                            ...errors,
-                                                            DueDate: null
-                                                        });
-                                                    }}
-                                                />
-                                            </Form.Group>
+
                                         </Form>
                                     </Modal.Body>
                                     <Modal.Footer>
@@ -805,6 +640,7 @@ const Trips = () => {
                                         </Button>
                                     </Modal.Footer>
                                 </Modal>
+
 
                                 {/* Update model  */}
                                 <Modal show={showUpdate} onHide={handleUpdateClose}>
@@ -865,69 +701,6 @@ const Trips = () => {
                                                 />
                                                 {showRouteList && <RouteList routeList={routeList} />}
                                             </Form.Group>
-                                            <Form.Group className="mb-3" controlId="note">
-                                                <Form.Label>Note</Form.Label>
-                                                <Form.Control
-                                                    type="text"
-                                                    name="note"
-                                                    placeholder="No note available"
-                                                    value={formData.note || ""}
-                                                    onChange={(e) => {
-                                                        setFormData({
-                                                            ...formData,
-                                                            note: e.target.value
-                                                        })
-
-                                                        setIsUpdated(true);
-                                                    }}
-                                                />
-                                            </Form.Group>
-                                            <Form.Group className="mb-3" controlId="dateLine">
-                                                <Form.Label>Date Line(MM-DD-YYYY HH:mm)</Form.Label>
-                                                {errors && errors.DateLine && (
-                                                    <span style={{ color: "red", float: "right" }}>*{errors.DateLine[0]}</span>
-                                                )}
-                                                <Form.Control
-                                                    type="datetime-local"
-                                                    name="dateLine"
-                                                    required
-                                                    value={formData.dateLine}
-                                                    onChange={(e) => {
-                                                        setFormData({
-                                                            ...formData,
-                                                            dateLine: e.target.value
-                                                        });
-                                                        setErrors({
-                                                            ...errors,
-                                                            DateLine: null
-                                                        });
-                                                        setIsUpdated(true);
-                                                    }}
-                                                />
-                                            </Form.Group>
-                                            <Form.Group className="mb-3" controlId="dueDate">
-                                                <Form.Label>Due Date(MM-DD-YYYY HH:mm)</Form.Label>
-                                                {errors && errors.DueDate && (
-                                                    <span style={{ color: "red", float: "right" }}>*{errors.DueDate[0]}</span>
-                                                )}
-                                                <Form.Control
-                                                    type="datetime-local"
-                                                    name="dueDate"
-                                                    required
-                                                    value={formData.dueDate}
-                                                    onChange={(e) => {
-                                                        setFormData({
-                                                            ...formData,
-                                                            dueDate: e.target.value
-                                                        });
-                                                        setErrors({
-                                                            ...errors,
-                                                            DueDate: null
-                                                        });
-                                                        setIsUpdated(true);
-                                                    }}
-                                                />
-                                            </Form.Group>
                                         </Form>
                                     </Modal.Body>
                                     <Modal.Footer>
@@ -947,14 +720,7 @@ const Trips = () => {
                                         <thead>
                                             <tr>
                                                 <th>Id</th>
-                                                <th>Driver</th>
-                                                <th>Bus License Plate</th>
-                                                <th>Beginning</th>
-                                                <th>Destination</th>
-                                                <th>Date Line</th>
-                                                <th>Due Date</th>
                                                 <th>Status</th>
-                                                <th>More</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -962,46 +728,6 @@ const Trips = () => {
                                                 <tr key={index}>
                                                     <td>
                                                         <span>{trip.id}</span>
-                                                    </td>
-                                                    <td>
-                                                        <span className="link-style" onClick={(e) => {
-                                                            e.preventDefault()
-                                                        }}>{trip.driver.fullName}</span>
-
-                                                    </td>
-                                                    <td>
-                                                        <span className="link-style" onClick={(e) => {
-                                                            e.preventDefault()
-                                                        }}>{trip.bus.licensePlate}</span>
-                                                    </td>
-                                                    <td>
-                                                        <span className="link-style" onClick={(e) => {
-                                                            e.preventDefault()
-                                                        }}>{trip.route.beginning}</span>
-                                                    </td>
-                                                    <td>
-                                                        <span className="link-style" onClick={(e) => {
-                                                            e.preventDefault()
-                                                        }}>{trip.route.destination}</span>
-                                                    </td>
-                                                    <td>
-                                                        <span className="link-style" onClick={(e) => {
-                                                            e.preventDefault();
-                                                        }}>
-                                                            {trip.dueDate && format(new Date(trip.dueDate), 'MM-dd-yyyy HH:mm')}
-                                                        </span>
-                                                    </td>
-                                                    <td>
-                                                        <span className="link-style" onClick={(e) => {
-                                                            e.preventDefault();
-                                                        }}>
-                                                            {trip.dateLine && format(new Date(trip.dateLine), 'MM-dd-yyyy HH:mm')}
-                                                        </span>
-                                                    </td>
-                                                    <td>
-                                                        <span className={`status ${trip.status === 'ACTIVE' ? 'active' : trip.status === 'INACTIVE' ? 'inactive' : trip.status === 'ONGOING' ? 'ongoing' : trip.status === 'FINISHED' ? 'finished' : ''}`}>
-                                                            {trip.status}
-                                                        </span>
                                                     </td>
                                                     <td className="registration">
                                                         <UncontrolledDropdown >
@@ -1020,20 +746,6 @@ const Trips = () => {
                                                                 >
                                                                     Update
                                                                 </DropdownItem>
-                                                                <DropdownItem
-                                                                    className="disable-enable-dropdown-item"
-                                                                    onClick={() => {
-                                                                        handleToggleStatus(trip)
-                                                                    }}
-                                                                >
-                                                                    Enable/Disable
-                                                                </DropdownItem>
-                                                                <DropdownItem
-                                                                    className="delete-dropdown-item"
-                                                                    onClick={() => handleDeleteTrip(trip.id)}
-                                                                >
-                                                                    Delete
-                                                                </DropdownItem>
                                                             </DropdownMenu>
                                                         </UncontrolledDropdown>
                                                     </td>
@@ -1043,47 +755,6 @@ const Trips = () => {
                                     </Table>
                                 </div>
                             </CardBody>
-                            <CardFooter className="py-4">
-                                <nav aria-label="...">
-                                    <Pagination
-                                        className="pagination justify-content-end mb-0"
-                                        listClassName="justify-content-end mb-0"
-                                    >
-                                        <PaginationItem disabled={currentPage === 1}>
-                                            <PaginationLink
-                                                href=""
-                                                onClick={() => handlePageClick(currentPage - 1)}
-                                                tabIndex="-1"
-                                            >
-                                                <i className="fas fa-angle-left" />
-                                                <span className="sr-only">Previous</span>
-                                            </PaginationLink>
-                                        </PaginationItem>
-                                        {Array.from({ length: totalPages }, (_, index) => (
-                                            <PaginationItem
-                                                key={index + 1}
-                                                active={currentPage === index + 1}
-                                            >
-                                                <PaginationLink
-                                                    href=""
-                                                    onClick={() => handlePageClick(index + 1)}
-                                                >
-                                                    {index + 1}
-                                                </PaginationLink>
-                                            </PaginationItem>
-                                        ))}
-                                        <PaginationItem disabled={currentPage === totalPages}>
-                                            <PaginationLink
-                                                href=""
-                                                onClick={() => handlePageClick(currentPage + 1)}
-                                            >
-                                                <i className="fas fa-angle-right" />
-                                                <span className="sr-only">Next</span>
-                                            </PaginationLink>
-                                        </PaginationItem>
-                                    </Pagination>
-                                </nav>
-                            </CardFooter>
                         </Card>
                     </div>
                 </Row>
@@ -1092,4 +763,4 @@ const Trips = () => {
     );
 };
 
-export default Trips;
+export default Test;

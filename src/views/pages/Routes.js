@@ -100,7 +100,9 @@ const RouteControl = ({ stations }) => {
     control.on('routesfound', function (e) {
       var routes = e.routes;
       var summary = routes[0].summary;
-      console.log('Total distance is ' + Math.round(summary.totalDistance) + ' m ');
+      toast.info('Total distance is ' + Math.round(summary.totalDistance) + ' m', {
+        autoClose: 1500,
+      });
     });
     return () => {
       map.removeControl(control);
@@ -109,7 +111,7 @@ const RouteControl = ({ stations }) => {
 
 
   return null;
-};
+}
 const Routes = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -145,7 +147,9 @@ const Routes = () => {
         if (res && res.data && res.data.data) {
           setRouteList(res.data.data);
         } else {
-          alert("Error: Invalid response data");
+          toast.warn("You need add more stations!", {
+            autoClose: 1500,
+          });
           return;
         }
       })
@@ -168,7 +172,7 @@ const Routes = () => {
     await getAllStations()
       .then((res) => {
         // Filter out the selected stations from the available stations
-        const availableStations = res.data.data.filter(
+        const availableStations = res.data.data?.filter(
           (station) => !selectedStationIds?.includes(station.id)
         );
         setStationList(availableStations);
@@ -248,7 +252,7 @@ const Routes = () => {
     const updatedSelectedStations = selectedStations?.filter(
       (station) => station.station.id !== stationId
     );
-    setSelectedStations(updatedSelectedStations); 
+    setSelectedStations(updatedSelectedStations);
 
     // Update the formData to store the updated array of chosen station IDs
     setFormData({
@@ -302,7 +306,9 @@ const Routes = () => {
         setSelectedStations(routeData.routeStations);
         setShowMap(true);
       } else {
-        alert("Error: Invalid route data");
+        toast.warn("Please add more stations!", {
+          autoClose: 1500,
+        });
       }
     } catch (error) {
       console.error("Error fetching route details:", error);

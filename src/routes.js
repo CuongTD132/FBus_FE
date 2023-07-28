@@ -7,7 +7,6 @@ import Maps from "./views/pages/Maps.js";
 import Routes from "./views/pages/Routes";
 import Stations from "./views/pages/Stations";
 import Trips from "./views/pages/Trips";
-import Test from "./views/pages/Test";
 var routes = [
   {
     path: "/map",
@@ -36,13 +35,6 @@ var routes = [
     name: "Drivers",
     icon: "ni ni-badge text-green",
     component: <Drivers />,
-    layout: "/admin",
-  },
-  {
-    path: "/test",
-    name: "Test",
-    icon: "ni ni-bullet-list-67 text-red",
-    component: <Test/>,
     layout: "/admin",
   },
   {

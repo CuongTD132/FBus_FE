@@ -27,7 +27,8 @@ import {
     getSingleTrip,
     getAllTrips,
     deleteTripAPI,
-    toggleStatusAPI
+    toggleStatusAPI,
+    getMultiTripsAPI
 
 } from "../../services/trip";
 import { toast, ToastContainer } from 'react-toastify';
@@ -36,13 +37,13 @@ import { useNavigate } from "react-router-dom";
 import { isTokenExpired } from "../../services/checkToken";
 import caution from '../../assets/img/caution.png'
 import {
-    getAllDrivers,
+    getMultiDriversAPI,
 } from "../../services/driver";
 import {
-    getAllBuses,
+    getMultiBusesAPI,
 } from "../../services/bus";
 import {
-    getAllRoutes,
+    getMultiRoutesAPI,
 } from "../../services/routes";
 
 const Trips = () => {
@@ -55,6 +56,8 @@ const Trips = () => {
     const [errors, setErrors] = useState({});
     const [showBackdrop, setShowBackdrop] = useState(false);
     const [isUpdated, setIsUpdated] = useState(false);
+    const [sortingOrder, setSortingOrder] = useState("oldest");
+    const [selectedStatus, setSelectedStatus] = useState("");
     const [formData, setFormData] = useState({
         driverId: "",
         busId: "",
@@ -97,13 +100,32 @@ const Trips = () => {
 
     // Fetch list of driver and pass to table
     const fetchTrips = () => {
-        getAllTrips()
-            .then((res) => setTripList(res.data.data))
+        getMultiTripsAPI({ status: selectedStatus })
+            .then((res) => {
+                let sortedDrivers = res.data.data;
+                if (sortingOrder === "newest") {
+                    sortedDrivers = res.data.data.sort((a, b) => b.id - a.id);
+                } else if (sortingOrder === "oldest") {
+                    sortedDrivers = res.data.data.sort((a, b) => a.id - b.id);
+                }
+
+                setTripList(sortedDrivers);
+            })
             .catch((error) => {
                 console.log(error);
             });
     };
+    useEffect(() => {
+        fetchTrips();
+    }, [sortingOrder, selectedStatus]);;
 
+    const handleSortingChange = (order) => {
+        setSortingOrder(order);
+    };
+
+    const handleStatusFilter = (status) => {
+        setSelectedStatus(status);
+    };
 
     // --UPDATE FUNCTIONS
     const handleUpdateClose = () => {
@@ -572,17 +594,17 @@ const Trips = () => {
     };
 
     useEffect(() => {
-        getAllDrivers()
+        getMultiDriversAPI({ status: "ACTIVE" })
             .then((res) => setDriverList(res.data.data))
             .catch((error) => {
                 console.log(error);
             });
-        getAllBuses()
+        getMultiBusesAPI({ status: 'ACTIVE' })
             .then((res) => setBusList(res.data.data))
             .catch((error) => {
                 console.log(error);
             });
-        getAllRoutes()
+        getMultiRoutesAPI({ status: 'ACTIVE' })
             .then((res) => setRouteList(res.data.data))
             .catch((error) => {
                 console.log(error);
@@ -677,8 +699,9 @@ const Trips = () => {
                                     <Modal.Body>
                                         <Form>
                                             <Form.Group className="mb-3" controlId="driverId">
+                                                <Form.Label>Driver</Form.Label>
                                                 {errorVisible && errors.DriverId && (
-                                                    <span style={{ color: "red", float: "right" }}>*{errors.DriverId[0]}</span>
+                                                    <span style={{ color: "red", float: "right" }}>*{errors.DriverId}</span>
                                                 )}
                                                 <Form.Control
                                                     type="text"
@@ -699,7 +722,7 @@ const Trips = () => {
                                             <Form.Group className="mb-3" controlId="busId">
                                                 <Form.Label>Bus</Form.Label>
                                                 {errorVisible && errors.BusId && (
-                                                    <span style={{ color: "red", float: "right" }}>*{errors.BusId[0]}</span>
+                                                    <span style={{ color: "red", float: "right" }}>*{errors.BusId}</span>
                                                 )}
                                                 <Form.Control
                                                     type="text"
@@ -720,7 +743,7 @@ const Trips = () => {
                                             <Form.Group className="mb-3" controlId="routeId">
                                                 <Form.Label>Route</Form.Label>
                                                 {errorVisible && errors.RouteId && (
-                                                    <span style={{ color: "red", float: "right" }}>*{errors.RouteId[0]}</span>
+                                                    <span style={{ color: "red", float: "right" }}>*{errors.RouteId}</span>
                                                 )}
                                                 <Form.Control
                                                     type="text"
@@ -755,7 +778,7 @@ const Trips = () => {
                                             <Form.Group className="mb-3" controlId="dateLine">
                                                 <Form.Label>Date Line(MM-DD-YYYY HH:mm)</Form.Label>
                                                 {errors && errors.DateLine && (
-                                                    <span style={{ color: "red", float: "right" }}>*{errors.DateLine[0]}</span>
+                                                    <span style={{ color: "red", float: "right" }}>*{errors.DateLine}</span>
                                                 )}
                                                 <Form.Control
                                                     type="datetime-local"
@@ -776,7 +799,7 @@ const Trips = () => {
                                             <Form.Group className="mb-3" controlId="dueDate">
                                                 <Form.Label>Due Date(MM-DD-YYYY HH:mm)</Form.Label>
                                                 {errors && errors.DueDate && (
-                                                    <span style={{ color: "red", float: "right" }}>*{errors.DueDate[0]}</span>
+                                                    <span style={{ color: "red", float: "right" }}>*{errors.DueDate}</span>
                                                 )}
                                                 <Form.Control
                                                     type="datetime-local"
@@ -816,7 +839,7 @@ const Trips = () => {
                                             <Form.Group className="mb-3" controlId="driverId">
                                                 <Form.Label>Driver</Form.Label>
                                                 {errors && errors.DriverId && (
-                                                    <span style={{ color: "red", float: "right" }}>*{errors.DriverId[0]}</span>
+                                                    <span style={{ color: "red", float: "right" }}>*{errors.DriverId}</span>
                                                 )}
                                                 <Form.Control
                                                     type="text"
@@ -833,7 +856,7 @@ const Trips = () => {
                                             <Form.Group className="mb-3" controlId="busId">
                                                 <Form.Label>Bus</Form.Label>
                                                 {errors && errors.BusId && (
-                                                    <span style={{ color: "red", float: "right" }}>*{errors.BusId[0]}</span>
+                                                    <span style={{ color: "red", float: "right" }}>*{errors.BusId}</span>
                                                 )}
                                                 <Form.Control
                                                     type="text"
@@ -850,7 +873,7 @@ const Trips = () => {
                                             <Form.Group className="mb-3" controlId="routeId">
                                                 <Form.Label>Route</Form.Label>
                                                 {errors && errors.RouteId && (
-                                                    <span style={{ color: "red", float: "right" }}>*{errors.RouteId[0]}</span>
+                                                    <span style={{ color: "red", float: "right" }}>*{errors.RouteId}</span>
                                                 )}
                                                 <Form.Control
                                                     type="text"
@@ -885,7 +908,7 @@ const Trips = () => {
                                             <Form.Group className="mb-3" controlId="dateLine">
                                                 <Form.Label>Date Line(MM-DD-YYYY HH:mm)</Form.Label>
                                                 {errors && errors.DateLine && (
-                                                    <span style={{ color: "red", float: "right" }}>*{errors.DateLine[0]}</span>
+                                                    <span style={{ color: "red", float: "right" }}>*{errors.DateLine}</span>
                                                 )}
                                                 <Form.Control
                                                     type="datetime-local"
@@ -908,7 +931,7 @@ const Trips = () => {
                                             <Form.Group className="mb-3" controlId="dueDate">
                                                 <Form.Label>Due Date(MM-DD-YYYY HH:mm)</Form.Label>
                                                 {errors && errors.DueDate && (
-                                                    <span style={{ color: "red", float: "right" }}>*{errors.DueDate[0]}</span>
+                                                    <span style={{ color: "red", float: "right" }}>*{errors.DueDate}</span>
                                                 )}
                                                 <Form.Control
                                                     type="datetime-local"
@@ -942,17 +965,47 @@ const Trips = () => {
 
                                 {/* Table list */}
                                 <div className="list">
-                                    <Button variant="primary" onClick={handleAddOpen} size="md" className="add_button">Add Trip +</Button>
+                                    <div style={{ display: "flex" }}>
+                                        <div style={{ flexGrow: "8" }}></div>
+                                        <div style={{ paddingTop: "20px", paddingLeft: "20px" }}>
+                                            Filter by Status:
+                                            <select
+                                                as="select"
+                                                value={selectedStatus}
+                                                onChange={(e) => handleStatusFilter(e.target.value)}
+                                                style={{ height: "22px", borderRadius: "5px", marginLeft: "10px", fontSize: "0.9rem" }}
+                                            >
+                                                <option value="">All</option>
+                                                <option value="ACTIVE">Active</option>
+                                                <option value="INACTIVE">Inactive</option>
+                                                <option value="DELETED">Deleted</option>
+                                                <option value="FINISHED">Finished</option>
+                                                <option value="ONGOING">On Going</option>
+                                            </select>
+                                        </div>
+                                        <div style={{ paddingTop: "20px", paddingLeft: "20px" }}>
+                                            Sort:
+                                            <select
+                                                as="select"
+                                                value={sortingOrder}
+                                                onChange={(e) => handleSortingChange(e.target.value)}
+                                                style={{ height: "22px", borderRadius: "5px", marginLeft: "10px", fontSize: "0.9rem" }}
+                                            >
+                                                <option value="oldest">Oldest Stations</option>
+                                                <option value="newest">Newest Stations</option>
+                                            </select>
+                                        </div>
+                                        <Button variant="primary" onClick={handleAddOpen} size="md" className="add_button">Add Trip +</Button>
+                                    </div>
                                     <Table striped bordered hover>
                                         <thead>
                                             <tr>
                                                 <th>Id</th>
                                                 <th>Driver</th>
-                                                <th>Bus License Plate</th>
+                                                <th>Bus Code</th>
                                                 <th>Beginning</th>
                                                 <th>Destination</th>
-                                                <th>Date Line</th>
-                                                <th>Due Date</th>
+                                                <th>Date Line - Due Date</th>
                                                 <th>Status</th>
                                                 <th>More</th>
                                             </tr>
@@ -972,7 +1025,7 @@ const Trips = () => {
                                                     <td>
                                                         <span className="link-style" onClick={(e) => {
                                                             e.preventDefault()
-                                                        }}>{trip.bus.licensePlate}</span>
+                                                        }}>{trip.bus.code}</span>
                                                     </td>
                                                     <td>
                                                         <span className="link-style" onClick={(e) => {
@@ -988,14 +1041,9 @@ const Trips = () => {
                                                         <span className="link-style" onClick={(e) => {
                                                             e.preventDefault();
                                                         }}>
-                                                            {trip.dueDate && format(new Date(trip.dueDate), 'MM-dd-yyyy HH:mm')}
-                                                        </span>
-                                                    </td>
-                                                    <td>
-                                                        <span className="link-style" onClick={(e) => {
-                                                            e.preventDefault();
-                                                        }}>
                                                             {trip.dateLine && format(new Date(trip.dateLine), 'MM-dd-yyyy HH:mm')}
+                                                            <hr style={{ margin: "10px 0" }} />
+                                                            {trip.dueDate && format(new Date(trip.dueDate), 'MM-dd-yyyy HH:mm')}
                                                         </span>
                                                     </td>
                                                     <td>
@@ -1003,7 +1051,7 @@ const Trips = () => {
                                                             {trip.status}
                                                         </span>
                                                     </td>
-                                                    <td className="registration">
+                                                    <td className={`registration ${trip.status === "DELETED" ? "disable-actions" : ""}`}>
                                                         <UncontrolledDropdown >
                                                             <DropdownToggle
                                                                 className="btn-icon-only text-light"

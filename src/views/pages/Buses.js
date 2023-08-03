@@ -7,6 +7,7 @@ import {
   CardBody,
   Container,
   Row,
+  Col,
   UncontrolledDropdown,
   DropdownToggle,
   DropdownMenu,
@@ -48,6 +49,8 @@ const Buses = () => {
   const [errors, setErrors] = useState({});
   const [showBackdrop, setShowBackdrop] = useState(false);
   const [isUpdated, setIsUpdated] = useState(false);
+  const [sortingOrder, setSortingOrder] = useState("oldest");
+  const [selectedStatus, setSelectedStatus] = useState("");
   const [formData, setFormData] = useState({
     code: "",
     licensePlate: "",
@@ -92,9 +95,9 @@ const Buses = () => {
     if (currentSearchBus !== "") {
       await getMultiBusesAPI({
         licensePlate: currentSearchBus,
-        code: currentSearchBus
+        code: currentSearchBus,
+        status: selectedStatus,
       }).then((res) => {
-        // console.log(res.data.data)
         if (res.data.data != null) {
           dispatch(updateBus(res.data.data))
         } else {
@@ -102,15 +105,35 @@ const Buses = () => {
         }
       })
     } else {
-      await getAllBuses()
+      await getMultiBusesAPI({ status: selectedStatus })
         .then((res) => {
-          setBusList(res.data.data);
-          dispatch(updateBus(res.data.data));
+          let sortedBuses = res.data.data;
+          if (sortingOrder === "newest") {
+            sortedBuses = res.data.data.sort((a, b) => b.id - a.id);
+          } else if (sortingOrder === "oldest") {
+            sortedBuses = res.data.data.sort((a, b) => a.id - b.id);
+          }
+
+          setBusList(sortedBuses);
+          dispatch(updateBus(sortedBuses));
         })
         .catch((error) => {
           console.log(error);
         });
     }
+  };
+
+
+  useEffect(() => {
+    fetchBuses();
+  }, [sortingOrder, selectedStatus]);
+
+  const handleSortingChange = (order) => {
+    setSortingOrder(order);
+  };
+
+  const handleStatusFilter = (status) => {
+    setSelectedStatus(status);
   };
 
   // Call show detail form
@@ -175,7 +198,7 @@ const Buses = () => {
       toast.info("Nothing has been changed!", {
         autoClose: 1000,
       });
-      setShowUpdate(false);
+      setShowUpdate(true);
       return;
     }
     updateBusAPI(formData, formData.id)
@@ -270,8 +293,36 @@ const Buses = () => {
   // ADD
   const handleAddBus = () => {
     const user = JSON.parse(localStorage.getItem('user'))
+    const newErrors = {};
     if (user == null || !user || isTokenExpired()) {
       setShowBackdrop(true)
+      return;
+    }
+    if (!formData.licensePlate) {
+      newErrors.LicensePlate = ['Please enter the License Plate'];
+    }
+
+    if (!formData.brand) {
+      newErrors.Brand = ['Please enter the Brand'];
+    }
+
+    if (!formData.model) {
+      newErrors.Model = ['Please enter the Model'];
+    }
+
+    if (!formData.color) {
+      newErrors.Color = ['Please enter the Color'];
+    }
+
+    if (!formData.seat) {
+      newErrors.Seat = ['Please choose the number of Seats'];
+    }
+    if (!formData.dateOfRegistration) {
+      newErrors.DateOfRegistration = ['Please choose the Date Of Registration'];
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
       return;
     }
     addBusAPI(formData)
@@ -289,9 +340,6 @@ const Buses = () => {
         if (e.response.data.errors) {
           setErrors(e.response.data.errors);
         }
-        toast.error("Failed to add this bus!", {
-          autoClose: 1000,
-        });
         setShowAdd(true);
       });
   };
@@ -356,7 +404,17 @@ const Buses = () => {
     setBusList(buses)
   }, [buses])
   // END REDUX
+  const combineDate = (day, month, year) => {
+    const formattedDay = day ? String(day).padStart(2, "0") : "01";
+    const formattedMonth = month ? String(month).padStart(2, "0") : "01";
+    const formattedYear = year ? String(year) : "YYYY";
+    return `${formattedYear}-${formattedMonth}-${formattedDay}`;
+  };
 
+  const currentYear = new Date().getFullYear();
+  const days = Array.from({ length: 31 }, (_, i) => i + 1);
+  const months = Array.from({ length: 12 }, (_, i) => i + 1);
+  const years = Array.from({ length: currentYear - 2000 + 1 }, (_, i) => currentYear - i);
   return (
     <>
       <Header />
@@ -367,6 +425,7 @@ const Buses = () => {
             <Card className=" card-container shadow">
               <CardHeader className="bg-transparent">
                 <h3 className="mb-0">Manager Buses</h3>
+
               </CardHeader>
               <CardBody>
 
@@ -419,178 +478,233 @@ const Buses = () => {
 
                 {/* Add model */}
                 <Modal show={showAdd} onHide={handleAddClose}>
-                  <Modal.Header >
-                    <Modal.Title>Add bus</Modal.Title>
-                  </Modal.Header>
                   <Modal.Body>
                     <Form>
-                      <Form.Group className="mb-3" controlId="code">
-                        <Form.Label>Code</Form.Label>
-                        {errors && errors.Code && (
-                          <span style={{ color: "red", float: "right" }}>*{errors.Code[0]}</span>
-                        )}
-                        <Form.Control
-                          type="text"
-                          name="code"
-                          placeholder="Code"
-                          autoFocus
-                          required
-                          onChange={(e) => {
-                            setFormData({
-                              ...formData,
-                              code: e.target.value
-                            });
-                            setErrors({
-                              ...errors,
-                              Code: null
-                            });
-                          }}
-                        />
-                      </Form.Group>
-                      <Form.Group className="mb-3" controlId="licensePlate">
-                        <Form.Label>License Plate</Form.Label>
+                      <p>Cases (*) are required</p>
+                      <Row className="container_input">
+                        <div className="flex input-group">
+                          <Form.Label className="align-items-center">
+                            License Plate*
+                          </Form.Label>
+                          <input
+                            className="input-form"
+                            type="text"
+                            name="licensePlate"
+                            placeholder="51A123456"
+                            autoFocus
+                            required
+                            maxLength={10}
+                            onChange={(e) => {
+                              setFormData({
+                                ...formData,
+                                licensePlate: e.target.value,
+                              });
+                              setErrors({
+                                ...errors,
+                                LicensePlate: null,
+                              });
+                            }}
+                          />
+                        </div>
                         {errors && errors.LicensePlate && (
-                          <span style={{ color: "red", float: "right" }}>*{errors.LicensePlate[0]}</span>
+                          <span className="error-msg">{errors.LicensePlate}</span>
                         )}
-                        <Form.Control
-                          type="text"
-                          name="licensePlate"
-                          placeholder="licensePlate"
-                          autoFocus
-                          required
-                          onChange={(e) => {
-                            setFormData({
-                              ...formData,
-                              licensePlate: e.target.value,
-                            });
-                            setErrors({
-                              ...errors,
-                              LicensePlate: null,
-                            });
-                          }}
-                        />
-                      </Form.Group>
-                      <Form.Group className="mb-3" controlId="brand">
-                        <Form.Label>Brand</Form.Label>
+                      </Row>
+                      <Row className="container_input">
+                        <div className="flex input-group">
+                          <Form.Label className="align-items-center">
+                            Brand*
+                          </Form.Label>
+                          <input
+                            className="input-form"
+                            type="text"
+                            name="brand"
+                            placeholder="Brand"
+                            autoFocus
+                            required
+                            maxLength={10}
+                            onChange={(e) => {
+                              setFormData({
+                                ...formData,
+                                brand: e.target.value
+                              });
+                              setErrors({
+                                ...errors,
+                                Brand: null
+                              });
+                            }}
+                          />
+                        </div>
                         {errors && errors.Brand && (
-                          <span style={{ color: "red", float: "right" }}>*{errors.Brand[0]}</span>
+                          <span className="error-msg">{errors.Brand}</span>
                         )}
-                        <Form.Control
-                          type="text"
-                          name="brand"
-                          placeholder="Brand"
-                          autoFocus
-                          required
-                          onChange={(e) => {
-                            setFormData({
-                              ...formData,
-                              brand: e.target.value
-                            });
-                            setErrors({
-                              ...errors,
-                              Brand: null
-                            });
-                          }}
-                        />
-                      </Form.Group>
-                      <Form.Group className="mb-3" controlId="model">
-                        <Form.Label>Model</Form.Label>
+                      </Row>
+                      <Row className="container_input">
+                        <div className="flex input-group">
+                          <Form.Label className="align-items-center">
+                            Model*
+                          </Form.Label>
+                          <input
+                            className="input-form"
+                            type="text"
+                            name="model"
+                            placeholder="Model"
+                            autoFocus
+                            required
+                            maxLength={10}
+                            onChange={(e) => {
+                              setFormData({
+                                ...formData,
+                                model: e.target.value
+                              });
+                              setErrors({
+                                ...errors,
+                                Model: null
+                              });
+                            }}
+                          />
+                        </div>
                         {errors && errors.Model && (
-                          <span style={{ color: "red", float: "right" }}>*{errors.Model[0]}</span>
+                          <span className="error-msg">{errors.Model}</span>
                         )}
-                        <Form.Control
-                          type="text"
-                          name="model"
-                          placeholder="Model"
-                          autoFocus
-                          required
-                          onChange={(e) => {
-                            setFormData({
-                              ...formData,
-                              model: e.target.value
-                            });
-                            setErrors({
-                              ...errors,
-                              Model: null
-                            });
-                          }}
-                        />
-                      </Form.Group>
-                      <Form.Group className="mb-3" controlId="color">
-                        <Form.Label>Color</Form.Label>
+                      </Row>
+                      <Row className="container_input">
+                        <div className="flex input-group">
+                          <Form.Label className="align-items-center">
+                            Color*
+                          </Form.Label>
+                          <input
+                            className="input-form"
+                            type="text"
+                            name="color"
+                            placeholder="Color"
+                            autoFocus
+                            required
+                            maxLength={10}
+                            onChange={(e) => {
+                              setFormData({
+                                ...formData,
+                                color: e.target.value
+                              });
+                              setErrors({
+                                ...errors,
+                                Color: null
+                              });
+                            }}
+                          />
+                        </div>
                         {errors && errors.Color && (
-                          <span style={{ color: "red", float: "right" }}>*{errors.Color[0]}</span>
+                          <span className="error-msg">{errors.Color}</span>
                         )}
-                        <Form.Control
-                          type="text"
-                          name="color"
-                          placeholder="Color"
-                          autoFocus
-                          required
-                          onChange={(e) => {
-                            setFormData({
-                              ...formData,
-                              color: e.target.value
-                            });
-                            setErrors({
-                              ...errors,
-                              Color: null
-                            });
-                          }}
-                        />
-                      </Form.Group>
-                      <Form.Group className="mb-3" controlId="seat">
-                        <Form.Label>Seat</Form.Label>
+                      </Row>
+                      <Row className="container_input">
+                        <div className="flex input-group">
+                          <Form.Label className="align-items-center">
+                            Seats*
+                          </Form.Label>
+                          <select
+                            className="input-form"
+                            name="seat"
+                            autoFocus
+                            required
+                            onChange={(e) => {
+                              setFormData({
+                                ...formData,
+                                seat: e.target.value
+                              });
+                              setErrors({
+                                ...errors,
+                                Seat: null
+                              });
+                            }}
+                          >
+                            <option value="">Number of Seats</option>
+                            <option value="4">4</option>
+                            <option value="7">7</option>
+                            <option value="16">16</option>
+                            <option value="25">25</option>
+                            <option value="35">35</option>
+                            <option value="45">45</option>
+                          </select>
+                        </div>
                         {errors && errors.Seat && (
-                          <span style={{ color: "red", float: "right" }}>*{errors.Seat[0]}</span>
+                          <span className="error-msg">{errors.Seat}</span>
                         )}
-                        <Form.Control
-                          as="select"
-                          name="seat"
-                          placeholder="Seat"
-                          autoFocus
-                          required
-                          onChange={(e) => {
-                            setFormData({
-                              ...formData,
-                              seat: e.target.value
-                            });
-                            setErrors({
-                              ...errors,
-                              Seat: null
-                            });
-                          }}
-                        >
-                          <option value="">Select seat</option>
-                          <option value="4">4</option>
-                          <option value="7">7</option>
-                          <option value="16">16</option>
-                          <option value="25">25</option>
-                          <option value="35">35</option>
-                          <option value="45">45</option>
-                        </Form.Control>
-                      </Form.Group>
-                      <Form.Group className="mb-3" controlId="dateOfRegistration">
-                        <Form.Label>Date of Registration</Form.Label>
-                        <Form.Control
-                          type="date"
-                          name="dateOfRegistration"
-                          placeholder="YYYY-MM-DD"
-                          required
-                          onChange={(e) => {
-                            const inputDate = e.target.value;
-                            const formattedDate = inputDate
-                              .split("-")
-                              .map((part) => part.padStart(2, "0"))
-                              .join("-");
-
-                            setFormData({
-                              ...formData,
-                              dateOfRegistration: formattedDate
-                            });
-                          }}
-                        />
-                      </Form.Group>
+                      </Row>
+                      <Row className="container_input">
+                        <div className="flex input-group">
+                          <Form.Label className="align-items-center">
+                            Date of Registration*
+                          </Form.Label>
+                          <div className="date-input-container">
+                            <select
+                              className="input-form date-input"
+                              name="day"
+                              value={formData.day || ''}
+                              onChange={(e) => {
+                                const day = e.target.value;
+                                setFormData((prevFormData) => ({
+                                  ...prevFormData,
+                                  day,
+                                  dateOfRegistration: combineDate(day, prevFormData.month, prevFormData.year)
+                                }));
+                              }}
+                            >
+                              <option value="">DD</option>
+                              {days.map((day) => (
+                                <option key={day} value={day}>
+                                  {day}
+                                </option>
+                              ))}
+                            </select>
+                            <span className="date-separator">/</span>
+                            <select
+                              className="input-form date-input"
+                              name="month"
+                              value={formData.month || ''}
+                              onChange={(e) => {
+                                const month = e.target.value;
+                                setFormData((prevFormData) => ({
+                                  ...prevFormData,
+                                  month,
+                                  dateOfRegistration: combineDate(prevFormData.day, month, prevFormData.year)
+                                }));
+                              }}
+                            >
+                              <option value="">MM</option>
+                              {months.map((month) => (
+                                <option key={month} value={month}>
+                                  {month}
+                                </option>
+                              ))}
+                            </select>
+                            <span className="date-separator">/</span>
+                            <select
+                              className="input-form date-input"
+                              name="year"
+                              value={formData.year || ''}
+                              onChange={(e) => {
+                                const year = e.target.value;
+                                setFormData((prevFormData) => ({
+                                  ...prevFormData,
+                                  year,
+                                  dateOfRegistration: combineDate(prevFormData.day, prevFormData.month, year)
+                                }));
+                              }}
+                            >
+                              <option value="">YYYY</option>
+                              {years.map((year) => (
+                                <option key={year} value={year}>
+                                  {year}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        </div>
+                        {errors && errors.DateOfRegistration && (
+                          <span className="error-msg">{errors.DateOfRegistration}</span>
+                        )}
+                      </Row>
                     </Form>
                   </Modal.Body>
                   <Modal.Footer>
@@ -708,35 +822,10 @@ const Buses = () => {
                   </Modal.Header>
                   <Modal.Body>
                     <Form>
-                      <Form.Group className="mb-3" controlId="code">
-                        <Form.Label>Code</Form.Label>
-                        {errors && errors.Code && (
-                          <span style={{ color: "red", float: "right" }}>*{errors.Code[0]}</span>
-                        )}
-                        <Form.Control
-                          type="text"
-                          name="code"
-                          placeholder="Code"
-                          autoFocus
-                          required
-                          value={formData.code}
-                          onChange={(e) => {
-                            setFormData({
-                              ...formData,
-                              code: e.target.value
-                            });
-                            setIsUpdated(true);
-                            setErrors({
-                              ...errors,
-                              Code: null
-                            });
-                          }}
-                        />
-                      </Form.Group>
                       <Form.Group className="mb-3" controlId="licensePlate">
                         <Form.Label>License Plate</Form.Label>
                         {errors && errors.LicensePlate && (
-                          <span style={{ color: "red", float: "right" }}>*{errors.LicensePlate[0]}</span>
+                          <span style={{ color: "red", float: "right" }}>*{errors.LicensePlate}</span>
                         )}
                         <Form.Control
                           type="text"
@@ -761,7 +850,7 @@ const Buses = () => {
                       <Form.Group className="mb-3" controlId="brand">
                         <Form.Label>Brand</Form.Label>
                         {errors && errors.Brand && (
-                          <span style={{ color: "red", float: "right" }}>*{errors.Brand[0]}</span>
+                          <span style={{ color: "red", float: "right" }}>*{errors.Brand}</span>
                         )}
                         <Form.Control
                           type="text"
@@ -786,7 +875,7 @@ const Buses = () => {
                       <Form.Group className="mb-3" controlId="model">
                         <Form.Label>Model</Form.Label>
                         {errors && errors.Model && (
-                          <span style={{ color: "red", float: "right" }}>*{errors.Model[0]}</span>
+                          <span style={{ color: "red", float: "right" }}>*{errors.Model}</span>
                         )}
                         <Form.Control
                           type="text"
@@ -811,7 +900,7 @@ const Buses = () => {
                       <Form.Group className="mb-3" controlId="color">
                         <Form.Label>Color</Form.Label>
                         {errors && errors.Color && (
-                          <span style={{ color: "red", float: "right" }}>*{errors.Color[0]}</span>
+                          <span style={{ color: "red", float: "right" }}>*{errors.Color}</span>
                         )}
                         <Form.Control
                           type="text"
@@ -836,7 +925,7 @@ const Buses = () => {
                       <Form.Group className="mb-3" controlId="seat">
                         <Form.Label>Seat</Form.Label>
                         {errors && errors.Seat && (
-                          <span style={{ color: "red", float: "right" }}>*{errors.Seat[0]}</span>
+                          <span style={{ color: "red", float: "right" }}>*{errors.Seat}</span>
                         )}
                         <Form.Control
                           as="select"
@@ -930,7 +1019,36 @@ const Buses = () => {
 
                 {/* Table list */}
                 <div className="list">
-                  <Button variant="primary" onClick={handleAddOpen} size="md" className="add_button">Add Bus +</Button>
+                  <div style={{ display: "flex" }}>
+                    <div style={{ flexGrow: "8" }}></div>
+                    <div style={{ paddingTop: "20px", paddingLeft: "20px" }}>
+                      Filter by Status:
+                      <select
+                        as="select"
+                        value={selectedStatus}
+                        onChange={(e) => handleStatusFilter(e.target.value)}
+                        style={{ height: "22px", borderRadius: "5px", marginLeft: "10px", fontSize: "0.9rem" }}
+                      >
+                        <option value="">All</option>
+                        <option value="ACTIVE">Active</option>
+                        <option value="INACTIVE">Inactive</option>
+                        <option value="DELETED">Deleted</option>
+                      </select>
+                    </div>
+                    <div style={{ paddingTop: "20px", paddingLeft: "20px" }}>
+                      Sort:
+                      <select
+                        as="select"
+                        value={sortingOrder}
+                        onChange={(e) => handleSortingChange(e.target.value)}
+                        style={{ height: "22px", borderRadius: "5px", marginLeft: "10px", fontSize: "0.9rem" }}
+                      >
+                        <option value="oldest">Oldest Buses</option>
+                        <option value="newest">Newest Buses</option>
+                      </select>
+                    </div>
+                    <Button variant="primary" onClick={handleAddOpen} size="md" className="add_button">Add Bus +</Button>
+                  </div>
                   <Table striped bordered hover>
                     <thead>
                       <tr>
@@ -965,7 +1083,7 @@ const Buses = () => {
                               {bus.status}
                             </span>
                           </td>
-                          <td className="registration">
+                          <td className={`registration ${bus.status === "DELETED" ? "disable-actions" : ""}`}>
                             <UncontrolledDropdown>
                               <DropdownToggle
                                 className="btn-icon-only text-light"

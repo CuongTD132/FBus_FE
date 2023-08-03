@@ -13,7 +13,6 @@ export const addDriverAPI = async (driver) => {
     const user = JSON.parse(localStorage.getItem('user'));
     const formData = new FormData();
     formData.set("email", driver.email);
-    formData.set("code", driver.code);
     formData.set("fullName", driver.fullName);
     formData.set("gender", driver.gender);
     formData.set("idCardNumber", driver.idCardNumber);
@@ -38,7 +37,6 @@ export const updateDriverAPI = async (driver, id) => {
     const user = JSON.parse(localStorage.getItem('user'));
     const formData = new FormData();
     formData.append("email", driver.email);
-    formData.append("code", driver.code);
     formData.append("fullName", driver.fullName);
     if (driver.gender === "Female") {
         formData.append("gender", false);

@@ -170,7 +170,7 @@ const AdminNavbar = (props) => {
             </Modal.Body>
           </Modal>
           <Form className="navbar-search navbar-search-dark form-inline mr-3 d-none d-md-flex ml-lg-auto">
-            {(location.pathname !== "/admin/map" && location.pathname !== "/admin/coords") && (
+            {(location.pathname !== "/admin/map" && location.pathname !== "/admin/trips") && (
               <FormGroup className="mb-0">
                 <InputGroup className="input-group-alternative">
                   <InputGroupAddon addonType="prepend">

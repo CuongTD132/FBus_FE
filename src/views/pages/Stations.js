@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Button, Form, Modal, Table } from 'react-bootstrap';
 import "../../style/Manager.css"
-import defaultStation from '../../assets/img/station.png'
+import defaultStation from '../../assets/img/station-marker.png'
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -61,11 +61,13 @@ const Stations = () => {
   const [showDelete, setShowDelete] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const markerRef = useRef(null);
-  // const [display_name, setDisplay_name] = useState(null);
+  const [buttonText, setButtonText] = useState();
   const [markerPosition, setMarkerPosition] = useState({ lat: 10.84215, lng: 106.80963 });
   const [showBackdrop, setShowBackdrop] = useState(false);
   const [isUpdated, setIsUpdated] = useState(false);
   const [errors, setErrors] = useState({});
+  const [sortingOrder, setSortingOrder] = useState("oldest");
+  const [selectedStatus, setSelectedStatus] = useState("");
   const [formData, setFormData] = useState({
     name: "",
     code: "",
@@ -115,6 +117,7 @@ const Stations = () => {
     if (currentSearchStation !== "") {
       await getMultiStationsAPI({
         code: currentSearchStation,
+        status: selectedStatus,
       }).then((res) => {
         // console.log(res.data.data)
         if (res.data.data != null) {
@@ -125,14 +128,35 @@ const Stations = () => {
         }
       })
     } else {
-      await getAllStations()
-        .then((res) => setStationList(res.data.data))
+      await getMultiStationsAPI({ status: selectedStatus })
+        .then((res) => {
+          let sortedDrivers = res.data.data;
+          if (sortingOrder === "newest") {
+            sortedDrivers = res.data.data.sort((a, b) => b.id - a.id);
+          } else if (sortingOrder === "oldest") {
+            sortedDrivers = res.data.data.sort((a, b) => a.id - b.id);
+          }
+
+          setStationList(sortedDrivers);
+          dispatch(updateStation(sortedDrivers));
+        })
         .catch((error) => {
           console.log(error);
         });
     }
   };
 
+  useEffect(() => {
+    fetchStations();
+  }, [sortingOrder, selectedStatus]);;
+
+  const handleSortingChange = (order) => {
+    setSortingOrder(order);
+  };
+
+  const handleStatusFilter = (status) => {
+    setSelectedStatus(status);
+  };
   const handleShowDetails = async (id) => {
     const user = JSON.parse(localStorage.getItem('user'))
     if (user == null || !user || isTokenExpired()) {
@@ -140,7 +164,7 @@ const Stations = () => {
       return;
     }
     await fetchStationDetails(id);
-    setShowDetails(true); // Show the modal
+    setShowDetails(true);
   }
 
   // --UPDATE FUNCTIONS
@@ -312,6 +336,7 @@ const Stations = () => {
       latitude: "",
     });
     setMarkerPosition({ lat: 10.84215, lng: 106.80963 });
+    setButtonText('Add Location');
     setShowAdd(true);
     setErrors({});
   };
@@ -676,7 +701,7 @@ const Stations = () => {
                       </Marker>
                       <ResetCenterView selectPosition={newMarkerPosition || markerPosition} />
                     </MapContainer>
-                    <Button className="button" variant="primary" onClick={() => setShowConfirm(true)}>
+                    <Button className="button" variant="primary" onClick={() => { setShowConfirm(true); setButtonText('Change Location'); }}>
                       Continue
                     </Button>
                   </Modal.Body>
@@ -752,7 +777,7 @@ const Stations = () => {
                     <Form>
                       <Form.Group className="mb-3" >
                         <Button variant="primary" size="sm" onClick={() => handleShowMap()}>
-                          Add Location
+                          {buttonText}
                         </Button>
                       </Form.Group>
                       <Row>
@@ -760,7 +785,7 @@ const Stations = () => {
                           <Form.Group className="mb-3" controlId="latitude">
                             <Form.Label>Latitude</Form.Label>
                             {errors && errors.Latitude && (
-                              <span style={{ color: "red", float: "right" }}>*{errors.Latitude[0]}</span>
+                              <span style={{ color: "red", float: "right" }}>*{errors.Latitude}</span>
                             )}
                             <Form.Control
                               type="number"
@@ -775,7 +800,7 @@ const Stations = () => {
                           <Form.Group className="mb-3" controlId="longitude">
                             <Form.Label>Longitude</Form.Label>
                             {errors && errors.Longitude && (
-                              <span style={{ color: "red", float: "right" }}>*{errors.Longitude[0]}</span>
+                              <span style={{ color: "red", float: "right" }}>*{errors.Longitude}</span>
                             )}
                             <Form.Control
                               type="number"
@@ -792,7 +817,7 @@ const Stations = () => {
                           <Form.Group className="mb-3" controlId="ward">
                             <Form.Label>Ward</Form.Label>
                             {errors && errors.Ward && (
-                              <span style={{ color: "red", float: "right" }}>*{errors.Ward[0]}</span>
+                              <span style={{ color: "red", float: "right" }}>*{errors.Ward}</span>
                             )}
                             <Form.Control
                               type="text"
@@ -807,7 +832,7 @@ const Stations = () => {
                           <Form.Group className="mb-3" controlId="street">
                             <Form.Label>Street</Form.Label>
                             {errors && errors.Street && (
-                              <span style={{ color: "red", float: "right" }}>*{errors.Street[0]}</span>
+                              <span style={{ color: "red", float: "right" }}>*{errors.Street}</span>
                             )}
                             <Form.Control
                               type="text"
@@ -824,7 +849,7 @@ const Stations = () => {
                           <Form.Group className="mb-3" controlId="city">
                             <Form.Label>City</Form.Label>
                             {errors && errors.City && (
-                              <span style={{ color: "red", float: "right" }}>*{errors.City[0]}</span>
+                              <span style={{ color: "red", float: "right" }}>*{errors.City}</span>
                             )}
                             <Form.Control
                               type="text"
@@ -856,7 +881,7 @@ const Stations = () => {
                           <Form.Group className="mb-3" controlId="code">
                             <Form.Label>Code</Form.Label>
                             {errors && errors.Code && (
-                              <span style={{ color: "red", float: "right" }}>*{errors.Code[0]}</span>
+                              <span style={{ color: "red", float: "right" }}>*{errors.Code}</span>
                             )}
                             <Form.Control
                               type="text"
@@ -881,7 +906,7 @@ const Stations = () => {
                           <Form.Group className="mb-3" controlId="name">
                             <Form.Label>Name</Form.Label>
                             {errors && errors.Name && (
-                              <span style={{ color: "red", float: "right" }}>*{errors.Name[0]}</span>
+                              <span style={{ color: "red", float: "right" }}>*{errors.Name}</span>
                             )}
                             <Form.Control
                               type="text"
@@ -906,7 +931,7 @@ const Stations = () => {
                           <Form.Group className="mb-3" controlId="addressNumber">
                             <Form.Label>Address Number</Form.Label>
                             {errors && errors.AddressNumber && (
-                              <span style={{ color: "red", float: "right" }}>*{errors.AddressNumber[0]}</span>
+                              <span style={{ color: "red", float: "right" }}>*{errors.AddressNumber}</span>
                             )}
                             <Form.Control
                               type="text"
@@ -931,7 +956,7 @@ const Stations = () => {
                           <Form.Group className="mb-3" controlId="district">
                             <Form.Label>District</Form.Label>
                             {errors && errors.District && (
-                              <span style={{ color: "red", float: "right" }}>*{errors.District[0]}</span>
+                              <span style={{ color: "red", float: "right" }}>*{errors.District}</span>
                             )}
                             <Form.Control
                               type="text"
@@ -1064,7 +1089,7 @@ const Stations = () => {
                   <Modal.Body>
                     <Form>
                       <Form.Group className="mb-3" >
-                        <Button variant="primary" size="sm" onClick={() => {handleShowMap(); setIsUpdated(true)}}>
+                        <Button variant="primary" size="sm" onClick={() => { handleShowMap(); setIsUpdated(true) }}>
                           Change Location
                         </Button>
                       </Form.Group>
@@ -1073,7 +1098,7 @@ const Stations = () => {
                           <Form.Group className="mb-3" controlId="latitude">
                             <Form.Label>Latitude</Form.Label>
                             {errors && errors.Latitude && (
-                              <span style={{ color: "red", float: "right" }}>*{errors.Latitude[0]}</span>
+                              <span style={{ color: "red", float: "right" }}>*{errors.Latitude}</span>
                             )}
                             <Form.Control
                               type="number"
@@ -1088,7 +1113,7 @@ const Stations = () => {
                           <Form.Group className="mb-3" controlId="longitude">
                             <Form.Label>Longitude</Form.Label>
                             {errors && errors.Longitude && (
-                              <span style={{ color: "red", float: "right" }}>*{errors.Longitude[0]}</span>
+                              <span style={{ color: "red", float: "right" }}>*{errors.Longitude}</span>
                             )}
                             <Form.Control
                               type="number"
@@ -1105,7 +1130,7 @@ const Stations = () => {
                           <Form.Group className="mb-3" controlId="ward">
                             <Form.Label>Ward</Form.Label>
                             {errors && errors.Ward && (
-                              <span style={{ color: "red", float: "right" }}>*{errors.Ward[0]}</span>
+                              <span style={{ color: "red", float: "right" }}>*{errors.Ward}</span>
                             )}
                             <Form.Control
                               type="text"
@@ -1120,7 +1145,7 @@ const Stations = () => {
                           <Form.Group className="mb-3" controlId="street">
                             <Form.Label>Street</Form.Label>
                             {errors && errors.Street && (
-                              <span style={{ color: "red", float: "right" }}>*{errors.Street[0]}</span>
+                              <span style={{ color: "red", float: "right" }}>*{errors.Street}</span>
                             )}
                             <Form.Control
                               type="text"
@@ -1137,7 +1162,7 @@ const Stations = () => {
                           <Form.Group className="mb-3" controlId="city">
                             <Form.Label>City</Form.Label>
                             {errors && errors.City && (
-                              <span style={{ color: "red", float: "right" }}>*{errors.City[0]}</span>
+                              <span style={{ color: "red", float: "right" }}>*{errors.City}</span>
                             )}
                             <Form.Control
                               type="text"
@@ -1180,7 +1205,7 @@ const Stations = () => {
                           <Form.Group className="mb-3" controlId="code">
                             <Form.Label>Code</Form.Label>
                             {errors && errors.Code && (
-                              <span style={{ color: "red", float: "right" }}>*{errors.Code[0]}</span>
+                              <span style={{ color: "red", float: "right" }}>*{errors.Code}</span>
                             )}
                             <Form.Control
                               type="text"
@@ -1207,7 +1232,7 @@ const Stations = () => {
                           <Form.Group className="mb-3" controlId="name">
                             <Form.Label>Name</Form.Label>
                             {errors && errors.Name && (
-                              <span style={{ color: "red", float: "right" }}>*{errors.Name[0]}</span>
+                              <span style={{ color: "red", float: "right" }}>*{errors.Name}</span>
                             )}
                             <Form.Control
                               type="text"
@@ -1234,7 +1259,7 @@ const Stations = () => {
                           <Form.Group className="mb-3" controlId="addressNumber">
                             <Form.Label>Address Number</Form.Label>
                             {errors && errors.AddressNumber && (
-                              <span style={{ color: "red", float: "right" }}>*{errors.AddressNumber[0]}</span>
+                              <span style={{ color: "red", float: "right" }}>*{errors.AddressNumber}</span>
                             )}
                             <Form.Control
                               type="text"
@@ -1261,7 +1286,7 @@ const Stations = () => {
                           <Form.Group className="mb-3" controlId="district">
                             <Form.Label>District</Form.Label>
                             {errors && errors.District && (
-                              <span style={{ color: "red", float: "right" }}>*{errors.District[0]}</span>
+                              <span style={{ color: "red", float: "right" }}>*{errors.District}</span>
                             )}
                             <Form.Control
                               type="text"
@@ -1299,7 +1324,36 @@ const Stations = () => {
 
                 {/* Table list */}
                 <div className="list">
-                  <Button variant="primary" onClick={handleAddOpen} className="add_button">Add Station +</Button>
+                  <div style={{ display: "flex" }}>
+                    <div style={{ flexGrow: "8" }}></div>
+                    <div style={{ paddingTop: "20px", paddingLeft: "20px" }}>
+                      Filter by Status:
+                      <select
+                        as="select"
+                        value={selectedStatus}
+                        onChange={(e) => handleStatusFilter(e.target.value)}
+                        style={{ height: "22px", borderRadius: "5px", marginLeft: "10px", fontSize: "0.9rem" }}
+                      >
+                        <option value="">All</option>
+                        <option value="ACTIVE">Active</option>
+                        <option value="INACTIVE">Inactive</option>
+                        <option value="DELETED">Deleted</option>
+                      </select>
+                    </div>
+                    <div style={{ paddingTop: "20px", paddingLeft: "20px" }}>
+                      Sort:
+                      <select
+                        as="select"
+                        value={sortingOrder}
+                        onChange={(e) => handleSortingChange(e.target.value)}
+                        style={{ height: "22px", borderRadius: "5px", marginLeft: "10px", fontSize: "0.9rem" }}
+                      >
+                        <option value="oldest">Oldest Stations</option>
+                        <option value="newest">Newest Stations</option>
+                      </select>
+                    </div>
+                    <Button variant="primary" onClick={handleAddOpen} className="add_button">Add Station +</Button>
+                  </div>
                   <Table striped bordered hover>
                     <thead>
                       <tr>
@@ -1352,7 +1406,7 @@ const Stations = () => {
                               {station.status}
                             </span>
                           </td>
-                          <td className="registration">
+                          <td className={`registration ${station.status === "DELETED" ? "disable-actions" : ""}`}>
                             <UncontrolledDropdown>
                               <DropdownToggle
                                 className="btn-icon-only text-light"

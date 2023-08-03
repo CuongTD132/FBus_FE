@@ -163,22 +163,20 @@
     background-color: transparent;
     text-align: center;
     color: #333;
-    /* Adjust the color of the station name */
     width: 100px;
-    /* Adjust the width of the marker */
 }
 
 .custom-icon div {
     display: flex;
     flex-direction: column;
     align-items: center;
+    margin-top: -30px;
 }
 
 .custom-icon h1 {
     font-size: 14px;
     margin: 0;
     white-space: nowrap;
-    /* Make the station name stay on a single line */
 }
 
 .custom-icon .highlighted h1 {
@@ -186,10 +184,9 @@
 }
 
 .custom-icon-img {
-    width: 40px;
-    height: 40px;
-    margin-bottom: 5px;
-    /* Add some spacing between the image and the station name */
+    width: 50px;
+    height: 50px;
+    margin-top: 5px;
     border-radius: 10px;
 }
 
@@ -203,12 +200,48 @@
     border-radius: 5px;
     cursor: pointer;
     transition: background-color 0.3s;
-  }
-  
-  .custom-popup-button:hover {
-    background-color: #0d6efd;
-  }
+}
 
-  .leaflet-routing-container{
+.custom-popup-button:hover {
+    background-color: #0d6efd;
+}
+
+.leaflet-routing-container {
     display: none;
-  }
+}
+
+.form-label {
+    margin: 0;
+    padding: 0;
+}
+
+.input-form {
+    margin-left: 4px;
+    padding-left: 4px;
+    flex: 1;
+    border-radius: 5px;
+    font-size: 0.875rem;
+    border: none;
+}
+
+.container_input {
+    margin: 0 !important;
+    padding: 10px 0;
+    color: black
+}
+
+.input-group {
+    padding-bottom: 5px;
+    border-bottom: 1px solid #e8e4e4;
+    border-radius: 0;
+}
+
+.error-msg {
+    color: red;
+    font-size: 0.875rem;
+}
+
+.disable-actions {
+    pointer-events: none;
+    opacity: 0.5;
+}

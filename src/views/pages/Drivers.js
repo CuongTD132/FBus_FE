@@ -49,6 +49,8 @@ const Drivers = () => {
   const [errors, setErrors] = useState({});
   const [showBackdrop, setShowBackdrop] = useState(false);
   const [isUpdated, setIsUpdated] = useState(false);
+  const [sortingOrder, setSortingOrder] = useState("oldest");
+  const [selectedStatus, setSelectedStatus] = useState("");
   const [formData, setFormData] = useState({
     email: "",
     code: "",
@@ -92,11 +94,12 @@ const Drivers = () => {
   };
 
   // Fetch list of driver and pass to table
-  const fetchDrivers = () => {
+  const fetchDrivers = async () => {
     if (currentSearchDriver !== "") {
-      getMultiDriversAPI({
+      await getMultiDriversAPI({
         code: currentSearchDriver,
-        email: currentSearchDriver
+        email: currentSearchDriver,
+        status: selectedStatus,
       }).then((res) => {
         // console.log(res.data.data)
         if (res.data.data != null) {
@@ -106,12 +109,34 @@ const Drivers = () => {
         }
       })
     } else {
-      getAllDrivers()
-        .then((res) => setDriverList(res.data.data))
+      await getMultiDriversAPI({ status: selectedStatus })
+        .then((res) => {
+          let sortedDrivers = res.data.data;
+          if (sortingOrder === "newest") {
+            sortedDrivers = res.data.data.sort((a, b) => b.id - a.id);
+          } else if (sortingOrder === "oldest") {
+            sortedDrivers = res.data.data.sort((a, b) => a.id - b.id);
+          }
+
+          setDriverList(sortedDrivers);
+          dispatch(updateDriver(sortedDrivers));
+        })
         .catch((error) => {
           console.log(error);
         });
     }
+  };
+
+  useEffect(() => {
+    fetchDrivers();
+  }, [sortingOrder, selectedStatus]);
+
+  const handleSortingChange = (order) => {
+    setSortingOrder(order);
+  };
+
+  const handleStatusFilter = (status) => {
+    setSelectedStatus(status);
   };
 
   // Call show detail form
@@ -407,185 +432,218 @@ const Drivers = () => {
 
                 {/* Add model */}
                 <Modal show={showAdd} onHide={handleAddClose}>
-                  <Modal.Header >
-                    <Modal.Title>Add driver</Modal.Title>
-                  </Modal.Header>
                   <Modal.Body>
                     <Form>
-                      <Form.Group className="mb-3" controlId="email">
-                        <Form.Label>Email</Form.Label>
-                        <Form.Control
-                          type="text"
-                          name="email"
-                          placeholder="Email"
-                          onChange={(e) => {
-                            setFormData({
-                              ...formData,
-                              email: e.target.value
-                            })
-                          }}
-                        />
-                      </Form.Group>
-                      <Form.Group className="mb-3" controlId="code">
-                        <Form.Label>Code</Form.Label>
-                        {errors && errors.Code && (
-                          <span style={{ color: "red", float: "right" }}>*{errors.Code[0]}</span>
+                      <p>Cases (*) are required</p>
+                      <Row className="container_input">
+                        <div className="flex input-group">
+                          <Form.Label className="align-items-center">
+                            Email
+                          </Form.Label>
+                          <input
+                            className="input-form"
+                            type="email"
+                            name="email"
+                            placeholder="fbus@gmail.com"
+                            autoFocus
+                            required
+                            maxLength={40}
+                            onChange={(e) => {
+                              setFormData({
+                                ...formData,
+                                email: e.target.value
+                              })
+                              setErrors({
+                                ...errors,
+                                Email: null
+                              });
+                            }}
+                          />
+                        </div>
+                        {errors && errors.Email && (
+                          <span className="error-msg">{errors.Email}</span>
                         )}
-                        <Form.Control
-                          type="text"
-                          name="code"
-                          placeholder="Code"
-                          autoFocus
-                          required
-                          onChange={(e) => {
-                            setFormData({
-                              ...formData,
-                              code: e.target.value
-                            });
-                            setErrors({
-                              ...errors,
-                              Code: null
-                            });
-                          }}
-                        />
-                      </Form.Group>
-                      <Form.Group className="mb-3" controlId="fullName">
-                        <Form.Label>Full Name</Form.Label>
+                      </Row>
+                      <Row className="container_input">
+                        <div className="flex input-group">
+                          <Form.Label className="align-items-center">
+                            Full Name*
+                          </Form.Label>
+                          <input
+                            className="input-form"
+                            type="text"
+                            name="fullName"
+                            placeholder="Nguyen Van A"
+                            autoFocus
+                            required
+                            maxLength={50}
+                            onChange={(e) => {
+                              setFormData({
+                                ...formData,
+                                fullName: e.target.value
+                              })
+                              setErrors({
+                                ...errors,
+                                FullName: null
+                              });
+                            }}
+                          />
+                        </div>
                         {errors && errors.FullName && (
-                          <span style={{ color: "red", float: "right" }}>*{errors.FullName[0]}</span>
+                          <span className="error-msg">{errors.FullName}</span>
                         )}
-                        <Form.Control
-                          type="text"
-                          name="fullName"
-                          placeholder="Full Name"
-                          autoFocus
-                          required
-                          onChange={(e) => {
-                            setFormData({
-                              ...formData,
-                              fullName: e.target.value
-                            })
-                            setErrors({
-                              ...errors,
-                              FullName: null
-                            });
-                          }}
-                        />
-                      </Form.Group>
-                      <Form.Group className="mb-3" controlId="gender">
-                        <Form.Label>Gender</Form.Label>
+                      </Row>
+                      <Row className="container_input">
+                        <div className="flex input-group">
+                          <Form.Label className="align-items-center">
+                          Gender*
+                          </Form.Label>
+                          <select
+                            className="input-form"
+                            name="gender"
+                            autoFocus
+                            required
+                            onChange={(e) => {
+                              setFormData({
+                                ...formData,
+                                gender: e.target.value
+                              });
+                              setErrors({
+                                ...errors,
+                                Gender: null
+                              });
+                            }}
+                          >
+                            <option value="">Select gender</option>
+                            <option value="true">Male</option>
+                            <option value="false">Female</option>
+                          </select>
+                        </div>
                         {errors && errors.Gender && (
-                          <span style={{ color: "red", float: "right" }}>*{errors.Gender[0]}</span>
+                          <span className="error-msg">{errors.Gender}</span>
                         )}
-                        <Form.Control
-                          as="select"
-                          name="gender"
-                          placeholder="Gender"
-                          autoFocus
-                          required
-                          onChange={(e) => {
-                            setFormData({
-                              ...formData,
-                              gender: e.target.value
-                            });
-                            setErrors({
-                              ...errors,
-                              Gender: null
-                            });
-                          }}
-                        >
-                          <option value="">Select gender</option>
-                          <option value="true">Male</option>
-                          <option value="false">Female</option>
-                        </Form.Control>
-                      </Form.Group>
-                      <Form.Group className="mb-3" controlId="idCardNumber">
-                        <Form.Label>Id Card Number</Form.Label>
+                      </Row>
+                      <Row className="container_input">
+                        <div className="flex input-group">
+                          <Form.Label className="align-items-center">
+                          Id Card Number*
+                          </Form.Label>
+                          <input
+                            className="input-form"
+                            type="text"
+                            name="idCardNumber"
+                            placeholder="1234567890"
+                            autoFocus
+                            required
+                            minLength={5}
+                            maxLength={12}
+                            onChange={(e) => {
+                              setFormData({
+                                ...formData,
+                                idCardNumber: e.target.value
+                              })
+                              setErrors({
+                                ...errors,
+                                IdCardNumber: null
+                              });
+                            }}
+                          />
+                        </div>
                         {errors && errors.IdCardNumber && (
-                          <span style={{ color: "red", float: "right" }}>*{errors.IdCardNumber[0]}</span>
+                          <span className="error-msg">{errors.IdCardNumber}</span>
                         )}
-                        <Form.Control
-                          type="text"
-                          name="idCardNumber"
-                          placeholder="Id Card Number"
-                          autoFocus
-                          required
-                          onChange={(e) => {
-                            setFormData({
-                              ...formData,
-                              idCardNumber: e.target.value
-                            });
-                            setErrors({
-                              ...errors,
-                              IdCardNumber: null
-                            });
-                          }}
-                        />
-                      </Form.Group>
-                      <Form.Group className="mb-3" controlId="address">
-                        <Form.Label>Address</Form.Label>
-                        {errors && errors.Address && (
-                          <span style={{ color: "red", float: "right" }}>*{errors.Address[0]}</span>
+                      </Row>
+                      <Row className="container_input">
+                        <div className="flex input-group">
+                          <Form.Label className="align-items-center">
+                          Address*
+                          </Form.Label>
+                          <input
+                            className="input-form"
+                            type="text"
+                            name="address"
+                            placeholder="1234567890"
+                            autoFocus
+                            required
+                            maxLength={100}
+                            onChange={(e) => {
+                              setFormData({
+                                ...formData,
+                                idCardNumber: e.target.value
+                              })
+                              setErrors({
+                                ...errors,
+                                IdCardNumber: null
+                              });
+                            }}
+                          />
+                        </div>
+                        {errors && errors.IdCardNumber && (
+                          <span className="error-msg">{errors.IdCardNumber}</span>
                         )}
-                        <Form.Control
-                          type="text"
-                          name="address"
-                          placeholder="Address"
-                          autoFocus
-                          required
-                          onChange={(e) => {
-                            setFormData({
-                              ...formData,
-                              address: e.target.value
-                            });
-                            setErrors({
-                              ...errors,
-                              Address: null
-                            });
-                          }}
-                        />
-                      </Form.Group>
-                      <Form.Group className="mb-3" controlId="phoneNumber">
-                        <Form.Label>Phone Number</Form.Label>
+                      </Row>
+                      <Row className="container_input">
+                        <div className="flex input-group">
+                          <Form.Label className="align-items-center">
+                          Phone Number*
+                          </Form.Label>
+                          <input
+                            className="input-form"
+                            type="text"
+                            name="phoneNumber"
+                            placeholder="+84 987654321"
+                            autoFocus
+                            required
+                            maxLength={13}
+                            onChange={(e) => {
+                              setFormData({
+                                ...formData,
+                                phoneNumber: e.target.value
+                              })
+                              setErrors({
+                                ...errors,
+                                PhoneNumber: null
+                              });
+                            }}
+                          />
+                        </div>
                         {errors && errors.PhoneNumber && (
-                          <span style={{ color: "red", float: "right" }}>*{errors.PhoneNumber[0]}</span>
+                          <span className="error-msg">{errors.PhoneNumber}</span>
                         )}
-                        <Form.Control
-                          type="text"
-                          name="phoneNumber"
-                          placeholder="Input with your country code. For example +84 xxxxxxxxx "
-                          autoFocus
-                          required
-                          onChange={(e) => {
-                            setFormData({
-                              ...formData,
-                              phoneNumber: e.target.value
-                            });
-                            setErrors({
-                              ...errors,
-                              PhoneNumber: null
-                            });
-                          }}
-                        />
-                      </Form.Group>
-                      <Form.Group className="mb-3" controlId="personalEmail">
-                        <Form.Label>Personal Email</Form.Label>
-                        <Form.Control
-                          type="text"
-                          name="personalEmail"
-                          placeholder="Personal Email"
-                          onChange={(e) => {
-                            setFormData({
-                              ...formData,
-                              personalEmail: e.target.value
-                            })
-                          }}
-                        />
-                      </Form.Group>
+                      </Row>
+                      <Row className="container_input">
+                        <div className="flex input-group">
+                          <Form.Label className="align-items-center">
+                          Personal Email
+                          </Form.Label>
+                          <input
+                            className="input-form"
+                            type="email"
+                            name="personalEmail"
+                            placeholder="Personal Email"
+                            autoFocus
+                            required
+                            maxLength={40}
+                            onChange={(e) => {
+                              setFormData({
+                                ...formData,
+                                phoneNumber: e.target.value
+                              })
+                              setErrors({
+                                ...errors,
+                                PersonalEmail: null
+                              });
+                            }}
+                          />
+                        </div>
+                        {errors && errors.PersonalEmail && (
+                          <span className="error-msg">{errors.PersonalEmail}</span>
+                        )}
+                      </Row>
                       <Form.Group className="mb-3" controlId="dateOfBirth">
-                        <Form.Label>Date of Birth (MM-DD-YYYY)</Form.Label>
+                        <Form.Label>Date of Birth (MM-DD-YYYY)*</Form.Label>
                         {errors && errors.DateOfBirth && (
-                          <span style={{ color: "red", float: "right" }}>*{errors.DateOfBirth[0]}</span>
+                          <span style={{ color: "red", float: "right" }}>*{errors.DateOfBirth}</span>
                         )}
                         <Form.Control
                           type="date"
@@ -774,7 +832,7 @@ const Drivers = () => {
                       <Form.Group className="mb-3" controlId="code">
                         <Form.Label>Code</Form.Label>
                         {errors && errors.Code && (
-                          <span style={{ color: "red", float: "right" }}>*{errors.Code[0]}</span>
+                          <span style={{ color: "red", float: "right" }}>*{errors.Code}</span>
                         )}
                         <Form.Control
                           type="text"
@@ -799,7 +857,7 @@ const Drivers = () => {
                       <Form.Group className="mb-3" controlId="fullName">
                         <Form.Label>Full Name</Form.Label>
                         {errors && errors.FullName && (
-                          <span style={{ color: "red", float: "right" }}>*{errors.FullName[0]}</span>
+                          <span style={{ color: "red", float: "right" }}>*{errors.FullName}</span>
                         )}
                         <Form.Control
                           type="text"
@@ -824,7 +882,7 @@ const Drivers = () => {
                       <Form.Group className="mb-3" controlId="gender">
                         <Form.Label>Gender</Form.Label>
                         {errors && errors.Gender && (
-                          <span style={{ color: "red", float: "right" }}>*{errors.Gender[0]}</span>
+                          <span style={{ color: "red", float: "right" }}>*{errors.Gender}</span>
                         )}
                         <Form.Control
                           as="select"
@@ -861,7 +919,7 @@ const Drivers = () => {
                       <Form.Group className="mb-3" controlId="idCardNumber">
                         <Form.Label>Id Card Number</Form.Label>
                         {errors && errors.IdCardNumber && (
-                          <span style={{ color: "red", float: "right" }}>*{errors.IdCardNumber[0]}</span>
+                          <span style={{ color: "red", float: "right" }}>*{errors.IdCardNumber}</span>
                         )}
                         <Form.Control
                           type="text"
@@ -886,7 +944,7 @@ const Drivers = () => {
                       <Form.Group className="mb-3" controlId="address">
                         <Form.Label>Address</Form.Label>
                         {errors && errors.Address && (
-                          <span style={{ color: "red", float: "right" }}>*{errors.Address[0]}</span>
+                          <span style={{ color: "red", float: "right" }}>*{errors.Address}</span>
                         )}
                         <Form.Control
                           type="text"
@@ -911,7 +969,7 @@ const Drivers = () => {
                       <Form.Group className="mb-3" controlId="phoneNumber">
                         <Form.Label>Phone Number</Form.Label>
                         {errors && errors.PhoneNumber && (
-                          <span style={{ color: "red", float: "right" }}>*{errors.PhoneNumber[0]}</span>
+                          <span style={{ color: "red", float: "right" }}>*{errors.PhoneNumber}</span>
                         )}
                         <Form.Control
                           type="text"
@@ -952,7 +1010,7 @@ const Drivers = () => {
                       <Form.Group className="mb-3" controlId="dateOfBirth">
                         <Form.Label>Date of Birth (MM-DD-YYYY)</Form.Label>
                         {errors && errors.DateOfBirth && (
-                          <span style={{ color: "red", float: "right" }}>*{errors.DateOfBirth[0]}</span>
+                          <span style={{ color: "red", float: "right" }}>*{errors.DateOfBirth}</span>
                         )}
                         <Form.Control
                           type="date"
@@ -1007,7 +1065,36 @@ const Drivers = () => {
 
                 {/* Table list */}
                 <div className="list">
-                  <Button variant="primary" onClick={handleAddOpen} size="md" className="add_button">Add Driver +</Button>
+                  <div style={{ display: "flex" }}>
+                    <div style={{ flexGrow: "8" }}></div>
+                    <div style={{ paddingTop: "20px", paddingLeft: "20px" }}>
+                      Filter by Status:
+                      <select
+                        as="select"
+                        value={selectedStatus}
+                        onChange={(e) => handleStatusFilter(e.target.value)}
+                        style={{ height: "22px", borderRadius: "5px", marginLeft: "10px", fontSize: "0.9rem" }}
+                      >
+                        <option value="">All</option>
+                        <option value="ACTIVE">Active</option>
+                        <option value="INACTIVE">Inactive</option>
+                        <option value="DELETED">Deleted</option>
+                      </select>
+                    </div>
+                    <div style={{ paddingTop: "20px", paddingLeft: "20px" }}>
+                      Sort:
+                      <select
+                        as="select"
+                        value={sortingOrder}
+                        onChange={(e) => handleSortingChange(e.target.value)}
+                        style={{ height: "22px", borderRadius: "5px", marginLeft: "10px", fontSize: "0.9rem" }}
+                      >
+                        <option value="oldest">Oldest Drivers</option>
+                        <option value="newest">Newest Drivers</option>
+                      </select>
+                    </div>
+                    <Button variant="primary" onClick={handleAddOpen} size="md" className="add_button">Add Driver +</Button>
+                  </div>
                   <Table striped bordered hover>
                     <thead>
                       <tr>
@@ -1057,7 +1144,7 @@ const Drivers = () => {
                               {driver.status}
                             </span>
                           </td>
-                          <td className="registration">
+                          <td className={`registration ${driver.status === "DELETED" ? "disable-actions" : ""}`}>
                             <UncontrolledDropdown>
                               <DropdownToggle
                                 className="btn-icon-only text-light"

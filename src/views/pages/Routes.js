@@ -49,7 +49,9 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import "leaflet-routing-machine/dist/leaflet-routing-machine.css";
 import 'leaflet-routing-machine';
-import defaultStation from '../../assets/img/station.png';
+import defaultStation from '../../assets/img/station-marker.png';
+import firstStation from '../../assets/img/start-marker.png';
+import lastStation from '../../assets/img/end-marker.png';
 import { useDrag, useDrop, DndProvider } from "react-dnd";
 import { HTML5Backend } from 'react-dnd-html5-backend';
 const RouteControl = ({ stations }) => {
@@ -62,21 +64,25 @@ const RouteControl = ({ stations }) => {
       return;
     }
 
-    const createCustomIcon = (name) =>
+    const createCustomIcon = (name, isStartStation, isLastStation) =>
       L.divIcon({
         className: "custom-icon",
         iconAnchor: [15, 30],
         html: `
-          <div>
-          <h1 style="background-color: #aad3df; border-radius: 8px; padding: 3px; border: 1px solid rgba(0, 0, 0, 0.2);">${name}</h1>        
-          <img src="${defaultStation}" alt="${name}" class="custom-icon-img">        
-        </div>
-      `,
+      <div>
+        <h1 style="background-color: #aad3df; border-radius: 8px; padding: 3px; border: 1px solid rgba(0, 0, 0, 0.2);">
+          ${name}
+        </h1>        
+        <img src="${isStartStation ? firstStation : isLastStation ? lastStation : defaultStation}" alt="${name}" class="custom-icon-img">        
+      </div>
+    `,
       });
 
-    const waypoints = stations.map((station) => ({
+    const waypoints = stations.map((station, index) => ({
       name: station.station.name,
       latLng: L.latLng(station.station.latitude, station.station.longitude),
+      isStartStation: index === 0,
+      isLastStation: index === stations.length - 1, // Mark the last station as the last station
     }));
 
     console.log('waypoints:', waypoints);
@@ -88,14 +94,13 @@ const RouteControl = ({ stations }) => {
       show: false,
 
       createMarker: (i, waypoint, n) => {
-        const icon = createCustomIcon(
-          waypoint.name,
-          waypoint.defaultStation
-        );
+        const icon = createCustomIcon(waypoint.name, waypoint.isStartStation, waypoint.isLastStation);
         return L.marker(waypoint.latLng, { icon: icon });
       },
     });
+
     control.addTo(map);
+
 
     control.on('routesfound', function (e) {
       var routes = e.routes;
@@ -128,6 +133,8 @@ const Routes = () => {
   const [routeControl, setRouteControl] = useState(null);
   const [stationList, setStationList] = useState([]);
   const [showStationList, setShowStationList] = useState(false);
+  const [sortingOrder, setSortingOrder] = useState("oldest");
+  const [selectedStatus, setSelectedStatus] = useState("");
   const [formData, setFormData] = useState({
     beginning: "",
     destination: "",
@@ -274,6 +281,7 @@ const Routes = () => {
       getMultiRoutesAPI({
         beginning: currentSearchRoute,
         destination: currentSearchRoute,
+        status: selectedStatus,
       }).then((res) => {
         // console.log(res.data.data)
         if (res.data.data != null) {
@@ -283,14 +291,34 @@ const Routes = () => {
         }
       })
     } else {
-      getAllRoutes()
-        .then((res) => setRouteList(res.data.data))
+      getMultiRoutesAPI({ status: selectedStatus })
+        .then((res) => {
+          let sortedRoutes = res.data.data;
+          if (sortingOrder === "newest") {
+            sortedRoutes = res.data.data.sort((a, b) => b.id - a.id);
+          } else if (sortingOrder === "oldest") {
+            sortedRoutes = res.data.data.sort((a, b) => a.id - b.id);
+          }
+
+          setRouteList(sortedRoutes);
+          dispatch(updateRoute(sortedRoutes));
+        })
         .catch((error) => {
           console.log(error);
         });
     }
   };
+  useEffect(() => {
+    fetchRoutes();
+  }, [sortingOrder, selectedStatus]);
 
+  const handleSortingChange = (order) => {
+    setSortingOrder(order);
+  };
+
+  const handleStatusFilter = (status) => {
+    setSelectedStatus(status);
+  };
   // Call show detail form
   const handleShowDetails = async (id) => {
     const user = JSON.parse(localStorage.getItem('user'))
@@ -730,7 +758,7 @@ const Routes = () => {
                         <Form.Group className="mb-3" controlId="beginning">
                           <Form.Label>Beginning</Form.Label>
                           {errors && errors.Beginning && (
-                            <span style={{ color: "red", float: "right" }}>*{errors.Beginning[0]}</span>
+                            <span style={{ color: "red", float: "right" }}>*{errors.Beginning}</span>
                           )}
                           <Form.Control
                             type="text"
@@ -753,7 +781,7 @@ const Routes = () => {
                         <Form.Group className="mb-3" controlId="destination">
                           <Form.Label>Destination</Form.Label>
                           {errors && errors.Destination && (
-                            <span style={{ color: "red", float: "right" }}>*{errors.Destination[0]}</span>
+                            <span style={{ color: "red", float: "right" }}>*{errors.Destination}</span>
                           )}
                           <Form.Control
                             type="text"
@@ -774,7 +802,7 @@ const Routes = () => {
                         <Form.Group className="mb-3" controlId="distance">
                           <Form.Label>Distance</Form.Label>
                           {errors && errors.Distance && (
-                            <span style={{ color: "red", float: "right" }}>*{errors.Distance[0]}</span>
+                            <span style={{ color: "red", float: "right" }}>*{errors.Distance}</span>
                           )}
                           <Form.Control
                             type="number"
@@ -797,7 +825,7 @@ const Routes = () => {
                         <Form.Group className="mb-3" >
                           <Form.Label>Stations</Form.Label>
                           {errors && errors.StationIds && (
-                            <span style={{ color: "red", float: "right" }}>*{errors.StationIds[0]}</span>
+                            <span style={{ color: "red", float: "right" }}>*{errors.StationIds}</span>
                           )}
                           <Row>
                             <Col xs={11} onClick={() => setShowStationList(!showStationList)}>
@@ -893,7 +921,7 @@ const Routes = () => {
                         <Form.Group className="mb-3" controlId="beginning">
                           <Form.Label>Beginning</Form.Label>
                           {errors && errors.Beginning && (
-                            <span style={{ color: "red", float: "right" }}>*{errors.Beginning[0]}</span>
+                            <span style={{ color: "red", float: "right" }}>*{errors.Beginning}</span>
                           )}
                           <Form.Control
                             type="text"
@@ -918,7 +946,7 @@ const Routes = () => {
                         <Form.Group className="mb-3" controlId="destination">
                           <Form.Label>Destination</Form.Label>
                           {errors && errors.Destination && (
-                            <span style={{ color: "red", float: "right" }}>*{errors.Destination[0]}</span>
+                            <span style={{ color: "red", float: "right" }}>*{errors.Destination}</span>
                           )}
                           <Form.Control
                             type="text"
@@ -941,7 +969,7 @@ const Routes = () => {
                         <Form.Group className="mb-3" controlId="distance">
                           <Form.Label>Distance</Form.Label>
                           {errors && errors.Distance && (
-                            <span style={{ color: "red", float: "right" }}>*{errors.Distance[0]}</span>
+                            <span style={{ color: "red", float: "right" }}>*{errors.Distance}</span>
                           )}
                           <Form.Control
                             type="number"
@@ -967,7 +995,7 @@ const Routes = () => {
                           <Form.Label>Stations</Form.Label>
                           {errors && errors.StationIds && (
                             <span style={{ color: "red", float: "right" }}>
-                              *{errors.StationIds[0]}
+                              *{errors.StationIds}
                             </span>
                           )}
                           <Row>
@@ -1050,7 +1078,36 @@ const Routes = () => {
 
                   {/* Table list */}
                   <div className="list">
-                    <Button variant="primary" onClick={handleAddOpen} size="md" className="add_button">Add Route +</Button>
+                    <div style={{ display: "flex" }}>
+                      <div style={{ flexGrow: "8" }}></div>
+                      <div style={{ paddingTop: "20px", paddingLeft: "20px" }}>
+                        Filter by Status:
+                        <select
+                          as="select"
+                          value={selectedStatus}
+                          onChange={(e) => handleStatusFilter(e.target.value)}
+                          style={{ height: "22px", borderRadius: "5px", marginLeft: "10px", fontSize: "0.9rem" }}
+                        >
+                          <option value="">All</option>
+                          <option value="ACTIVE">Active</option>
+                          <option value="INACTIVE">Inactive</option>
+                          <option value="DELETED">Deleted</option>
+                        </select>
+                      </div>
+                      <div style={{ paddingTop: "20px", paddingLeft: "20px" }}>
+                        Sort:
+                        <select
+                          as="select"
+                          value={sortingOrder}
+                          onChange={(e) => handleSortingChange(e.target.value)}
+                          style={{ height: "22px", borderRadius: "5px", marginLeft: "10px", fontSize: "0.9rem" }}
+                        >
+                          <option value="oldest">Oldest Routes</option>
+                          <option value="newest">Newest Routes</option>
+                        </select>
+                      </div>
+                      <Button variant="primary" onClick={handleAddOpen} size="md" className="add_button">Add Route +</Button>
+                    </div>
                     <Table striped bordered hover>
                       <thead>
                         <tr>
@@ -1092,7 +1149,7 @@ const Routes = () => {
                                 {route.status}
                               </span>
                             </td>
-                            <td className="registration">
+                            <td className={`registration ${route.status === "DELETED" ? "disable-actions" : ""}`}>
                               <UncontrolledDropdown>
                                 <DropdownToggle
                                   className="btn-icon-only text-light"

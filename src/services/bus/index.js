@@ -13,7 +13,6 @@ const END_POINTS = {
 export const addBusAPI = async (bus) => {
     const user = JSON.parse(localStorage.getItem('user'));
     const formData = new FormData();
-    formData.append('code', bus.code);
     formData.append('licensePlate', bus.licensePlate);
     formData.append('brand', bus.brand);
     formData.append('model', bus.model);
@@ -35,7 +34,6 @@ export const addBusAPI = async (bus) => {
 export const updateBusAPI = async (bus, id) => {
     const user = JSON.parse(localStorage.getItem('user'));
     const formData = new FormData();
-    formData.append('code', bus.code);
     formData.append('licensePlate', bus.licensePlate);
     formData.append('brand', bus.brand);
     formData.append('model', bus.model);

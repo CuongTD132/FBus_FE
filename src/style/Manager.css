@@ -82,6 +82,11 @@
     color: #5e72e4;
 }
 
+.link-style1 {
+    color: #5e72e4;
+
+}
+
 .link-style {
     color: #5e72e4;
     transition: color 0.5s;
@@ -213,6 +218,7 @@
 .form-label {
     margin: 0;
     padding: 0;
+    color: black;
 }
 
 .input-form {
@@ -223,7 +229,20 @@
     font-size: 0.875rem;
     border: none;
 }
-
+.input-form1 {
+    margin-left: 4px;
+    padding-left: 4px;
+    flex: 1;
+    border-radius: 5px;
+    font-size: 0.875rem;
+    background-color: #e9ecef;
+    border: none;
+}
+.container_input1 {
+    margin: 0 15px;
+    padding: 10px 0;
+    color: black
+}
 .container_input {
     margin: 0 !important;
     padding: 10px 0;

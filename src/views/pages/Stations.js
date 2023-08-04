@@ -292,8 +292,40 @@ const Stations = () => {
   // ADD
   const handleAddStation = () => {
     const user = JSON.parse(localStorage.getItem('user'))
+    const newErrors = {};
     if (user == null || !user || isTokenExpired()) {
       setShowBackdrop(true)
+      return;
+    }
+    if (!formData.latitude) {
+      newErrors.Latitude = ['Please add the Location'];
+    }
+    if (!formData.longitude) {
+      newErrors.Longitude = ['Please add the Location'];
+    }
+    if (!formData.ward) {
+      newErrors.Ward = ['Please add the Location'];
+    }
+    if (!formData.street) {
+      newErrors.Street = ['Please add the Location'];
+    }
+    if (!formData.city) {
+      newErrors.City = ['Please add the Location'];
+    }
+    if (!formData.name) {
+      newErrors.Name = ['Please fill the Station Name'];
+    }
+    if (!formData.code) {
+      newErrors.Code = ['Please fill the Station Code'];
+    }
+    if (!formData.addressNumber) {
+      newErrors.AddressNumber = ['Please fill the Station Address Number'];
+    }
+    if (!formData.district) {
+      newErrors.District = ['Please fill the Station District'];
+    }
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
       return;
     }
     addStationAPI(formData)
@@ -311,9 +343,6 @@ const Stations = () => {
         if (e.response.data.errors) {
           setErrors(e.response.data.errors);
         }
-        toast.error("Failed to add this station!", {
-          autoClose: 1000,
-        });
         setShowAdd(true);
       });
   };
@@ -770,120 +799,137 @@ const Stations = () => {
 
                 {/* Add model */}
                 <Modal size="lg" show={showAdd} onHide={handleAddClose}>
-                  <Modal.Header >
-                    <Modal.Title>Add Station</Modal.Title>
-                  </Modal.Header>
                   <Modal.Body>
                     <Form>
+                      <p>Cases (*) are required</p>
                       <Form.Group className="mb-3" >
                         <Button variant="primary" size="sm" onClick={() => handleShowMap()}>
                           {buttonText}
                         </Button>
                       </Form.Group>
                       <Row>
-                        <Col>
-                          <Form.Group className="mb-3" controlId="latitude">
-                            <Form.Label>Latitude</Form.Label>
-                            {errors && errors.Latitude && (
-                              <span style={{ color: "red", float: "right" }}>*{errors.Latitude}</span>
-                            )}
-                            <Form.Control
-                              type="number"
+                        <Col className="container_input1">
+                          <div className="flex input-group">
+                            <Form.Label className="align-items-center">
+                              Latitude*
+                            </Form.Label>
+                            <input
+                              className="input-form1"
+                              type="text"
                               name="latitude"
                               placeholder="Latitude"
                               value={formData.latitude}
                               readOnly
                             />
-                          </Form.Group>
+                          </div>
+                          {errors && errors.Latitude && (
+                            <span className="error-msg">{errors.Latitude}</span>
+                          )}
                         </Col>
-                        <Col>
-                          <Form.Group className="mb-3" controlId="longitude">
-                            <Form.Label>Longitude</Form.Label>
-                            {errors && errors.Longitude && (
-                              <span style={{ color: "red", float: "right" }}>*{errors.Longitude}</span>
-                            )}
-                            <Form.Control
-                              type="number"
+                        <Col className="container_input1">
+                          <div className="flex input-group">
+                            <Form.Label className="align-items-center">
+                              Longitude*
+                            </Form.Label>
+                            <input
+                              className="input-form1"
+                              type="text"
                               name="longitude"
                               placeholder="Longitude"
                               value={formData.longitude}
                               readOnly
                             />
-                          </Form.Group>
+                          </div>
+                          {errors && errors.Longitude && (
+                            <span className="error-msg">{errors.Longitude}</span>
+                          )}
                         </Col>
                       </Row>
                       <Row>
-                        <Col>
-                          <Form.Group className="mb-3" controlId="ward">
-                            <Form.Label>Ward</Form.Label>
-                            {errors && errors.Ward && (
-                              <span style={{ color: "red", float: "right" }}>*{errors.Ward}</span>
-                            )}
-                            <Form.Control
+                        <Col className="container_input1">
+                          <div className="flex input-group">
+                            <Form.Label className="align-items-center">
+                              Ward*
+                            </Form.Label>
+                            <input
+                              className="input-form1"
                               type="text"
                               name="ward"
                               placeholder="Ward"
-                              readOnly
                               value={formData.ward}
+                              readOnly
                             />
-                          </Form.Group>
+                          </div>
+                          {errors && errors.Ward && (
+                            <span className="error-msg">{errors.Ward}</span>
+                          )}
                         </Col>
-                        <Col>
-                          <Form.Group className="mb-3" controlId="street">
-                            <Form.Label>Street</Form.Label>
-                            {errors && errors.Street && (
-                              <span style={{ color: "red", float: "right" }}>*{errors.Street}</span>
-                            )}
-                            <Form.Control
+                        <Col className="container_input1">
+                          <div className="flex input-group">
+                            <Form.Label className="align-items-center">
+                              Street*
+                            </Form.Label>
+                            <input
+                              className="input-form1"
                               type="text"
                               name="street"
                               placeholder="Street"
-                              readOnly
                               value={formData.street}
+                              readOnly
                             />
-                          </Form.Group>
+                          </div>
+                          {errors && errors.Street && (
+                            <span className="error-msg">{errors.Street}</span>
+                          )}
                         </Col>
                       </Row>
                       <Row>
-                        <Col>
-                          <Form.Group className="mb-3" controlId="city">
-                            <Form.Label>City</Form.Label>
-                            {errors && errors.City && (
-                              <span style={{ color: "red", float: "right" }}>*{errors.City}</span>
-                            )}
-                            <Form.Control
+                        <Col className="container_input1">
+                          <div className="flex input-group">
+                            <Form.Label className="align-items-center">
+                              City*
+                            </Form.Label>
+                            <input
+                              className="input-form1"
                               type="text"
                               name="city"
                               placeholder="City"
-                              readOnly
                               value={formData.city}
+                              readOnly
                             />
-                          </Form.Group>
+                          </div>
+                          {errors && errors.City && (
+                            <span className="error-msg">{errors.City}</span>
+                          )}
                         </Col>
-                        <Col>
-                          <Form.Group className="mb-3" controlId="image">
-                            <Form.Label>Image</Form.Label>
-                            <Form.Control
+                        <Col className="container_input1">
+                          <div className="flex input-group">
+                            <Form.Label className="align-items-center">
+                              Image
+                            </Form.Label>
+                            <input
+                              className="input-form"
                               type="file"
                               name="image"
+                              accept=".jpeg, .png, .svg, .jpg"
                               onChange={(e) => {
                                 setFormData({
                                   ...formData,
-                                  image: e.target.files[0] // Store the selected file in the form data
+                                  image: e.target.files[0]
                                 });
                               }}
                             />
-                          </Form.Group>
+                          </div>
                         </Col>
                       </Row>
                       <Row>
-                        <Col>
-                          <Form.Group className="mb-3" controlId="code">
-                            <Form.Label>Code</Form.Label>
-                            {errors && errors.Code && (
-                              <span style={{ color: "red", float: "right" }}>*{errors.Code}</span>
-                            )}
-                            <Form.Control
+                        <Col className="container_input1">
+                          <div className="flex input-group">
+                            <Form.Label className="align-items-center">
+                              Code*
+                            </Form.Label>
+                            <input
+                              className="input-form"
                               type="text"
                               name="code"
                               placeholder="Code"
@@ -900,18 +946,23 @@ const Stations = () => {
                                 });
                               }}
                             />
-                          </Form.Group>
+                          </div>
+                          {errors && errors.Code && (
+                            <span className="error-msg">{errors.Code}</span>
+                          )}
                         </Col>
-                        <Col>
-                          <Form.Group className="mb-3" controlId="name">
-                            <Form.Label>Name</Form.Label>
-                            {errors && errors.Name && (
-                              <span style={{ color: "red", float: "right" }}>*{errors.Name}</span>
-                            )}
-                            <Form.Control
+                        <Col className="container_input1">
+                          <div className="flex input-group">
+                            <Form.Label className="align-items-center">
+                              Name*
+                            </Form.Label>
+                            <input
+                              className="input-form"
                               type="text"
                               name="name"
                               placeholder="Name"
+                              autoFocus
+                              required
                               onChange={(e) => {
                                 setFormData({
                                   ...formData,
@@ -923,22 +974,26 @@ const Stations = () => {
                                 });
                               }}
                             />
-                          </Form.Group>
+                          </div>
+                          {errors && errors.Name && (
+                            <span className="error-msg">{errors.Name}</span>
+                          )}
                         </Col>
                       </Row>
                       <Row>
-                        <Col xs={7}>
-                          <Form.Group className="mb-3" controlId="addressNumber">
-                            <Form.Label>Address Number</Form.Label>
-                            {errors && errors.AddressNumber && (
-                              <span style={{ color: "red", float: "right" }}>*{errors.AddressNumber}</span>
-                            )}
-                            <Form.Control
+                        <Col className="container_input1">
+                          <div className="flex input-group">
+                            <Form.Label className="align-items-center">
+                              Address Number*
+                            </Form.Label>
+                            <input
+                              className="input-form"
                               type="text"
                               name="addressNumber"
                               placeholder="Address Number"
                               autoFocus
                               required
+                              maxLength={20}
                               onChange={(e) => {
                                 setFormData({
                                   ...formData,
@@ -950,21 +1005,23 @@ const Stations = () => {
                                 });
                               }}
                             />
-                          </Form.Group>
+                          </div>
+                          {errors && errors.AddressNumber && (
+                            <span className="error-msg">{errors.AddressNumber}</span>
+                          )}
                         </Col>
-                        <Col xs={5}>
-                          <Form.Group className="mb-3" controlId="district">
-                            <Form.Label>District</Form.Label>
-                            {errors && errors.District && (
-                              <span style={{ color: "red", float: "right" }}>*{errors.District}</span>
-                            )}
-                            <Form.Control
+                        <Col className="container_input1">
+                          <div className="flex input-group">
+                            <Form.Label className="align-items-center">
+                              District*
+                            </Form.Label>
+                            <input
+                              className="input-form"
                               type="text"
                               name="district"
                               placeholder="District"
                               autoFocus
                               required
-                              value={formData.district}
                               onChange={(e) => {
                                 setFormData({
                                   ...formData,
@@ -976,7 +1033,10 @@ const Stations = () => {
                                 });
                               }}
                             />
-                          </Form.Group>
+                          </div>
+                          {errors && errors.District && (
+                            <span className="error-msg">{errors.District}</span>
+                          )}
                         </Col>
                       </Row>
                     </Form>
@@ -1373,34 +1433,62 @@ const Stations = () => {
                             <span>{station.id ? station.id : "none"}</span>
                           </td>
                           <td>
-                            <span className="link-style" onClick={(e) => {
-                              e.preventDefault()
-                              handleMapCenterAndZoom(station.latitude, station.longitude);
-                              handleMarkerClick(station.name)
-                            }}>{station.code ? station.code : "none"}</span>
+                            <span
+                              className={station.status === "DELETED" ? "" : "link-style"}
+                              onClick={(e) => {
+                                e.preventDefault();
+                                if (station.status !== "DELETED") {
+                                  handleMapCenterAndZoom(station.latitude, station.longitude);
+                                  handleMarkerClick(station.name);
+                                }
+                              }}
+                            >
+                              {station.code ? station.code : "none"}
+                            </span>
+                          </td>
+                          <td>
+                            <span
+                              className={station.status === "DELETED" ? "" : "link-style"}
+                              onClick={(e) => {
+                                e.preventDefault();
+                                if (station.status !== "DELETED") {
+                                  handleMapCenterAndZoom(station.latitude, station.longitude);
+                                  handleMarkerClick(station.name);
+                                }
+                              }}
+                            >
+                              {station.name ? station.name : "none"}
+                            </span>
+                          </td>
+                          <td>
+                            <span
+                              className={station.status === "DELETED" ? "" : "link-style"}
+                              onClick={(e) => {
+                                e.preventDefault();
+                                if (station.status !== "DELETED") {
+                                  handleMapCenterAndZoom(station.latitude, station.longitude);
+                                  handleMarkerClick(station.name);
+                                }
+                              }}
+                            >
+                              {station.district ? station.district : "none"}
+                            </span>
+                          </td>
+                          <td>
+                            <span
+                              className={station.status === "DELETED" ? "" : "link-style"}
+                              onClick={(e) => {
+                                e.preventDefault();
+                                if (station.status !== "DELETED") {
+                                  handleMapCenterAndZoom(station.latitude, station.longitude);
+                                  handleMarkerClick(station.name);
+                                }
+                              }}
+                            >
+                              {station.city ? station.city : "none"}
+                            </span>
+                          </td>
 
-                          </td>
-                          <td>
-                            <span className="link-style" onClick={(e) => {
-                              e.preventDefault()
-                              handleMapCenterAndZoom(station.latitude, station.longitude);
-                              handleMarkerClick(station.name)
-                            }}>{station.name ? station.name : "none"}</span>
-                          </td>
-                          <td>
-                            <span className="link-style" onClick={(e) => {
-                              e.preventDefault()
-                              handleMapCenterAndZoom(station.latitude, station.longitude);
-                              handleMarkerClick(station.name)
-                            }}>{station.district ? station.district : "none"}</span>
-                          </td>
-                          <td>
-                            <span className="link-style" onClick={(e) => {
-                              e.preventDefault()
-                              handleMapCenterAndZoom(station.latitude, station.longitude);
-                              handleMarkerClick(station.name)
-                            }}>{station.city ? station.city : "none"}</span>
-                          </td>
                           <td>
                             <span className={`status ${station.status === 'ACTIVE' ? 'active' : station.status === 'INACTIVE' ? 'inactive' : ''}`}>
                               {station.status}

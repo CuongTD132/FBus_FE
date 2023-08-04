@@ -275,40 +275,40 @@ const Trips = () => {
     // ADD
     const handleAddTrip = async () => {
         const user = JSON.parse(localStorage.getItem('user'));
+        const newErrors = {};
         if (user == null || !user || isTokenExpired()) {
             setShowBackdrop(true)
             return;
         }
-        let hasError = false;
-        const newErrors = {};
-
-        if (!selectedDriver) {
-            newErrors.DriverId = ["Please choose a driver"];
-            hasError = true;
+        if (!formData.driverId) {
+            newErrors.DriverId = ['Please choose a Driver'];
+        }
+        if (!formData.busId) {
+            newErrors.BusId = ['Please choose a Bus'];
+        }
+        if (!formData.routeId) {
+            newErrors.RouteId = ['Please choose a Route'];
         }
 
-        if (!selectedBus) {
-            newErrors.BusId = ["Please choose a bus"];
-            hasError = true;
+        if (!formData.dateLine) {
+            newErrors.DateLine = ['Please select the Date Line'];
         }
 
-        if (!selectedRoute) {
-            newErrors.RouteId = ["Please choose a route"];
-            hasError = true;
+        if (!formData.dueDate) {
+            newErrors.DueDate = ['Please select the Due Date'];
         }
-
-        setErrorVisible(hasError);
-        setErrors(newErrors);
-
-        if (hasError) {
+        if (Object.keys(newErrors).length > 0) {
+            setErrors(newErrors);
             return;
         }
 
         if (user?.accessToken) {
             try {
+                const dateLineData = combineDateLine(formData);
+                const dueDateData = combineDueDate(formData);
                 const res = await axios.post(
                     "https://fbus-last.azurewebsites.net/api/Trips",
-                    formData,
+                    { ...formData, ...dateLineData, ...dueDateData },
                     {
                         headers: {
                             "Authorization": `Bearer ${user.accessToken}`,
@@ -339,7 +339,6 @@ const Trips = () => {
     const handleAddClose = () => {
         setShowAdd(false);
         resetFormData();
-        resetErrorVisible()
     }
     const handleAddOpen = () => {
         setFormData({
@@ -350,8 +349,10 @@ const Trips = () => {
             dateLine: "",
             dueDate: "",
         });
+        setDateLineFormData("");
+        setDueDateFormData("");
         resetFormData();
-        resetErrorVisible()
+        setErrors({});
         setShowAdd(true);
     };
     // END ADD
@@ -503,7 +504,7 @@ const Trips = () => {
                             }}
                             onClick={() => handleSelectBus(bus)}
                         >
-                            {bus.licensePlate}
+                            {bus.code} - {bus.licensePlate}
                         </ListGroupItem>
                     ))}
                 </ListGroup>
@@ -619,19 +620,62 @@ const Trips = () => {
         }
     }, [driverList, busList, routeList, formData.driverId, formData.busId, formData.routeId]);
 
-    const [errorVisible, setErrorVisible] = useState({
-        DriverId: false,
-        BusId: false,
-        RouteId: false,
+
+    const [dateLineFormData, setDateLineFormData] = useState({
+        day: "",
+        month: "",
+        year: "",
+        hours: "",
+        minutes: "",
     });
-    const resetErrorVisible = () => {
-        setErrorVisible({
-            DriverId: false,
-            BusId: false,
-            RouteId: false,
-        });
+
+    const [dueDateFormData, setDueDateFormData] = useState({
+        day1: "",
+        month1: "",
+        year1: "",
+        hours1: "",
+        minutes1: "",
+    });
+
+    const combineDateLine = (formData) => {
+        const { day, month, year, hours, minutes } = formData;
+        const formattedDay = day ? String(day).padStart(2, "0") : "01";
+        const formattedMonth = month ? String(month).padStart(2, "0") : "01";
+        const formattedYear = year ? String(year) : "YYYY";
+        const formattedHours = hours ? String(hours).padStart(2, "0") : "00";
+        const formattedMinutes = minutes ? String(minutes).padStart(2, "0") : "00";
+
+        return {
+            ...formData,
+            dateLine: `${formattedYear}-${formattedMonth}-${formattedDay}T${formattedHours}:${formattedMinutes}`,
+        };
     };
 
+    const combineDueDate = (formData) => {
+        const { day1, month1, year1, hours1, minutes1 } = formData;
+        const formattedDay = day1 ? String(day1).padStart(2, "0") : "01";
+        const formattedMonth = month1 ? String(month1).padStart(2, "0") : "01";
+        const formattedYear = year1 ? String(year1) : "YYYY";
+        const formattedHours = hours1 ? String(hours1).padStart(2, "0") : "00";
+        const formattedMinutes = minutes1 ? String(minutes1).padStart(2, "0") : "00";
+
+        return {
+            ...formData,
+            dueDate: `${formattedYear}-${formattedMonth}-${formattedDay}T${formattedHours}:${formattedMinutes}`,
+        };
+    };
+
+
+
+
+
+    const currentYear = new Date().getFullYear();
+
+    const days = Array.from({ length: 31 }, (_, i) => i + 1);
+    const months = Array.from({ length: 12 }, (_, i) => i + 1);
+    const years = Array.from({ length: 2030 - currentYear + 1 }, (_, i) => currentYear + i);
+    const hours = Array.from({ length: 24 }, (_, i) => i);
+    const minutes = Array.from({ length: 60 }, (_, i) => i);
     return (
         <>
             <Header />
@@ -693,130 +737,347 @@ const Trips = () => {
 
                                 {/* Add model */}
                                 <Modal show={showAdd} onHide={handleAddClose}>
-                                    <Modal.Header >
-                                        <Modal.Title>Add trip</Modal.Title>
-                                    </Modal.Header>
                                     <Modal.Body>
                                         <Form>
+                                            <p>Cases (*) are required</p>
                                             <Form.Group className="mb-3" controlId="driverId">
-                                                <Form.Label>Driver</Form.Label>
-                                                {errorVisible && errors.DriverId && (
-                                                    <span style={{ color: "red", float: "right" }}>*{errors.DriverId}</span>
-                                                )}
+                                                <Form.Label>Driver*</Form.Label>
                                                 <Form.Control
                                                     type="text"
                                                     name="driverId"
                                                     placeholder="Select a driver"
                                                     value={selectedDriver ? selectedDriver.fullName : ''}
-                                                    autoFocus
-                                                    required
                                                     readOnly
                                                     onClick={() => {
-                                                        setErrorVisible(false); // Hide the error message when the user clicks on the field again
                                                         setShowDriverList(!showDriverList);
                                                     }}
                                                 />
                                                 {showDriverList && <DriverList driverList={driverList} />}
+                                                {errors && errors.DriverId && (
+                                                    <span className="error-msg">{errors.DriverId}</span>
+                                                )}
                                             </Form.Group>
 
                                             <Form.Group className="mb-3" controlId="busId">
-                                                <Form.Label>Bus</Form.Label>
-                                                {errorVisible && errors.BusId && (
-                                                    <span style={{ color: "red", float: "right" }}>*{errors.BusId}</span>
-                                                )}
+                                                <Form.Label>Bus*</Form.Label>
                                                 <Form.Control
                                                     type="text"
                                                     name="busId"
                                                     placeholder="Select a bus"
                                                     value={selectedBus ? selectedBus.licensePlate : ''}
-                                                    autoFocus
-                                                    required
                                                     readOnly
                                                     onClick={() => {
-                                                        setErrorVisible(false); // Hide the error message when the user clicks on the field again
                                                         setShowBusList(!showBusList);
                                                     }}
                                                 />
                                                 {showBusList && <BusList busList={busList} />}
+                                                {errors && errors.BusId && (
+                                                    <span className="error-msg">{errors.BusId}</span>
+                                                )}
                                             </Form.Group>
 
                                             <Form.Group className="mb-3" controlId="routeId">
-                                                <Form.Label>Route</Form.Label>
-                                                {errorVisible && errors.RouteId && (
-                                                    <span style={{ color: "red", float: "right" }}>*{errors.RouteId}</span>
-                                                )}
+                                                <Form.Label>Route*</Form.Label>
                                                 <Form.Control
                                                     type="text"
                                                     name="routeId"
                                                     placeholder="Select a route"
                                                     value={selectedRoute ? `${selectedRoute.beginning} - ${selectedRoute.destination}` : ''}
-                                                    autoFocus
-                                                    required
                                                     readOnly
                                                     onClick={() => {
-                                                        setErrorVisible(false); // Hide the error message when the user clicks on the field again
                                                         setShowRouteList(!showRouteList);
                                                     }}
                                                 />
                                                 {showRouteList && <RouteList routeList={routeList} />}
+                                                {errors && errors.RouteId && (
+                                                    <span className="error-msg">{errors.RouteId}</span>
+                                                )}
                                             </Form.Group>
-                                            <Form.Group className="mb-3" controlId="note">
-                                                <Form.Label>Note</Form.Label>
-                                                <Form.Control
-                                                    type="text"
-                                                    name="note"
-                                                    placeholder="Note"
-                                                    value={formData.note || ""}
-                                                    onChange={(e) => {
-                                                        setFormData({
-                                                            ...formData,
-                                                            note: e.target.value
-                                                        })
-                                                    }}
-                                                />
-                                            </Form.Group>
-                                            <Form.Group className="mb-3" controlId="dateLine">
-                                                <Form.Label>Date Line(MM-DD-YYYY HH:mm)</Form.Label>
+                                            <Row className="container_input">
+                                                <div className="flex input-group">
+                                                    <Form.Label className="align-items-center">
+                                                        Note
+                                                    </Form.Label>
+                                                    <input
+                                                        className="input-form"
+                                                        type="text"
+                                                        name="note"
+                                                        placeholder="You can note here"
+                                                        maxLength={500}
+                                                        onChange={(e) => {
+                                                            setFormData({
+                                                                ...formData,
+                                                                note: e.target.value
+                                                            })
+                                                            setErrors({
+                                                                ...errors,
+                                                                Note: null
+                                                            });
+                                                        }}
+                                                    />
+                                                </div>
+                                                {errors && errors.Note && (
+                                                    <span className="error-msg">{errors.Note}</span>
+                                                )}
+                                            </Row>
+                                            <Row className="container_input">
+                                                <div className="flex input-group">
+                                                    <Form.Label className="align-items-center">Date Line*</Form.Label>
+                                                    <div className="date-input-container">
+                                                        <select
+                                                            className="input-form date-input"
+                                                            name="dateLineDay"
+                                                            value={dateLineFormData.day || ""}
+                                                            onChange={(e) => {
+                                                                const day = e.target.value;
+                                                                setDateLineFormData((prevFormData) => ({
+                                                                    ...prevFormData,
+                                                                    day,
+                                                                }));
+                                                                setFormData((prevFormData) => ({
+                                                                    ...prevFormData,
+                                                                    ...combineDateLine({ ...prevFormData, day }, "dateLine"),
+                                                                }));
+                                                            }}
+                                                        >
+                                                            <option value="">DD</option>
+                                                            {days.map((day) => (
+                                                                <option key={day} value={day}>
+                                                                    {day}
+                                                                </option>
+                                                            ))}
+                                                        </select>
+                                                        <span className="date-separator">/</span>
+                                                        <select
+                                                            className="input-form date-input"
+                                                            name="dateLineMonth"
+                                                            value={dateLineFormData.month || ""}
+                                                            onChange={(e) => {
+                                                                const month = e.target.value;
+                                                                setDateLineFormData((prevFormData) => ({
+                                                                    ...prevFormData,
+                                                                    month,
+                                                                }));
+                                                                setFormData((prevFormData) => ({
+                                                                    ...prevFormData,
+                                                                    ...combineDateLine({ ...prevFormData, month }, "dateLine"),
+                                                                }));
+                                                            }}
+                                                        >
+                                                            <option value="">MM</option>
+                                                            {months.map((month) => (
+                                                                <option key={month} value={month}>
+                                                                    {month}
+                                                                </option>
+                                                            ))}
+                                                        </select>
+                                                        <span className="date-separator">/</span>
+                                                        <select
+                                                            className="input-form date-input"
+                                                            name="dateLineYear"
+                                                            value={dateLineFormData.year || ""}
+                                                            onChange={(e) => {
+                                                                const year = e.target.value;
+                                                                setDateLineFormData((prevFormData) => ({
+                                                                    ...prevFormData,
+                                                                    year,
+                                                                }));
+                                                                setFormData((prevFormData) => ({
+                                                                    ...prevFormData,
+                                                                    ...combineDateLine({ ...prevFormData, year }, "dateLine"),
+                                                                }));
+                                                            }}
+                                                        >
+                                                            <option value="">YYYY</option>
+                                                            {years.map((year) => (
+                                                                <option key={year} value={year}>
+                                                                    {year}
+                                                                </option>
+                                                            ))}
+                                                        </select>
+                                                        <span className="date-separator"> </span>
+                                                        <select
+                                                            className="input-form date-input"
+                                                            name="dateLineHours"
+                                                            value={dateLineFormData.hours || ""}
+                                                            onChange={(e) => {
+                                                                const hours = e.target.value;
+                                                                setDateLineFormData((prevFormData) => ({
+                                                                    ...prevFormData,
+                                                                    hours,
+                                                                }));
+                                                                setFormData((prevFormData) => ({
+                                                                    ...prevFormData,
+                                                                    ...combineDateLine({ ...prevFormData, hours }, "dateLine"),
+                                                                }));
+                                                            }}
+                                                        >
+                                                            <option value="">HH</option>
+                                                            {hours.map((hour) => (
+                                                                <option key={hour} value={hour}>
+                                                                    {hour}
+                                                                </option>
+                                                            ))}
+                                                        </select>
+                                                        <span className="date-separator">:</span>
+                                                        <select
+                                                            className="input-form date-input"
+                                                            name="dateLineMinutes"
+                                                            value={dateLineFormData.minutes || ""}
+                                                            onChange={(e) => {
+                                                                const minutes = e.target.value;
+                                                                setDateLineFormData((prevFormData) => ({
+                                                                    ...prevFormData,
+                                                                    minutes,
+                                                                }));
+                                                                setFormData((prevFormData) => ({
+                                                                    ...prevFormData,
+                                                                    ...combineDateLine({ ...prevFormData, minutes }, "dateLine"),
+                                                                }));
+                                                            }}
+                                                        >
+                                                            <option value="">mm</option>
+                                                            {minutes.map((minute) => (
+                                                                <option key={minute} value={minute}>
+                                                                    {minute}
+                                                                </option>
+                                                            ))}
+                                                        </select>
+                                                    </div>
+                                                </div>
                                                 {errors && errors.DateLine && (
-                                                    <span style={{ color: "red", float: "right" }}>*{errors.DateLine}</span>
+                                                    <span className="error-msg">{errors.DateLine}</span>
                                                 )}
-                                                <Form.Control
-                                                    type="datetime-local"
-                                                    name="dateLine"
-                                                    required
-                                                    onChange={(e) => {
-                                                        setFormData({
-                                                            ...formData,
-                                                            dateLine: e.target.value
-                                                        });
-                                                        setErrors({
-                                                            ...errors,
-                                                            DateLine: null
-                                                        });
-                                                    }}
-                                                />
-                                            </Form.Group>
-                                            <Form.Group className="mb-3" controlId="dueDate">
-                                                <Form.Label>Due Date(MM-DD-YYYY HH:mm)</Form.Label>
+                                            </Row>
+                                            <Row className="container_input">
+                                                <div className="flex input-group">
+                                                    <Form.Label className="align-items-center">Due Date*</Form.Label>
+                                                    <div className="date-input-container">
+                                                        <select
+                                                            className="input-form date-input"
+                                                            name="dueDateDay"
+                                                            value={dueDateFormData.day1 || ""}
+                                                            onChange={(e) => {
+                                                                const day1 = e.target.value;
+                                                                setDueDateFormData((prevFormData) => ({
+                                                                    ...prevFormData,
+                                                                    day1,
+                                                                }));
+                                                                setFormData((prevFormData) => ({
+                                                                    ...prevFormData,
+                                                                    ...combineDueDate({ ...prevFormData, day1 }, "dueDate"),
+                                                                }));
+                                                            }}
+                                                        >
+                                                            <option value="">DD</option>
+                                                            {days.map((day1) => (
+                                                                <option key={day1} value={day1}>
+                                                                    {day1}
+                                                                </option>
+                                                            ))}
+                                                        </select>
+                                                        <span className="date-separator">/</span>
+                                                        <select
+                                                            className="input-form date-input"
+                                                            name="dueDateMonth"
+                                                            value={dueDateFormData.month1 || ""}
+                                                            onChange={(e) => {
+                                                                const month1 = e.target.value;
+                                                                setDueDateFormData((prevFormData) => ({
+                                                                    ...prevFormData,
+                                                                    month1,
+                                                                }));
+                                                                setFormData((prevFormData) => ({
+                                                                    ...prevFormData,
+                                                                    ...combineDueDate({ ...prevFormData, month1 }, "dueDate"),
+                                                                }));
+                                                            }}
+                                                        >
+                                                            <option value="">MM</option>
+                                                            {months.map((month1) => (
+                                                                <option key={month1} value={month1}>
+                                                                    {month1}
+                                                                </option>
+                                                            ))}
+                                                        </select>
+                                                        <span className="date-separator">/</span>
+                                                        <select
+                                                            className="input-form date-input"
+                                                            name="dueDateYear"
+                                                            value={dueDateFormData.year1 || ""}
+                                                            onChange={(e) => {
+                                                                const year1 = e.target.value;
+                                                                setDueDateFormData((prevFormData) => ({
+                                                                    ...prevFormData,
+                                                                    year1,
+                                                                }));
+                                                                setFormData((prevFormData) => ({
+                                                                    ...prevFormData,
+                                                                    ...combineDueDate({ ...prevFormData, year1 }, "dueDate"),
+                                                                }));
+                                                            }}
+                                                        >
+                                                            <option value="">YYYY</option>
+                                                            {years.map((year1) => (
+                                                                <option key={year1} value={year1}>
+                                                                    {year1}
+                                                                </option>
+                                                            ))}
+                                                        </select>
+                                                        <span className="date-separator"> </span>
+                                                        <select
+                                                            className="input-form date-input"
+                                                            name="dueDateHours"
+                                                            value={dueDateFormData.hours1 || ""}
+                                                            onChange={(e) => {
+                                                                const hours1 = e.target.value;
+                                                                setDueDateFormData((prevFormData) => ({
+                                                                    ...prevFormData,
+                                                                    hours1,
+                                                                }));
+                                                                setFormData((prevFormData) => ({
+                                                                    ...prevFormData,
+                                                                    ...combineDueDate({ ...prevFormData, hours1 }, "dueDate"),
+                                                                }));
+                                                            }}
+                                                        >
+                                                            <option value="">HH</option>
+                                                            {hours.map((hours1) => (
+                                                                <option key={hours1} value={hours1}>
+                                                                    {hours1}
+                                                                </option>
+                                                            ))}
+                                                        </select>
+                                                        <span className="date-separator">:</span>
+                                                        <select
+                                                            className="input-form date-input"
+                                                            name="dueDateMinutes"
+                                                            value={dueDateFormData.minutes1 || ""}
+                                                            onChange={(e) => {
+                                                                const minutes1 = e.target.value;
+                                                                setDueDateFormData((prevFormData) => ({
+                                                                    ...prevFormData,
+                                                                    minutes1,
+                                                                }));
+                                                                setFormData((prevFormData) => ({
+                                                                    ...prevFormData,
+                                                                    ...combineDueDate({ ...prevFormData, minutes1 }, "dueDate"),
+                                                                }));
+                                                            }}
+                                                        >
+                                                            <option value="">mm</option>
+                                                            {minutes.map((minute1) => (
+                                                                <option key={minute1} value={minute1}>
+                                                                    {minute1}
+                                                                </option>
+                                                            ))}
+                                                        </select>
+                                                    </div>
+                                                </div>
                                                 {errors && errors.DueDate && (
-                                                    <span style={{ color: "red", float: "right" }}>*{errors.DueDate}</span>
+                                                    <span className="error-msg">{errors.DueDate}</span>
                                                 )}
-                                                <Form.Control
-                                                    type="datetime-local"
-                                                    name="dateLine"
-                                                    required
-                                                    onChange={(e) => {
-                                                        setFormData({
-                                                            ...formData,
-                                                            dueDate: e.target.value
-                                                        });
-                                                        setErrors({
-                                                            ...errors,
-                                                            DueDate: null
-                                                        });
-                                                    }}
-                                                />
-                                            </Form.Group>
+                                            </Row>
                                         </Form>
                                     </Modal.Body>
                                     <Modal.Footer>
@@ -846,8 +1107,6 @@ const Trips = () => {
                                                     name="driverId"
                                                     placeholder="Select a driver"
                                                     value={selectedDriver ? selectedDriver.fullName : ''}
-                                                    autoFocus
-                                                    required
                                                     readOnly
                                                     onClick={() => setShowDriverList(!showDriverList)}
                                                 />
@@ -863,8 +1122,6 @@ const Trips = () => {
                                                     name="busId"
                                                     placeholder="Select a bus"
                                                     value={selectedBus ? selectedBus.licensePlate : ''}
-                                                    autoFocus
-                                                    required
                                                     readOnly
                                                     onClick={() => setShowBusList(!showBusList)}
                                                 />
@@ -880,10 +1137,7 @@ const Trips = () => {
                                                     name="routeId"
                                                     placeholder="Select a route"
                                                     value={selectedRoute ? `${selectedRoute.beginning} - ${selectedRoute.destination}` : ''}
-                                                    autoFocus
-                                                    required
                                                     readOnly
-
                                                     onClick={() => setShowRouteList(!showRouteList)}
                                                 />
                                                 {showRouteList && <RouteList routeList={routeList} />}
@@ -991,8 +1245,8 @@ const Trips = () => {
                                                 onChange={(e) => handleSortingChange(e.target.value)}
                                                 style={{ height: "22px", borderRadius: "5px", marginLeft: "10px", fontSize: "0.9rem" }}
                                             >
-                                                <option value="oldest">Oldest Stations</option>
-                                                <option value="newest">Newest Stations</option>
+                                                <option value="oldest">Oldest Trips</option>
+                                                <option value="newest">Newest Trips</option>
                                             </select>
                                         </div>
                                         <Button variant="primary" onClick={handleAddOpen} size="md" className="add_button">Add Trip +</Button>
@@ -1005,7 +1259,7 @@ const Trips = () => {
                                                 <th>Bus Code</th>
                                                 <th>Beginning</th>
                                                 <th>Destination</th>
-                                                <th>Date Line - Due Date</th>
+                                                <th style={{ width: "200px" }}>Date Line - Due Date</th>
                                                 <th>Status</th>
                                                 <th>More</th>
                                             </tr>
@@ -1017,32 +1271,22 @@ const Trips = () => {
                                                         <span>{trip.id}</span>
                                                     </td>
                                                     <td>
-                                                        <span className="link-style" onClick={(e) => {
-                                                            e.preventDefault()
-                                                        }}>{trip.driver.fullName}</span>
+                                                        <span className="link-style1" >{trip.driver.fullName}</span>
 
                                                     </td>
                                                     <td>
-                                                        <span className="link-style" onClick={(e) => {
-                                                            e.preventDefault()
-                                                        }}>{trip.bus.code}</span>
+                                                        <span className="link-style1">{trip.bus.code}</span>
                                                     </td>
                                                     <td>
-                                                        <span className="link-style" onClick={(e) => {
-                                                            e.preventDefault()
-                                                        }}>{trip.route.beginning}</span>
+                                                        <span className="link-style1">{trip.route.beginning}</span>
                                                     </td>
                                                     <td>
-                                                        <span className="link-style" onClick={(e) => {
-                                                            e.preventDefault()
-                                                        }}>{trip.route.destination}</span>
+                                                        <span className="link-style1">{trip.route.destination}</span>
                                                     </td>
                                                     <td>
-                                                        <span className="link-style" onClick={(e) => {
-                                                            e.preventDefault();
-                                                        }}>
+                                                        <span className="link-style1">
                                                             {trip.dateLine && format(new Date(trip.dateLine), 'MM-dd-yyyy HH:mm')}
-                                                            <hr style={{ margin: "10px 0" }} />
+                                                            <hr style={{ margin: "10px 0", width: "150px" }} />
                                                             {trip.dueDate && format(new Date(trip.dueDate), 'MM-dd-yyyy HH:mm')}
                                                         </span>
                                                     </td>

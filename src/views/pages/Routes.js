@@ -196,12 +196,12 @@ const Routes = () => {
   const StationList = ({ stationList }) => {
     if (!showStationList) return null;
 
-    const availableStations = stationList.filter(
+    const availableStations = stationList?.filter(
       (station) => !chosenStations?.includes(station.id)
     );
 
     return (
-      <div style={{ height: "130px", overflowY: "scroll", borderRadius: "5px", marginRight: "34px", marginLeft: "12px" }}>
+      <div style={{ height: "130px", overflowY: "scroll", borderRadius: "5px", marginRight: "34px", marginLeft: "123px", width: "249px" }}>
         <ListGroup style={{ border: "1px solid #cad1d7", fontSize: "0.875rem" }}>
           {availableStations.map((station) => (
             <ListGroupItem
@@ -213,7 +213,7 @@ const Routes = () => {
                 border: "1px solid #d0d6dc",
                 borderRadius: "5px",
                 cursor: "pointer",
-                color: "#8898aa",
+
                 padding: "10px 12px"
               }}
               onClick={() => handleSelectStation(station)}
@@ -270,6 +270,7 @@ const Routes = () => {
     // Fetch stations again with updated chosen stations to include the removed station
     fetchStations(updatedChosenStations);
   };
+
 
 
 
@@ -340,7 +341,6 @@ const Routes = () => {
       }
     } catch (error) {
       console.error("Error fetching route details:", error);
-      alert("Error fetching route details");
     }
   }
 
@@ -362,7 +362,7 @@ const Routes = () => {
       if (routeData && routeData.routeStations && routeData.routeStations.length >= 2) {
         setSelectedStations(routeData.routeStations);
       } else {
-        alert("Error: Invalid route data");
+        console.log("Error: Invalid route data");
       }
       setFormData({
         ...formData,
@@ -374,7 +374,6 @@ const Routes = () => {
       setErrors({});
     } catch (error) {
       console.error("Error fetching route details:", error);
-      alert("Error fetching route details");
     }
   };
 
@@ -501,10 +500,25 @@ const Routes = () => {
   // ADD
   const handleAddRoute = async () => {
     const user = JSON.parse(localStorage.getItem('user'))
+    const newErrors = {};
     if (user == null || !user || isTokenExpired()) {
       setShowBackdrop(true)
       return;
     }
+    if (!formData.beginning) {
+      newErrors.Beginning = ['Please fill the Beginning'];
+    }
+    if (!formData.destination) {
+      newErrors.Destination = ['Please fill the Destination'];
+    }
+    if (!formData.distance) {
+      newErrors.Distance = ['Please fill the Distance'];
+    }
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+
     if (user?.accessToken) {
       try {
         const res = await axios.post(
@@ -647,11 +661,9 @@ const Routes = () => {
       hover: (item) => {
         const draggedIndex = item.index;
         const hoverIndex = index;
-        // Don't replace items with themselves
         if (draggedIndex === hoverIndex) {
           return;
         }
-        // Move the station from the dragged index to the hover index
         moveStation(draggedIndex, hoverIndex);
 
         item.index = hoverIndex;
@@ -663,11 +675,11 @@ const Routes = () => {
     return (
       <li
         ref={(node) => drag(drop(node))}
-        style={{ color: "#8898aa", marginBottom: "5px", border: "1px solid #cad1d7", padding: "10px 12px", borderRadius: "0.375rem", opacity }}
+        style={{ marginLeft: "50px", marginBottom: "5px", border: "1px solid #cad1d7", padding: "10px 12px", borderRadius: "0.375rem", opacity, width: "230px" }}
         key={station.id}
       >
         {station.name}
-        <img
+        {/* <img
           src={remove}
           alt="Delete"
           style={{ cursor: "pointer", float: "right", marginTop: "3px" }}
@@ -681,7 +693,7 @@ const Routes = () => {
             e.stopPropagation();
             removeStation(station.id);
           }}
-        />
+        /> */}
       </li>
     );
   };
@@ -750,132 +762,155 @@ const Routes = () => {
 
                   {/* Add model */}
                   <Modal show={showAdd} onHide={handleAddClose}>
-                    <Modal.Header >
-                      <Modal.Title>Add route</Modal.Title>
-                    </Modal.Header>
                     <Modal.Body>
                       <Form>
-                        <Form.Group className="mb-3" controlId="beginning">
-                          <Form.Label>Beginning</Form.Label>
+                        <p>Cases (*) are required</p>
+                        <Row className="container_input">
+                          <div className="flex input-group">
+                            <Form.Label className="align-items-center">
+                              Beginning*
+                            </Form.Label>
+                            <input
+                              className="input-form"
+                              type="text"
+                              name="beginning"
+                              placeholder="Beginning"
+                              autoFocus
+                              required
+                              maxLength={50}
+                              onChange={(e) => {
+                                setFormData({
+                                  ...formData,
+                                  beginning: e.target.value
+                                })
+                                setErrors({
+                                  ...errors,
+                                  Beginning: null
+                                });
+                              }}
+                            />
+                          </div>
                           {errors && errors.Beginning && (
-                            <span style={{ color: "red", float: "right" }}>*{errors.Beginning}</span>
+                            <span className="error-msg">{errors.Beginning}</span>
                           )}
-                          <Form.Control
-                            type="text"
-                            name="beginning"
-                            placeholder="Beginning"
-                            autoFocus
-                            required
-                            onChange={(e) => {
-                              setFormData({
-                                ...formData,
-                                beginning: e.target.value
-                              });
-                              setErrors({
-                                ...errors,
-                                Beginning: null
-                              });
-                            }}
-                          />
-                        </Form.Group>
-                        <Form.Group className="mb-3" controlId="destination">
-                          <Form.Label>Destination</Form.Label>
+                        </Row>
+                        <Row className="container_input">
+                          <div className="flex input-group">
+                            <Form.Label className="align-items-center">
+                              Destination*
+                            </Form.Label>
+                            <input
+                              className="input-form"
+                              type="text"
+                              name="destination"
+                              placeholder="Destination"
+                              autoFocus
+                              required
+                              maxLength={50}
+                              onChange={(e) => {
+                                setFormData({
+                                  ...formData,
+                                  destination: e.target.value
+                                })
+                                setErrors({
+                                  ...errors,
+                                  Destination: null
+                                });
+                              }}
+                            />
+                          </div>
                           {errors && errors.Destination && (
-                            <span style={{ color: "red", float: "right" }}>*{errors.Destination}</span>
+                            <span className="error-msg">{errors.Destination}</span>
                           )}
-                          <Form.Control
-                            type="text"
-                            name="destination"
-                            placeholder="Destination"
-                            onChange={(e) => {
-                              setFormData({
-                                ...formData,
-                                destination: e.target.value
-                              });
-                              setErrors({
-                                ...errors,
-                                Destination: null
-                              });
-                            }}
-                          />
-                        </Form.Group>
-                        <Form.Group className="mb-3" controlId="distance">
-                          <Form.Label>Distance</Form.Label>
+                        </Row>
+                        <Row className="container_input">
+                          <div className="flex input-group">
+                            <Form.Label className="align-items-center">
+                              Distance*
+                            </Form.Label>
+                            <input
+                              className="input-form"
+                              type="number"
+                              name="distance"
+                              placeholder="Distance"
+                              autoFocus
+                              required
+                              min={0}
+                              maxLength={50}
+                              onChange={(e) => {
+                                setFormData({
+                                  ...formData,
+                                  distance: e.target.value
+                                })
+                                setErrors({
+                                  ...errors,
+                                  Distance: null
+                                });
+                              }}
+                            />
+                          </div>
                           {errors && errors.Distance && (
-                            <span style={{ color: "red", float: "right" }}>*{errors.Distance}</span>
+                            <span className="error-msg">{errors.Distance}</span>
                           )}
-                          <Form.Control
-                            type="number"
-                            name="distance"
-                            placeholder="Distance"
-                            required
-                            min={0}
-                            onChange={(e) => {
-                              setFormData({
-                                ...formData,
-                                distance: e.target.value
-                              });
-                              setErrors({
-                                ...errors,
-                                Distance: null
-                              });
-                            }}
-                          />
-                        </Form.Group>
-                        <Form.Group className="mb-3" >
-                          <Form.Label>Stations</Form.Label>
-                          {errors && errors.StationIds && (
-                            <span style={{ color: "red", float: "right" }}>*{errors.StationIds}</span>
-                          )}
-                          <Row>
-                            <Col xs={11} onClick={() => setShowStationList(!showStationList)}>
-                              <ul
-                                style={{
-                                  padding: "10px 12px",
-                                  borderRadius: "0.375rem",
-                                  fontSize: "0.875rem",
-                                }}
-                              >
-                                {chosenStations.length === 0 && (
-                                  <li style={{ color: "#8898aa", marginBottom: "5px", border: "1px solid #cad1d7", padding: "10px 12px", borderRadius: "0.375rem" }}>Please choose a station</li>
-                                )}
-                                {chosenStations.map((stationId, index) => (
-                                  <StationItem
-                                    key={stationId}
-                                    station={stationList.find((station) => station.id === stationId)}
-                                    onRemoveStation={removeStation}
-                                    index={index}
-                                  />
-                                ))}
-                              </ul>
-                            </Col>
-                            {chosenStations.length > 1 && (
-                              <Col xs={1} className="d-flex align-items-center justify-content-center">
-                                <img
-                                  src={bin}
-                                  alt="Delete"
+                        </Row>
+                        <Row className="container_input">
+                          <div className="flex input-group">
+                            <Form.Label>
+                              Stations
+                            </Form.Label>
+                            <Row>
+                              <Col onClick={() => setShowStationList(!showStationList)}>
+                                <ul
                                   style={{
-                                    cursor: "pointer", marginBottom: "10px", paddingLeft: 0,
+                                    padding: "10px 12px",
+                                    borderRadius: "0.375rem",
+                                    fontSize: "0.875rem",
                                   }}
-                                  onMouseOver={(e) => {
-                                    e.target.src = binRed;
-                                  }}
-                                  onMouseOut={(e) => {
-                                    e.target.src = bin;
-                                  }}
-                                  onClick={() => {
-                                    setChosenStations([]);
-                                    setFormData({
-                                      ...formData,
-                                      stationIds: [],
-                                    });
-                                  }}
-                                />
+                                >
+                                  {chosenStations.length === 0 && (
+                                    <li style={{ marginLeft: "50px", border: "1px solid #cad1d7", padding: "10px 12px", borderRadius: "0.375rem" }}>Please choose a station</li>
+                                  )}
+                                  {chosenStations.map((stationId, index) => (
+                                    <StationItem
+                                      key={stationId}
+                                      station={stationList.find((station) => station.id === stationId)}
+                                      onRemoveStation={removeStation}
+                                      index={index}
+                                    />
+                                  ))}
+                                </ul>
                               </Col>
-                            )}
-                          </Row>
-                          <StationList stationList={stationList} />
-                        </Form.Group>
+                              {chosenStations.length > 0 && (
+                                <Col className="d-flex align-items-center justify-content-center">
+                                  <img
+                                    src={bin}
+                                    alt="Delete"
+                                    style={{
+                                      cursor: "pointer", marginBottom: "10px", paddingLeft: 0,
+                                    }}
+                                    onMouseOver={(e) => {
+                                      e.target.src = binRed;
+                                    }}
+                                    onMouseOut={(e) => {
+                                      e.target.src = bin;
+                                    }}
+                                    onClick={() => {
+                                      setChosenStations([]);
+                                      setFormData({
+                                        ...formData,
+                                        stationIds: [],
+                                      });
+                                    }}
+                                  />
+                                </Col>
+                              )}
+                            </Row>
+                            <StationList stationList={stationList} />
+                          </div>
+                          {errors && errors.Stations && (
+                            <span className="error-msg">{errors.Stations}</span>
+                          )}
+                        </Row>
                       </Form>
                     </Modal.Body>
                     <Modal.Footer>
@@ -1010,8 +1045,6 @@ const Routes = () => {
                                 {selectedStations.length === 0 && (
                                   <li
                                     style={{
-                                      color: "#8898aa",
-                                      marginBottom: "5px",
                                       marginLeft: 10,
                                       border: "1px solid #cad1d7",
                                       padding: "10px 12px",

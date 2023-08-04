@@ -16,6 +16,7 @@ import {
 import Header from "../../components/Headers/Header";
 import {
   getAllAccounts,
+  getMultiAccounts,
 } from "../../services/account";
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -27,7 +28,8 @@ const Accounts = () => {
   const navigate = useNavigate();
   const [showBackdrop, setShowBackdrop] = useState(false);
   const [accountList, setAccountList] = useState([]);
-
+  const [sortingOrder, setSortingOrder] = useState("oldest");
+  const [selectedStatus, setSelectedStatus] = useState("");
   // Check accessToken
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem("user"));
@@ -40,14 +42,42 @@ const Accounts = () => {
         if (res && res.data && res.data.data) {
           setAccountList(res.data.data);
         } else {
-          toast.error("Error: Invalid response data");
+          console.log("Error: Invalid response data");
           return;
         }
       })
       .catch((e) => {
-        toast.error("Error: " + e.message);
+        console.log("Error: " + e.message);
       });
   }, [navigate])
+
+  const fetchTrips = () => {
+    getMultiAccounts({ status: selectedStatus })
+      .then((res) => {
+        let sortedAccounts = res.data.data;
+        if (sortingOrder === "newest") {
+          sortedAccounts = res.data.data.sort((a, b) => b.id - a.id);
+        } else if (sortingOrder === "oldest") {
+          sortedAccounts = res.data.data.sort((a, b) => a.id - b.id);
+        }
+
+        setAccountList(sortedAccounts);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  };
+  useEffect(() => {
+    fetchTrips();
+  }, [sortingOrder, selectedStatus]);;
+
+  const handleSortingChange = (order) => {
+    setSortingOrder(order);
+  };
+
+  const handleStatusFilter = (status) => {
+    setSelectedStatus(status);
+  };
 
   // EXPIRED
   const handleLogoutClose = () => {
@@ -122,9 +152,40 @@ const Accounts = () => {
                     </Button>
                   </Modal.Body>
                 </Modal>
-                
+
                 {/* Table list */}
                 <div className="list">
+                  <div style={{ display: "flex" }}>
+                    <div style={{ flexGrow: "8" }}></div>
+                    <div style={{ padding: "20px"}}>
+                      Filter by Status:
+                      <select
+                        as="select"
+                        value={selectedStatus}
+                        onChange={(e) => handleStatusFilter(e.target.value)}
+                        style={{ height: "22px", borderRadius: "5px", marginLeft: "10px", fontSize: "0.9rem" }}
+                      >
+                        <option value="">All</option>
+                        <option value="ACTIVE">Active</option>
+                        <option value="INACTIVE">Inactive</option>
+                        <option value="DELETED">Deleted</option>
+                        <option value="UNSIGNED">Unsigned</option>
+                      </select>
+                    </div>
+                    <div style={{ paddingTop: "20px", paddingLeft: "20px" }}>
+                      Sort:
+                      <select
+                        as="select"
+                        value={sortingOrder}
+                        onChange={(e) => handleSortingChange(e.target.value)}
+                        style={{ height: "22px", borderRadius: "5px", marginLeft: "10px", fontSize: "0.9rem" }}
+                      >
+                        <option value="oldest">Oldest Accounts</option>
+                        <option value="newest">Newest Accounts</option>
+                      </select>
+                    </div>
+                    <div style={{ flexGrow: "1" }}></div>
+                  </div>
                   <Table striped bordered hover>
                     <thead>
                       <tr>

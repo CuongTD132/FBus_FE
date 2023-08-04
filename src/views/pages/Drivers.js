@@ -279,8 +279,30 @@ const Drivers = () => {
   // ADD
   const handleAddDriver = () => {
     const user = JSON.parse(localStorage.getItem('user'))
+    const newErrors = {};
     if (user == null || !user || isTokenExpired()) {
       setShowBackdrop(true)
+      return;
+    }
+    if (!formData.fullName) {
+      newErrors.FullName = ['Please enter the Full Name'];
+    }
+    if (!formData.gender) {
+      newErrors.Gender = ['Please choose the Gender'];
+    }
+    if (!formData.idCardNumber) {
+      newErrors.IdCardNumber = ['Please enter the Id Card Number'];
+    }
+
+    if (!formData.phoneNumber) {
+      newErrors.PhoneNumber = ['Please enter the Phone Number'];
+    }
+
+    if (!formData.dateOfBirth) {
+      newErrors.DateOfBirth = ['Please choose the Date Of Birth'];
+    }
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
       return;
     }
     addDriverAPI(formData)
@@ -298,9 +320,6 @@ const Drivers = () => {
         if (e.response.data.errors) {
           setErrors(e.response.data.errors);
         }
-        toast.error("Failed to add this driver!", {
-          autoClose: 1000,
-        });
         setShowAdd(true);
       });
   };
@@ -369,7 +388,17 @@ const Drivers = () => {
     setDriverList(drivers)
   }, [drivers])
   // END REDUX
+  const combineDate = (day, month, year) => {
+    const formattedDay = day ? String(day).padStart(2, "0") : "01";
+    const formattedMonth = month ? String(month).padStart(2, "0") : "01";
+    const formattedYear = year ? String(year) : "YYYY";
+    return `${formattedYear}-${formattedMonth}-${formattedDay}`;
+  };
 
+  const currentYear = new Date().getFullYear();
+  const days = Array.from({ length: 31 }, (_, i) => i + 1);
+  const months = Array.from({ length: 12 }, (_, i) => i + 1);
+  const years = Array.from({ length: currentYear - 1950 + 1 }, (_, i) => currentYear - 18 - i);
   return (
     <>
       <Header />
@@ -438,35 +467,6 @@ const Drivers = () => {
                       <Row className="container_input">
                         <div className="flex input-group">
                           <Form.Label className="align-items-center">
-                            Email
-                          </Form.Label>
-                          <input
-                            className="input-form"
-                            type="email"
-                            name="email"
-                            placeholder="fbus@gmail.com"
-                            autoFocus
-                            required
-                            maxLength={40}
-                            onChange={(e) => {
-                              setFormData({
-                                ...formData,
-                                email: e.target.value
-                              })
-                              setErrors({
-                                ...errors,
-                                Email: null
-                              });
-                            }}
-                          />
-                        </div>
-                        {errors && errors.Email && (
-                          <span className="error-msg">{errors.Email}</span>
-                        )}
-                      </Row>
-                      <Row className="container_input">
-                        <div className="flex input-group">
-                          <Form.Label className="align-items-center">
                             Full Name*
                           </Form.Label>
                           <input
@@ -496,7 +496,7 @@ const Drivers = () => {
                       <Row className="container_input">
                         <div className="flex input-group">
                           <Form.Label className="align-items-center">
-                          Gender*
+                            Gender*
                           </Form.Label>
                           <select
                             className="input-form"
@@ -526,7 +526,7 @@ const Drivers = () => {
                       <Row className="container_input">
                         <div className="flex input-group">
                           <Form.Label className="align-items-center">
-                          Id Card Number*
+                            Id Card Number*
                           </Form.Label>
                           <input
                             className="input-form"
@@ -556,36 +556,36 @@ const Drivers = () => {
                       <Row className="container_input">
                         <div className="flex input-group">
                           <Form.Label className="align-items-center">
-                          Address*
+                            Address*
                           </Form.Label>
                           <input
                             className="input-form"
                             type="text"
                             name="address"
-                            placeholder="1234567890"
+                            placeholder="Address Number"
                             autoFocus
                             required
                             maxLength={100}
                             onChange={(e) => {
                               setFormData({
                                 ...formData,
-                                idCardNumber: e.target.value
+                                address: e.target.value
                               })
                               setErrors({
                                 ...errors,
-                                IdCardNumber: null
+                                Address: null
                               });
                             }}
                           />
                         </div>
-                        {errors && errors.IdCardNumber && (
-                          <span className="error-msg">{errors.IdCardNumber}</span>
+                        {errors && errors.Address && (
+                          <span className="error-msg">{errors.Address}</span>
                         )}
                       </Row>
                       <Row className="container_input">
                         <div className="flex input-group">
                           <Form.Label className="align-items-center">
-                          Phone Number*
+                            Phone Number*
                           </Form.Label>
                           <input
                             className="input-form"
@@ -614,20 +614,119 @@ const Drivers = () => {
                       <Row className="container_input">
                         <div className="flex input-group">
                           <Form.Label className="align-items-center">
-                          Personal Email
+                            Date of Birth*
+                          </Form.Label>
+                          <div className="date-input-container">
+                            <select
+                              className="input-form date-input"
+                              name="day"
+                              value={formData.day || ''}
+                              onChange={(e) => {
+                                const day = e.target.value;
+                                setFormData((prevFormData) => ({
+                                  ...prevFormData,
+                                  day,
+                                  dateOfBirth: combineDate(day, prevFormData.month, prevFormData.year)
+                                }));
+                              }}
+                            >
+                              <option value="">DD</option>
+                              {days.map((day) => (
+                                <option key={day} value={day}>
+                                  {day}
+                                </option>
+                              ))}
+                            </select>
+                            <span className="date-separator">/</span>
+                            <select
+                              className="input-form date-input"
+                              name="month"
+                              value={formData.month || ''}
+                              onChange={(e) => {
+                                const month = e.target.value;
+                                setFormData((prevFormData) => ({
+                                  ...prevFormData,
+                                  month,
+                                  dateOfBirth: combineDate(prevFormData.day, month, prevFormData.year)
+                                }));
+                              }}
+                            >
+                              <option value="">MM</option>
+                              {months.map((month) => (
+                                <option key={month} value={month}>
+                                  {month}
+                                </option>
+                              ))}
+                            </select>
+                            <span className="date-separator">/</span>
+                            <select
+                              className="input-form date-input"
+                              name="year"
+                              value={formData.year || ''}
+                              onChange={(e) => {
+                                const year = e.target.value;
+                                setFormData((prevFormData) => ({
+                                  ...prevFormData,
+                                  year,
+                                  dateOfBirth: combineDate(prevFormData.day, prevFormData.month, year)
+                                }));
+                              }}
+                            >
+                              <option value="">YYYY</option>
+                              {years.map((year) => (
+                                <option key={year} value={year}>
+                                  {year}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        </div>
+                        {errors && errors.DateOfBirth && (
+                          <span className="error-msg">{errors.DateOfBirth}</span>
+                        )}
+                      </Row>
+                      <Row className="container_input">
+                        <div className="flex input-group">
+                          <Form.Label className="align-items-center">
+                            Email
+                          </Form.Label>
+                          <input
+                            className="input-form"
+                            type="email"
+                            name="email"
+                            placeholder="fbus@gmail.com"
+                            maxLength={40}
+                            onChange={(e) => {
+                              setFormData({
+                                ...formData,
+                                email: e.target.value
+                              })
+                              setErrors({
+                                ...errors,
+                                Email: null
+                              });
+                            }}
+                          />
+                        </div>
+                        {errors && errors.Email && (
+                          <span className="error-msg">{errors.Email}</span>
+                        )}
+                      </Row>
+                      <Row className="container_input">
+                        <div className="flex input-group">
+                          <Form.Label className="align-items-center">
+                            Personal Email
                           </Form.Label>
                           <input
                             className="input-form"
                             type="email"
                             name="personalEmail"
-                            placeholder="Personal Email"
-                            autoFocus
-                            required
+                            placeholder="personalEmail@gmail.com"
                             maxLength={40}
                             onChange={(e) => {
                               setFormData({
                                 ...formData,
-                                phoneNumber: e.target.value
+                                personalEmail: e.target.value
                               })
                               setErrors({
                                 ...errors,
@@ -640,47 +739,25 @@ const Drivers = () => {
                           <span className="error-msg">{errors.PersonalEmail}</span>
                         )}
                       </Row>
-                      <Form.Group className="mb-3" controlId="dateOfBirth">
-                        <Form.Label>Date of Birth (MM-DD-YYYY)*</Form.Label>
-                        {errors && errors.DateOfBirth && (
-                          <span style={{ color: "red", float: "right" }}>*{errors.DateOfBirth}</span>
-                        )}
-                        <Form.Control
-                          type="date"
-                          name="dateOfBirth"
-                          required
-                          onChange={(e) => {
-                            const inputDate = e.target.value;
-                            const formattedDate = inputDate
-                              .split("-")
-                              .map((part) => part.padStart(2, "0"))
-                              .join("-");
-
-                            setFormData({
-                              ...formData,
-                              dateOfBirth: formattedDate
-                            });
-                            setErrors({
-                              ...errors,
-                              DateOfBirth: null
-                            });
-                          }}
-                        />
-                      </Form.Group>
-                      <Form.Group className="mb-3" controlId="avatarFile">
-                        <Form.Label>Avatar File</Form.Label>
-                        <Form.Control
-                          type="file"
-                          name="avatarFile"
-                          accept=".jpeg, .png, .svg, .jpg"
-                          onChange={(e) => {
-                            setFormData({
-                              ...formData,
-                              avatarFile: e.target.files[0]
-                            });
-                          }}
-                        />
-                      </Form.Group>
+                      <Row className="container_input">
+                        <div className="flex input-group">
+                          <Form.Label className="align-items-center">
+                            Avatar File
+                          </Form.Label>
+                          <input
+                            className="input-form"
+                            type="file"
+                            name="avatarFile"
+                            accept=".jpeg, .png, .svg, .jpg"
+                            onChange={(e) => {
+                              setFormData({
+                                ...formData,
+                                avatarFile: e.target.files[0]
+                              });
+                            }}
+                          />
+                        </div>
+                      </Row>
                     </Form>
                   </Modal.Body>
                   <Modal.Footer>
@@ -826,31 +903,6 @@ const Drivers = () => {
                               email: e.target.value
                             })
                             setIsUpdated(true);
-                          }}
-                        />
-                      </Form.Group>
-                      <Form.Group className="mb-3" controlId="code">
-                        <Form.Label>Code</Form.Label>
-                        {errors && errors.Code && (
-                          <span style={{ color: "red", float: "right" }}>*{errors.Code}</span>
-                        )}
-                        <Form.Control
-                          type="text"
-                          name="code"
-                          placeholder="code"
-                          autoFocus
-                          required
-                          value={formData.code}
-                          onChange={(e) => {
-                            setFormData({
-                              ...formData,
-                              code: e.target.value
-                            })
-                            setIsUpdated(true);
-                            setErrors({
-                              ...errors,
-                              Code: null
-                            });
                           }}
                         />
                       </Form.Group>
